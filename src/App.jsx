@@ -6,10 +6,7 @@ import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Actividades from './components/Actividades';
 import Home from './components/Home';
-import Examen from './components/Examen';
-
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
@@ -58,25 +55,4 @@ function App() {
             <div className="flag-item"><div className="flag mexico"></div><div className="flag-label">México</div></div>
             <div className="flag-item"><div className="flag peru"></div><div className="flag-label">Perú</div></div>
             <div className="flag-item"><div className="flag panama"></div><div className="flag-label">Panamá</div></div>
-          </div>
-        </div>
-      ) : (
-        <Router>
-          <div id="contenidoPrincipal">
-            <Sidebar token={token} />
-            <ProfileModal token={token} />
-            <ChatModal token={token} />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/actividades" element={<Actividades />} />
-              <Route path="/examen" element={<Examen />} />  {/* ← Esta es la nueva */}
-            </Routes>
-            <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
-          </div>
-        </Router>
-      )}
-    </>
-  );
-}
-
-export default App;
+          </
