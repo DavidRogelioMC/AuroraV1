@@ -1,4 +1,3 @@
-// src/components/ActividadModal.jsx
 import './ActividadModal.css';
 import { useState } from 'react';
 
