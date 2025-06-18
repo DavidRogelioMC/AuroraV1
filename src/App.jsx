@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
+import ActividadModal from './components/ActividadModal'; // ✅ NUEVO
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
@@ -10,9 +11,9 @@ import Actividades from './components/Actividades';
 import Home from './components/Home';
 import Examen from './components/Examen';
 
-
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
+  const [modalActividades, setModalActividades] = useState(false); // ✅ NUEVO
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
@@ -63,13 +64,18 @@ function App() {
       ) : (
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar token={token} />
+            <Sidebar token={token} onOpenActividades={() => setModalActividades(true)} /> {/* ✅ PASAMOS PROP */}
             <ProfileModal token={token} />
             <ChatModal token={token} />
+            <ActividadModal
+              visible={modalActividades}
+              onClose={() => setModalActividades(false)}
+              token={token}
+            /> {/* ✅ MODAL ACTIVIDADES */}
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/actividades" element={<Actividades />} />
-              <Route path="/examen" element={<Examen />} />  {/* ← Esta es la nueva */}
+              <Route path="/examen" element={<Examen />} />
             </Routes>
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
           </div>
