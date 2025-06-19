@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
-import ActividadModal from './components/ActividadModal';
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
