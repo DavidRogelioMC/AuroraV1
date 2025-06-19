@@ -17,12 +17,12 @@ function Sidebar() {
           <span>Módulos</span>
         </Link>
 
-        <Link to="/actividades" className="step">
+        <Link to="/" className="step">
           <div className="circle">📘</div>
           <span>Actividades</span>
         </Link>
 
-        <Link to="/examen" className="step">
+        <Link to="/" className="step">
           <div className="circle">🔬</div>
           <span>Examen</span>
         </Link>
