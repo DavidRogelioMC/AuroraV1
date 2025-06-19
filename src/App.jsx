@@ -61,11 +61,12 @@ function App() {
         <Router>
           <div id="contenidoPrincipal">
             <Sidebar token={token} />
-            <ProfileModal token={token} />
-            <ChatModal token={token} />
+            <div className="home-container"> {/* <-- Agregado */}
             <Routes>
               <Route path="/" element={<Home />} />
             </Routes>
+            <ProfileModal token={token} />
+            <ChatModal token={token} />
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </Router>
