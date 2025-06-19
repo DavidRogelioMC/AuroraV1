@@ -5,15 +5,15 @@ import ProfileModal from './components/ProfileModal';
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
-
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './components/Home';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
- 
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI;
 
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
 
@@ -63,10 +63,16 @@ function App() {
             <Sidebar token={token} />
             <ProfileModal token={token} />
             <ChatModal token={token} />
-            
+            <Routes>
+              <Route path="/" element={<Home />} />
+            </Routes>
+            <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
+          </div>
+        </Router>
       )}
     </>
   );
 }
 
 export default App;
+
