@@ -16,12 +16,12 @@ function Sidebar() {
           <div className="circle">🧠</div>
           <span>Módulos</span>
         </Link>
-
+      <div id="Actividades">
         <Link to="/" className="step">
           <div className="circle">📘</div>
           <span>Actividades</span>
         </Link>
-
+       <div id="Examen">
         <Link to="/" className="step">
           <div className="circle">🔬</div>
           <span>Examen</span>
