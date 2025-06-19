@@ -1,5 +1,7 @@
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
+import { Link } from 'react-router-dom';
+
 
 
 function Sidebar() {
