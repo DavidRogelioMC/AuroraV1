@@ -56,7 +56,7 @@ function App() {
             <div className="flag-item"><div className="flag peru"></div><div className="flag-label">Perú</div></div>
             <div className="flag-item"><div className="flag panama"></div><div className="flag-label">Panamá</div></div>
           </div>
-</div>
+     </div>
       ) : (
 <Router>
 <div id="contenidoPrincipal">
@@ -73,4 +73,5 @@ function App() {
 </>
   );
 }
+ 
 export default App;
