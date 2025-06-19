@@ -5,10 +5,11 @@ import ProfileModal from './components/ProfileModal';
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './components/Home';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
-  const [modalActividades, setModalActividades] = useState(false);
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
@@ -48,18 +49,30 @@ function App() {
               Comenzar Ahora
             </button>
           </div>
+          <div className="country-flags">
+            <div className="flag-item"><div className="flag chile"></div><div className="flag-label">Chile</div></div>
+            <div className="flag-item"><div className="flag colombia"></div><div className="flag-label">Colombia</div></div>
+            <div className="flag-item"><div className="flag mexico"></div><div className="flag-label">México</div></div>
+            <div className="flag-item"><div className="flag peru"></div><div className="flag-label">Perú</div></div>
+            <div className="flag-item"><div className="flag panama"></div><div className="flag-label">Panamá</div></div>
+          </div>
         </div>
       ) : (
-        <div id="contenidoPrincipal">
-          <Sidebar token={token} onOpenActividades={() => setModalActividades(true)} />
-          <ProfileModal token={token} />
-          <ChatModal token={token} />
-          <ActividadModal visible={modalActividades} onClose={() => setModalActividades(false)} token={token} />
-          <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
-        </div>
+        <Router>
+          <div id="contenidoPrincipal">
+            <Sidebar token={token} />
+            <ProfileModal token={token} />
+            <ChatModal token={token} />
+            <Routes>
+              <Route path="/" element={<Home />} />
+            </Routes>
+            <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
+          </div>
+        </Router>
       )}
     </>
   );
 }
 
 export default App;
+
