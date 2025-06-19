@@ -1,6 +1,6 @@
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
-import { Link } from 'react-router-dom';
+
 
 function Sidebar() {
   return (
@@ -16,19 +16,20 @@ function Sidebar() {
           <div className="circle">🧠</div>
           <span>Módulos</span>
         </Link>
-      <div id="Actividades">
-        <Link to="/" className="step">
+
+        <div className="step">
           <div className="circle">📘</div>
           <span>Actividades</span>
-        </Link>
-       <div id="Examen">
-        <Link to="/" className="step">
+        </div>
+
+        <div className="step">
           <div className="circle">🔬</div>
           <span>Examen</span>
-        </Link>
+        </div>
       </div>
     </div>
   );
 }
 
 export default Sidebar;
+
