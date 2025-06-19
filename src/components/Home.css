@@ -1,0 +1,10 @@
+.home {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f3f8ff; /* o el color que usas para el fondo blanco */
+  padding: 20px;
+}
