@@ -13,7 +13,7 @@ function Home() {
       }}
     >
       <div style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2.5em', color: '#1b5784' }}>Bienvenido a THOR</h1>
+         <h1 style={{ fontSize: '2.5em', color: '#1b5784' }}>Bienvenido a THOR</h1>
         <p style={{ fontSize: '1.2em', color: '#333', marginTop: '200px' }}>
           Comienza tu experiencia educativa interactiva con IA.<br />
           Usa la barra lateral para acceder a las opciones.
