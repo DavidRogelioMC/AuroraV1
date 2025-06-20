@@ -15,7 +15,7 @@ function App() {
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI;
 
-  const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
+  const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
 
   useEffect(() => {
     const hash = window.location.hash;
