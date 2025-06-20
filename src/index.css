@@ -72,6 +72,7 @@ button:focus-visible {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #f3f8ff; /* o el color de fondo que prefieras */
+  background-color: #f3f8ff;
   padding: 20px;
+  height: 100vh;
 }
