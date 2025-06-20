@@ -15,7 +15,7 @@ function App() {
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI;
 
-  const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${redirectUri}`;
+  const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -29,7 +29,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("id_token");
-    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${redirectUri}`;
+    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
     window.location.href = logoutUrl;
   };
 
@@ -75,4 +75,3 @@ function App() {
 }
 
 export default App;
-
