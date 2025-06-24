@@ -1,3 +1,20 @@
+/* Forzar modo claro */
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: white !important;
+  color: black !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;

@@ -9,6 +9,16 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 
 function App() {
+  useEffect(() => {
+    // Remover clases de modo oscuro
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+    
+    // Forzar modo claro
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
+
+function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
@@ -72,6 +82,8 @@ function App() {
       )}
 </>
   );
+}
+
 }
  
 export default App;
