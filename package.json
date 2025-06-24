@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
-   
+    "react-dom": "^19.1.0",  <-- ¡AÑADE UNA COMA AQUÍ!
+    "react-router-dom": "^6.24.0"   <-- AÑADE ESTA LÍNEA COMPLETA
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
@@ -26,4 +26,3 @@
     "vite": "^6.3.5"
   }
 }
-
