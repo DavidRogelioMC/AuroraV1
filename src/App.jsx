@@ -59,17 +59,17 @@ const handleLogout = () => {
           </div>
      </div>
       ) : (
-<Router>
-<div id="contenidoPrincipal">
-<Sidebar token={token} />
-<ProfileModal token={token} />
-<ChatModal token={token} />
-<Routes>
-<Route path="/" element={<Home />} />
-</Routes>
-<button id="logout" onClick={handleLogout}>Cerrar sesión</button>
-</div>
-</Router>
+        <Router>
+          <div id="contenidoPrincipal">
+            <Sidebar token={token} />
+            <ProfileModal token={token} />
+            <ChatModal token={token} />
+            <Routes>
+              <Route path="/" element={<Home />} />
+            </Routes>
+            <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
+          </div>
+        </Router>
       )}
 </>
   );
@@ -77,3 +77,4 @@ const handleLogout = () => {
 
  
 export default App;
+
