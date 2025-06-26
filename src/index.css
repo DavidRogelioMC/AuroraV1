@@ -1,3 +1,20 @@
+/* Forzar modo claro */
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: white !important;
+  color: black !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -65,4 +82,22 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+#logout {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+#logout:hover {
+  background-color: #c9302c;
 }
