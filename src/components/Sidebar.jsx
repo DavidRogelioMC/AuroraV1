@@ -34,3 +34,4 @@ function Sidebar({ onOpenActividades }) {
 }
 
 export default Sidebar;
+
