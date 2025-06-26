@@ -29,8 +29,21 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("id_token");
+
+    // Construimos la URL de logout
     const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${redirectUri}`;
-    window.location.href = logoutUrl;
+    
+    // Mostramos en consola los valores exactos que estamos usando
+    console.log("--- DATOS DE DEPURACIÓN DE LOGOUT ---");
+    console.log("Client ID enviado:", clientId);
+    console.log("Logout URI enviada:", redirectUri);
+    console.log("URL completa generada:", logoutUrl);
+    
+    // Mostramos una alerta y detenemos la redirección para poder ver la consola
+    alert("Revisa la consola del navegador (F12) para ver los datos de depuración.");
+    
+    // La redirección está comentada temporalmente
+    // window.location.href = logoutUrl;
   };
 
   return (
