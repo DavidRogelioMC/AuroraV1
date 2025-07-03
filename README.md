@@ -1,10 +1,10 @@
-# THOR - Plataforma React con AWS Cognito + Bedrock + Amplify
+# AURORA - Plataforma React con AWS Cognito + Bedrock + Amplify
 
 ## 📦 Instalación local
 
 ```bash
-git clone https://github.com/tuusuario/thor.git
-cd thor
+git clone https://github.com/tuusuario/aurora.git
+cd aurora
 npm install
 cp .env.example .env
 ```
