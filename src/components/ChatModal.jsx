@@ -27,7 +27,7 @@ function ChatModal({ token }) {
         agregarBurbuja('ia', item.respuesta);
       });
     } catch {
-      agregarBurbuja('ia', '⚠️ No se pudo cargar el historial.');
+      agregarBurbuja('ia', '⚠️ No se pudo cargar el historial ⚠️');
     }
   };
 
