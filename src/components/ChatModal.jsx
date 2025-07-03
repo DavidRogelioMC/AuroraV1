@@ -80,7 +80,7 @@ function ChatModal({ token }) {
       <button id="abrirChat" onClick={() => { setVisible(true); cargarHistorial(); }}>🤖</button>
       <div id="modalChat" className={visible ? 'show' : ''}>
         <header>
-          <strong> T H O R </strong>
+          <div className="chat-header">THOR</div>
           <div>
             <button onClick={borrarHistorial}>🗑 Limpiar chat</button>
             <button onClick={() => setVisible(false)}>❌</button>
