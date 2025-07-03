@@ -1,3 +1,5 @@
+// Estas son importaciones necesarias para el funcionamiento de la aplicación.
+
 import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
