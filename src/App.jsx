@@ -29,12 +29,11 @@ function App() {
     }
   }, []);
 
-const handleLogout = () => {
-  localStorage.removeItem("id_token");
-  // Es una buena práctica codificar la URI para asegurar que se interpreta correctamente.
-  const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
-  window.location.href = logoutUrl;
-};
+  const handleLogout = () => {
+    localStorage.removeItem("id_token");
+    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = logoutUrl;
+  };
 
   return (
     <>
@@ -46,20 +45,20 @@ const handleLogout = () => {
           </div>
           <div className="main-content">
             <div className="illustration">
-              <img src={previewImg} alt="Ilustración" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src={previewImg} alt="Ilustración" />
             </div>
             <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
               Comenzar Ahora
             </button>
           </div>
           <div className="country-flags">
-            <div className="flag-item"><div className="flag chile"></div><div className="flag-label">Chile</div></div>
-            <div className="flag-item"><div className="flag colombia"></div><div className="flag-label">Colombia</div></div>
-            <div className="flag-item"><div className="flag mexico"></div><div className="flag-label">México</div></div>
-            <div className="flag-item"><div className="flag peru"></div><div className="flag-label">Perú</div></div>
-            <div className="flag-item"><div className="flag panama"></div><div className="flag-label">Panamá</div></div>
+            <div className="flag-item"><div className="flag-label">Chile</div></div>
+            <div className="flag-item"><div className="flag-label">Colombia</div></div>
+            <div className="flag-item"><div className="flag-label">México</div></div>
+            <div className="flag-item"><div className="flag-label">Perú</div></div>
+            <div className="flag-item"><div className="flag-label">Panamá</div></div>
           </div>
-     </div>
+        </div>
       ) : (
         <Router>
           <div id="contenidoPrincipal">
@@ -73,10 +72,8 @@ const handleLogout = () => {
           </div>
         </Router>
       )}
-</>
+    </>
   );
 }
 
- 
 export default App;
-
