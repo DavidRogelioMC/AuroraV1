@@ -1,3 +1,4 @@
+//No tocar este archivo
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
