@@ -2,10 +2,35 @@
 import './ChatModal.css';
 import { useState } from 'react';
 
+// --- PASO 1: Define tus temas (Bases de Conocimiento) ---
+// Coloca esto justo al principio del componente.
+const basesDeConocimiento = [
+  {
+    nombre: "Python",
+    id: "AVDJ3M69B7",
+    icono: "🧠" 
+  },
+  {
+    nombre: "AWS",
+    id: "WKNJIRXQUT",
+    icono: "☁️" 
+  },
+  {
+    nombre: "AZ 104",
+    id: "ZOWS9MQ9GG",
+    icono: "🔬"
+  }
+];
+
+
 function ChatModal({ token }) {
   const [visible, setVisible] = useState(false);
   const [historial, setHistorial] = useState([]);
   const [pregunta, setPregunta] = useState('');
+  
+  // --- PASO 2: Crea el estado para el tema activo ---
+  // Elige uno por defecto.
+  const [baseActivaId, setBaseActivaId] = useState(basesDeConocimiento[0].id);
 
   const apiUrl = import.meta.env.VITE_API_CHAT;
   const historialUrl = import.meta.env.VITE_API_HISTORIAL;
@@ -14,23 +39,9 @@ function ChatModal({ token }) {
     setHistorial(h => [...h, { tipo, texto }]);
   };
 
-  const cargarHistorial = async () => {
-    try {
-      const res = await fetch(historialUrl, {
-        method: 'GET',
-        headers: { Authorization: token },
-      });
-      const data = await res.json();
-      setHistorial([]);
-      data.historial.forEach(item => {
-        agregarBurbuja('usuario', item.pregunta);
-        agregarBurbuja('ia', item.respuesta);
-      });
-    } catch {
-      agregarBurbuja('ia', '⚠️ No se pudo cargar el historial ⚠️');
-    }
-  };
+  const cargarHistorial = async () => { /* ... (sin cambios) ... */ };
 
+  // --- PASO 4: Modifica la función `enviarPregunta` ---
   const enviarPregunta = async () => {
     if (!pregunta.trim()) return;
     agregarBurbuja('usuario', pregunta);
@@ -44,7 +55,12 @@ function ChatModal({ token }) {
           Authorization: token,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ pregunta }),
+        // ¡CAMBIO CLAVE AQUÍ!
+        // Ahora enviamos tanto la pregunta como el ID de la base de conocimiento.
+        body: JSON.stringify({ 
+          pregunta: pregunta,
+          knowledgeBaseId: baseActivaId  // <-- Añadimos el ID activo
+        }),
       });
       const data = await res.json();
       setHistorial(prev =>
@@ -61,19 +77,7 @@ function ChatModal({ token }) {
     }
   };
 
-  const borrarHistorial = async () => {
-    if (!window.confirm('¿Estás seguro de que deseas borrar tu historial?')) return;
-    try {
-      await fetch(historialUrl, {
-        method: 'DELETE',
-        headers: { Authorization: token },
-      });
-      setHistorial([]);
-      agregarBurbuja('ia', '✅ Historial eliminado correctamente.');
-    } catch {
-      agregarBurbuja('ia', '❌ No se pudo eliminar el historial.');
-    }
-  };
+  const borrarHistorial = async () => { /* ... (sin cambios) ... */ };
 
   return (
     <>
@@ -85,6 +89,21 @@ function ChatModal({ token }) {
             <button onClick={() => setVisible(false)}>❌</button>
           </div>
         </header>
+
+        {/* --- PASO 3: Agrega los botones a la interfaz (JSX) --- */}
+        {/* Coloca esto justo después del <header> y antes de #historial */}
+        <div className="base-selector">
+          {basesDeConocimiento.map(base => (
+            <button 
+              key={base.id}
+              className={`btn-tema ${base.id === baseActivaId ? 'activo' : ''}`}
+              onClick={() => setBaseActivaId(base.id)}
+            >
+              {base.icono} {base.nombre}
+            </button>
+          ))}
+        </div>
+
         <div id="historial">
           <div id="historialContenido">
             {historial.map((msg, idx) => (
