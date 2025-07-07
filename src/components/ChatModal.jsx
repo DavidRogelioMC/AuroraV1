@@ -101,13 +101,14 @@ function ChatModal({ token }) {
       
       <div id="modalChat" className={visible ? 'show' : ''}>
         <header>
+          <h2 className="chat-header">Asistente THOR</h2>
           <div>
-            <button onClick={borrarHistorial}>🗑 Limpiar chat</button>
+            <button onClick={borrarHistorial}>🗑</button>
             <button onClick={() => setVisible(false)}>❌</button>
           </div>
         </header>
 
-        {/* --- Bloque de botones de tema CORREGIDO --- */}
+        {/* Bloque de botones de tema con la estructura corregida */}
         <div className="base-selector">
           {basesDeConocimiento.map(base => (
             <button 
