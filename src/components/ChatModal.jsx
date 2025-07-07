@@ -27,7 +27,7 @@ function ChatModal({ token }) {
         agregarBurbuja('ia', item.respuesta);
       });
     } catch {
-      agregarBurbuja('ia', '⚠️ No se pudo cargar el historial.');
+      agregarBurbuja('ia', '⚠️ No se pudo cargar el historial ⚠️');
     }
   };
 
@@ -80,7 +80,6 @@ function ChatModal({ token }) {
       <button id="abrirChat" onClick={() => { setVisible(true); cargarHistorial(); }}>🤖</button>
       <div id="modalChat" className={visible ? 'show' : ''}>
         <header>
-          <strong>A U R O R A</strong>
           <div>
             <button onClick={borrarHistorial}>🗑 Limpiar chat</button>
             <button onClick={() => setVisible(false)}>❌</button>
