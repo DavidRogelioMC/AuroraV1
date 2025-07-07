@@ -3,7 +3,7 @@
 import './ChatModal.css';
 import { useState } from 'react';
 
-// Array con las bases de conocimiento disponibles. ¡Bien hecho al poner los IDs reales!
+// Array con las bases de conocimiento disponibles.
 const basesDeConocimiento = [
   { nombre: "Python", id: "AVDJ3M69B7", icono: "🧠" },
   { nombre: "AWS", id: "WKNJIRXQUT", icono: "☁️" },
@@ -21,12 +21,12 @@ function ChatModal({ token }) {
   const apiUrl = import.meta.env.VITE_API_CHAT;
   const historialUrl = import.meta.env.VITE_API_HISTORIAL;
 
-  // --- Función para agregar mensajes a la vista ---
+  // Función para agregar mensajes a la vista
   const agregarBurbuja = (tipo, texto) => {
     setHistorial(h => [...h, { tipo, texto }]);
   };
 
-  // --- Función para cargar el historial (COMPLETA) ---
+  // Función para cargar el historial
   const cargarHistorial = async () => {
     try {
       const res = await fetch(historialUrl, {
@@ -34,7 +34,7 @@ function ChatModal({ token }) {
         headers: { Authorization: token },
       });
       const data = await res.json();
-      setHistorial([]); // Limpiamos antes de cargar para evitar duplicados
+      setHistorial([]);
       data.historial.forEach(item => {
         agregarBurbuja('usuario', item.pregunta);
         agregarBurbuja('ia', item.respuesta);
@@ -44,14 +44,14 @@ function ChatModal({ token }) {
     }
   };
 
-  // --- Función para enviar la pregunta (MODIFICADA) ---
+  // Función para enviar la pregunta
   const enviarPregunta = async () => {
     if (!pregunta.trim()) return;
     
-    const preguntaActual = pregunta; // Guardamos la pregunta antes de limpiar el input
+    const preguntaActual = pregunta;
     agregarBurbuja('usuario', preguntaActual);
     agregarBurbuja('ia', '⏳ Generando respuesta...');
-    setPregunta(''); // Limpiamos el input
+    setPregunta('');
 
     try {
       const res = await fetch(apiUrl, {
@@ -80,7 +80,7 @@ function ChatModal({ token }) {
     }
   };
 
-  // --- Función para borrar el historial (COMPLETA) ---
+  // Función para borrar el historial
   const borrarHistorial = async () => {
     if (!window.confirm('¿Estás seguro de que deseas borrar tu historial?')) return;
     try {
@@ -107,7 +107,7 @@ function ChatModal({ token }) {
           </div>
         </header>
 
-        {/* Los botones para seleccionar el tema */}
+        {/* --- Bloque de botones de tema CORREGIDO --- */}
         <div className="base-selector">
           {basesDeConocimiento.map(base => (
             <button 
@@ -115,7 +115,8 @@ function ChatModal({ token }) {
               className={`btn-tema ${base.id === baseActivaId ? 'activo' : ''}`}
               onClick={() => setBaseActivaId(base.id)}
             >
-              {base.icono} {base.nombre}
+              <span className="btn-icono">{base.icono}</span>
+              <span className="btn-texto">{base.nombre}</span>
             </button>
           ))}
         </div>
