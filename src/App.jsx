@@ -1,5 +1,3 @@
-// Estas son importaciones necesarias para el funcionamiento de la aplicación.
-
 import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
@@ -45,18 +43,37 @@ function App() {
           </div>
           <div className="main-content">
             <div className="illustration">
-              <img src={previewImg} alt="Ilustración" />
+              <img
+                src={previewImg}
+                alt="Ilustración"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
             </div>
             <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
               Comenzar Ahora
             </button>
           </div>
           <div className="country-flags">
-            <div className="flag-item"><div className="flag-label">Chile</div></div>
-            <div className="flag-item"><div className="flag-label">Colombia</div></div>
-            <div className="flag-item"><div className="flag-label">México</div></div>
-            <div className="flag-item"><div className="flag-label">Perú</div></div>
-            <div className="flag-item"><div className="flag-label">Panamá</div></div>
+            <div className="flag-item">
+              <div className="flag chile"></div>
+              <div className="flag-label">Chile</div>
+            </div>
+            <div className="flag-item">
+              <div className="flag colombia"></div>
+              <div className="flag-label">Colombia</div>
+            </div>
+            <div className="flag-item">
+              <div className="flag mexico"></div>
+              <div className="flag-label">México</div>
+            </div>
+            <div className="flag-item">
+              <div className="flag peru"></div>
+              <div className="flag-label">Perú</div>
+            </div>
+            <div className="flag-item">
+              <div className="flag panama"></div>
+              <div className="flag-label">Panamá</div>
+            </div>
           </div>
         </div>
       ) : (
