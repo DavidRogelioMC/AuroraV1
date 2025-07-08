@@ -8,12 +8,12 @@ import previewImg from './assets/Preview.png';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 
-// Importar banderas
-import chileFlag from './assets/flags/chile.png';
-import peruFlag from './assets/flags/peru.png';
-import colombiaFlag from './assets/flags/colombia.png';
-import mexicoFlag from './assets/flags/mexico.png';
-import espanaFlag from './assets/flags/espana.png';
+// Importar banderas desde src/assets/
+import chileFlag from './assets/chile.png';
+import peruFlag from './assets/peru.png';
+import colombiaFlag from './assets/colombia.png';
+import mexicoFlag from './assets/mexico.png';
+import espanaFlag from './assets/espana.png';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
@@ -63,7 +63,7 @@ function App() {
             </div>
           </div>
 
-          {/* Sección de banderas */}
+          {/* Banderas */}
           <div className="country-flags">
             <div className="flag-item">
               <img src={chileFlag} alt="Chile" className="flag-image" />
@@ -107,4 +107,5 @@ function App() {
 }
 
 export default App;
+
 
