@@ -26,21 +26,40 @@ function ChatModal({ token }) {
     setHistorial(h => [...h, { tipo, texto }]);
   };
 
-  // Función para cargar el historial
+  // --- FUNCIÓN 'cargarHistorial' MODIFICADA Y MEJORADA ---
   const cargarHistorial = async () => {
     try {
       const res = await fetch(historialUrl, {
         method: 'GET',
         headers: { Authorization: token },
       });
+  
+      // Si la respuesta no es exitosa (ej. 404, 500), no continuamos.
+      if (!res.ok) {
+        throw new Error('La respuesta del servidor no fue OK');
+      }
+  
       const data = await res.json();
+  
+      // Limpiamos el historial actual para evitar duplicados al reabrir.
       setHistorial([]);
-      data.historial.forEach(item => {
-        agregarBurbuja('usuario', item.pregunta);
-        agregarBurbuja('ia', item.respuesta);
-      });
-    } catch {
-      agregarBurbuja('ia', '⚠️ No se pudo cargar el historial ⚠️');
+  
+      // Si el historial existe y tiene elementos, lo mostramos.
+      if (data.historial && data.historial.length > 0) {
+        data.historial.forEach(item => {
+          agregarBurbuja('usuario', item.pregunta);
+          agregarBurbuja('ia', item.respuesta);
+        });
+      } else {
+        // SI NO HAY HISTORIAL, MOSTRAMOS UN MENSAJE DE BIENVENIDA.
+        agregarBurbuja('ia', '¡Hola! Soy THOR. Selecciona un tema y hazme una pregunta.');
+      }
+  
+    } catch (error) {
+      // Si hay un error de red o la respuesta no fue 'ok', mostramos un mensaje de bienvenida.
+      console.error("No se pudo cargar el historial:", error);
+      setHistorial([]); // Aseguramos que el historial esté limpio
+      agregarBurbuja('ia', '¡Hola! Soy THOR, tu asistente de IA. ¿En qué puedo ayudarte hoy?');
     }
   };
 
@@ -62,7 +81,8 @@ function ChatModal({ token }) {
         },
         body: JSON.stringify({ 
           pregunta: preguntaActual,
-          knowledgeBaseId: baseActivaId
+          knowledgeBaseId: baseActivaId,
+          nombreTema: basesDeConocimiento.find(b => b.id === baseActivaId).nombre 
         }),
       });
       const data = await res.json();
@@ -108,7 +128,7 @@ function ChatModal({ token }) {
           </div>
         </header>
 
-        {/* Bloque de botones de tema con la estructura corregida */}
+        {/* Bloque de botones de tema */}
         <div className="base-selector">
           {basesDeConocimiento.map(base => (
             <button 
