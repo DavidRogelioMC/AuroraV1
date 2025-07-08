@@ -4,7 +4,6 @@ import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import './index.css';
 import logo from './assets/Netec.png';
-import previewImg from './assets/preview.png';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 
@@ -50,26 +49,12 @@ function App() {
 
           <div className="main-content">
             <div className="page-container">
-              {/* Imagen arriba */}
-              <div className="illustration">
-                <img
-                  src={previewImg}
-                  alt="Ilustración"
-                  style={{
-                    width: '100%',
-                    maxWidth: '400px',
-                    objectFit: 'contain',
-                    marginBottom: '1rem'
-                  }}
-                />
-              </div>
-
-              {/* Botón atractivo */}
+              {/* Botón login */}
               <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
                 🚀 Comenzar Ahora
               </button>
 
-              {/* Banderas con links */}
+              {/* Banderas con enlaces */}
               <div className="country-flags">
                 <a href="https://www.netec.com/cursos-ti-chile" target="_blank" rel="noopener noreferrer" className="flag-item">
                   <img src={chileFlag} alt="Chile" className="flag-image" />
