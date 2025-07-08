@@ -1,76 +1,145 @@
+/* Forzar modo claro */
+html {
+  color-scheme: light;
+}
+
 body {
-  background-color: white;
-  color: black;
+  background-color: white !important;
+  color: black !important;
   margin: 0;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
-/* Logo alineado a la izquierda */
-.header-bar {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
-  padding: 1rem 2rem;
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
 }
 
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* Logo pequeño a la izquierda */
 .logo-left {
-  height: 100px;
+  height: 60px;
+  margin: 10px 0 10px 20px;
+}
+
+/* Botón cerrar sesión */
+#logout {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #a73200;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+#logout:hover {
+  background-color: #930d04;
+}
+
+/* Layout principal logueado */
+#contenidoPrincipal {
+  display: flex;
+}
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #0d47a1;
+}
+
+.main-content-area {
+  flex-grow: 1;
+  margin-left: 250px;
+}
+
+/* Página inicial (no logueado) */
+#paginaInicio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.header-bar {
+  width: 100%;
+}
+
+/* Contenido principal centrado */
+.main-content {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .page-container {
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 1rem;
-  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.preview-img {
+  padding: 2rem;
   width: 100%;
-  max-width: 350px;
-  margin-bottom: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
+/* Imagen central */
+.preview-image {
+  max-width: 300px;
+  height: auto;
+  margin: 30px 0 20px 0;
+}
+
+/* Botón comenzar atractivo */
 .login-button {
+  padding: 12px 28px;
   background-color: #035b6e;
   color: white;
-  font-size: 18px;
-  font-weight: bold;
-  padding: 14px 28px;
+  font-size: 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  margin-bottom: 30px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, background-color 0.3s ease;
-  margin-bottom: 2rem;
+  transition: background-color 0.3s ease;
 }
 
 .login-button:hover {
   background-color: #197fa6;
-  transform: scale(1.05);
 }
 
+/* Banderas de países */
 .country-flags {
   display: flex;
   justify-content: center;
-  flex-wrap: nowrap;
-  gap: 20px;
-  flex-shrink: 0;
-  overflow-x: auto;
-}
-
-.country-flags a {
-  text-decoration: none;
-  color: inherit;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
 }
 
 .flag-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-decoration: none;
+  color: inherit;
 }
 
 .flag-image {
@@ -78,9 +147,8 @@ body {
   height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #ccc;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
 }
 
 .flag-image:hover {
@@ -90,6 +158,5 @@ body {
 .flag-label {
   margin-top: 6px;
   font-size: 14px;
-  color: #333;
   text-align: center;
 }
