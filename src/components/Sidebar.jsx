@@ -1,7 +1,13 @@
+// src/components/Sidebar.jsx (CÓDIGO MODIFICADO)
+
+// --- 1. IMPORTAMOS EL COMPONENTE 'Link' DE REACT ROUTER ---
+import { Link } from 'react-router-dom';
+
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
 
-function Sidebar({ onOpenActividades }) {
+// El componente ya no necesita la prop 'onOpenActividades'
+function Sidebar() {
   return (
     <div id="barraLateral">
       <div id="perfilSidebar">
@@ -11,19 +17,23 @@ function Sidebar({ onOpenActividades }) {
       </div>
 
       <div id="caminito">
-        {/* Módulos (sin navegación por ahora) */}
+        {/* Módulos (se mantiene sin cambios) */}
         <div className="step">
           <div className="circle">🧠</div>
           <span>Módulos</span>
         </div>
 
-        {/* ACTIVIDADES: Abre modal */}
-        <div className="step" onClick={onOpenActividades} style={{ cursor: 'pointer' }}>
-          <div className="circle">📘</div>
-          <span>Actividades</span>
-        </div>
+        {/* --- 2. MODIFICAMOS EL BOTÓN "ACTIVIDADES" --- */}
+        {/* Envolvemos todo el 'step' en un componente <Link> */}
+        {/* Esto lo convierte en un enlace de navegación a la ruta '/actividades' */}
+        <Link to="/actividades" className="nav-link">
+          <div className="step" style={{ cursor: 'pointer' }}>
+            <div className="circle">📘</div>
+            <span>Actividades</span>
+          </div>
+        </Link>
 
-        {/* Examen (también sin navegación por ahora) */}
+        {/* Examen (se mantiene sin cambios) */}
         <div className="step">
           <div className="circle">🔬</div>
           <span>Examen</span>
@@ -34,4 +44,3 @@ function Sidebar({ onOpenActividades }) {
 }
 
 export default Sidebar;
-
