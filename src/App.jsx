@@ -1,5 +1,3 @@
-// src/App.jsx (CÓDIGO COMPLETO Y CORREGIDO)
-
 import { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
@@ -9,6 +7,13 @@ import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
+
+// Importar banderas
+import chileFlag from './assets/flags/chile.png';
+import peruFlag from './assets/flags/peru.png';
+import colombiaFlag from './assets/flags/colombia.png';
+import mexicoFlag from './assets/flags/mexico.png';
+import espanaFlag from './assets/flags/espana.png';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
@@ -41,12 +46,9 @@ function App() {
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo" src={logo} alt="Logo Netec" />
-            
           </div>
 
-          {/* ----- INICIO DEL CAMBIO ----- */}
           <div className="main-content">
-            {/* Envolvemos la ilustración y el botón en el nuevo contenedor */}
             <div className="page-container">
               <div className="illustration">
                 <img
@@ -60,14 +62,29 @@ function App() {
               </button>
             </div>
           </div>
-          {/* ------ FIN DEL CAMBIO ------ */}
 
+          {/* Sección de banderas */}
           <div className="country-flags">
             <div className="flag-item">
-              <div className="flag chile"></div>
+              <img src={chileFlag} alt="Chile" className="flag-image" />
               <div className="flag-label">Chile</div>
             </div>
-            {/* ... más banderas ... */}
+            <div className="flag-item">
+              <img src={peruFlag} alt="Perú" className="flag-image" />
+              <div className="flag-label">Perú</div>
+            </div>
+            <div className="flag-item">
+              <img src={colombiaFlag} alt="Colombia" className="flag-image" />
+              <div className="flag-label">Colombia</div>
+            </div>
+            <div className="flag-item">
+              <img src={mexicoFlag} alt="México" className="flag-image" />
+              <div className="flag-label">México</div>
+            </div>
+            <div className="flag-item">
+              <img src={espanaFlag} alt="España" className="flag-image" />
+              <div className="flag-label">España</div>
+            </div>
           </div>
         </div>
       ) : (
@@ -90,3 +107,4 @@ function App() {
 }
 
 export default App;
+
