@@ -41,7 +41,7 @@ function App() {
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo" src={logo} alt="Logo Netec" />
-            <div className="subtitle">Aprendizaje Efectivo</div>
+            
           </div>
 
           {/* ----- INICIO DEL CAMBIO ----- */}
