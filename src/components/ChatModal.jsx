@@ -1,13 +1,28 @@
-// src/components/ChatModal.jsx
+// src/components/ChatModal.jsx (CÓDIGO FINAL Y COMPLETO)
 
 import './ChatModal.css';
 import { useState } from 'react';
 
-// Array con las bases de conocimiento disponibles.
+// <-- CAMBIO 1: El array ahora tiene nombres visuales y nombres para el prompt -->
 const basesDeConocimiento = [
-  { nombre: "Python", id: "AVDJ3M69B7", icono: "🧠" },
-  { nombre: "AWS", id: "WKNJIRXQUT", icono: "☁️" },
-  { nombre: "AZ 104", id: "ZOWS9MQ9GG", icono: "🔬" }
+  { 
+    id: "AVDJ3M69B7",
+    nombreVisual: "Python",
+    nombreTemaPrompt: "Bases de programación en Python",
+    icono: "🧠" 
+  },
+  { 
+    id: "WKNJIRXQUT",
+    nombreVisual: "AWS",
+    nombreTemaPrompt: "Servicios básicos en la nube",
+    icono: "☁️" 
+  },
+  { 
+    id: "ZOWS9MQ9GG",
+    nombreVisual: "AZ-104",
+    nombreTemaPrompt: "Microsoft Azure Administrator AZ-104",
+    icono: "🔬" 
+  }
 ];
 
 function ChatModal({ token }) {
@@ -15,55 +30,39 @@ function ChatModal({ token }) {
   const [historial, setHistorial] = useState([]);
   const [pregunta, setPregunta] = useState('');
   
-  // Estado para el tema activo, con un valor por defecto.
   const [baseActivaId, setBaseActivaId] = useState(basesDeConocimiento[0].id);
 
   const apiUrl = import.meta.env.VITE_API_CHAT;
   const historialUrl = import.meta.env.VITE_API_HISTORIAL;
 
-  // Función para agregar mensajes a la vista
   const agregarBurbuja = (tipo, texto) => {
     setHistorial(h => [...h, { tipo, texto }]);
   };
 
-  // --- FUNCIÓN 'cargarHistorial' MODIFICADA Y MEJORADA ---
   const cargarHistorial = async () => {
     try {
       const res = await fetch(historialUrl, {
         method: 'GET',
         headers: { Authorization: token },
       });
-  
-      // Si la respuesta no es exitosa (ej. 404, 500), no continuamos.
-      if (!res.ok) {
-        throw new Error('La respuesta del servidor no fue OK');
-      }
-  
+      if (!res.ok) throw new Error('La respuesta del servidor no fue OK');
       const data = await res.json();
-  
-      // Limpiamos el historial actual para evitar duplicados al reabrir.
       setHistorial([]);
-  
-      // Si el historial existe y tiene elementos, lo mostramos.
       if (data.historial && data.historial.length > 0) {
         data.historial.forEach(item => {
           agregarBurbuja('usuario', item.pregunta);
           agregarBurbuja('ia', item.respuesta);
         });
       } else {
-        // SI NO HAY HISTORIAL, MOSTRAMOS UN MENSAJE DE BIENVENIDA.
         agregarBurbuja('ia', '¡Hola! Soy THOR. Selecciona un tema y hazme una pregunta.');
       }
-  
     } catch (error) {
-      // Si hay un error de red o la respuesta no fue 'ok', mostramos un mensaje de bienvenida.
       console.error("No se pudo cargar el historial:", error);
-      setHistorial([]); // Aseguramos que el historial esté limpio
+      setHistorial([]);
       agregarBurbuja('ia', '¡Hola! Soy THOR, tu asistente de IA. ¿En qué puedo ayudarte hoy?');
     }
   };
 
-  // Función para enviar la pregunta
   const enviarPregunta = async () => {
     if (!pregunta.trim()) return;
     
@@ -79,10 +78,11 @@ function ChatModal({ token }) {
           Authorization: token,
           'Content-Type': 'application/json',
         },
+        // <-- CAMBIO 2: Enviamos el 'nombreTemaPrompt' a la Lambda -->
         body: JSON.stringify({ 
           pregunta: preguntaActual,
           knowledgeBaseId: baseActivaId,
-          nombreTema: basesDeConocimiento.find(b => b.id === baseActivaId).nombre 
+          nombreTema: basesDeConocimiento.find(b => b.id === baseActivaId).nombreTemaPrompt
         }),
       });
       const data = await res.json();
@@ -100,7 +100,6 @@ function ChatModal({ token }) {
     }
   };
 
-  // Función para borrar el historial
   const borrarHistorial = async () => {
     if (!window.confirm('¿Estás seguro de que deseas borrar tu historial?')) return;
     try {
@@ -128,7 +127,6 @@ function ChatModal({ token }) {
           </div>
         </header>
 
-        {/* Bloque de botones de tema */}
         <div className="base-selector">
           {basesDeConocimiento.map(base => (
             <button 
@@ -137,12 +135,12 @@ function ChatModal({ token }) {
               onClick={() => setBaseActivaId(base.id)}
             >
               <span className="btn-icono">{base.icono}</span>
-              <span className="btn-texto">{base.nombre}</span>
+              {/* <-- CAMBIO 3: Usamos 'nombreVisual' para el texto del botón --> */}
+              <span className="btn-texto">{base.nombreVisual}</span>
             </button>
           ))}
         </div>
 
-        {/* El resto de la interfaz del chat */}
         <div id="historial">
           <div id="historialContenido">
             {historial.map((msg, idx) => (
