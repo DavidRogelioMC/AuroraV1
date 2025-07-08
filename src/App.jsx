@@ -5,14 +5,15 @@ import ProfileModal from './components/ProfileModal';
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home';
 
 import chileFlag from './assets/chile.png';
 import peruFlag from './assets/peru.png';
 import colombiaFlag from './assets/colombia.png';
 import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './components/Home';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
@@ -49,18 +50,18 @@ function App() {
 
           <div className="main-content">
             <div className="page-container">
-
-              {/* Imagen centrada */}
-              <div className="illustration">
-                <img src={previewImg} alt="Ilustración" className="preview-img" />
+              <div className="illustration-centered">
+                <img
+                  src={previewImg}
+                  alt="Ilustración"
+                  className="preview-image"
+                />
               </div>
 
-              {/* Botón centrado */}
               <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
                 🚀 Comenzar Ahora
               </button>
 
-              {/* Banderas en fila */}
               <div className="country-flags">
                 <a href="https://www.netec.com/cursos-ti-chile" target="_blank" rel="noopener noreferrer" className="flag-item">
                   <img src={chileFlag} alt="Chile" className="flag-image" />
@@ -106,4 +107,3 @@ function App() {
 }
 
 export default App;
-
