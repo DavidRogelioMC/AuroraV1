@@ -1,29 +1,37 @@
+// src/App.jsx (CÓDIGO COMPLETO CON MODIFICACIONES INTEGRADAS)
+
 import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// Tus Componentes
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
+import Home from './components/Home';
+import ActividadesPage from './components/ActividadesPage'; // <-- 1. IMPORTAMOS LA NUEVA PÁGINA
+
+// Tus Estilos
 import './index.css';
+
+// Tus Assets
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
-
 import chileFlag from './assets/chile.png';
 import peruFlag from './assets/peru.png';
 import colombiaFlag from './assets/colombia.png';
 import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home';
-
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
 
+  // Lógica de Cognito (sin cambios)
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI;
-
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
+  // useEffect para manejar el token (sin cambios)
   useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes("id_token")) {
@@ -34,6 +42,7 @@ function App() {
     }
   }, []);
 
+  // handleLogout (sin cambios)
   const handleLogout = () => {
     localStorage.removeItem("id_token");
     const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
@@ -43,25 +52,19 @@ function App() {
   return (
     <>
       {!token ? (
+        // --- PANTALLA DE INICIO (SIN CAMBIOS) ---
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
           </div>
-
           <div className="main-content">
             <div className="page-container">
               <div className="illustration-centered">
-                <img
-                  src={previewImg}
-                  alt="Ilustración"
-                  className="preview-image"
-                />
+                <img src={previewImg} alt="Ilustración" className="preview-image" />
               </div>
-
               <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
                 🚀 Comenzar Ahora
               </button>
-
               <div className="country-flags">
                 <a href="https://www.netec.com/cursos-ti-chile" target="_blank" rel="noopener noreferrer" className="flag-item">
                   <img src={chileFlag} alt="Chile" className="flag-image" />
@@ -88,6 +91,7 @@ function App() {
           </div>
         </div>
       ) : (
+        // --- VISTA PRINCIPAL (CON LA NUEVA RUTA) ---
         <Router>
           <div id="contenidoPrincipal">
             <Sidebar token={token} />
@@ -96,6 +100,8 @@ function App() {
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
+                {/* --- 2. AÑADIMOS LA RUTA PARA LA PÁGINA DE ACTIVIDADES --- */}
+                <Route path="/actividades" element={<ActividadesPage token={token} />} />
               </Routes>
             </main>
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
