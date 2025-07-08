@@ -1,5 +1,3 @@
-/* index.css completo para banderas y botón atractivo */
-
 body {
   background-color: white;
   color: black;
@@ -8,8 +6,9 @@ body {
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  height: 90px;
+  margin: 20px auto;
+  display: block;
 }
 
 .page-container {
@@ -22,6 +21,12 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.preview-img {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 1rem;
 }
 
 .login-button {
@@ -83,4 +88,3 @@ body {
   color: #333;
   text-align: center;
 }
-
