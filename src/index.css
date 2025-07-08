@@ -1,4 +1,4 @@
-/* src/index.css (CÓDIGO COMPLETO) */
+/* src/index.css (CÓDIGO COMPLETO Y CORREGIDO) */
 
 /* Forzar modo claro */
 html {
@@ -8,8 +8,8 @@ html {
 body {
   background-color: white !important;
   color: black !important;
-  margin: 0; /* Añadido para eliminar el margen por defecto del body */
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; /* Fuente estándar */
+  margin: 0;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,11 +20,10 @@ body {
 }
 
 #root {
-  /* Eliminamos el max-width y el padding para que la app ocupe toda la pantalla */
   width: 100%;
   margin: 0;
   padding: 0;
-  text-align: left; /* Cambiamos a 'left' para un alineamiento más estándar */
+  text-align: left;
 }
 
 .logo {
@@ -41,10 +40,10 @@ body {
 }
 
 @keyframes logo-spin {
-  from {
+  from: {
     transform: rotate(0deg);
   }
-  to {
+  to: {
     transform: rotate(360deg);
   }
 }
@@ -83,27 +82,36 @@ body {
   background-color: #930d04;
 }
 
-/* --- ESTILOS AÑADIDOS PARA CORREGIR LA MAQUETACIÓN PRINCIPAL --- */
+/* --- ESTILOS PARA LA MAQUETACIÓN PRINCIPAL (VISTA LOGUEADA) --- */
 
 #contenidoPrincipal {
   display: flex;
 }
 
-/* Asumimos que tu sidebar tiene una clase '.sidebar' */
-/* Ajusta el ancho si es diferente. */
 .sidebar {
   width: 250px;
-  flex-shrink: 0; /* Evita que la barra lateral se encoja */
-  height: 100vh; /* Ocupa toda la altura de la pantalla */
-  position: fixed; /* Recomendado para que no se mueva con el scroll */
+  flex-shrink: 0;
+  height: 100vh;
+  position: fixed;
   top: 0;
   left: 0;
-  background-color: #0d47a1; /* Ejemplo de color, pon el tuyo */
+  background-color: #0d47a1;
 }
 
-/* Esta clase DEBE estar en el <main> que envuelve tus <Routes> en App.jsx */
 .main-content-area {
-  flex-grow: 1; /* Ocupa todo el espacio restante */
-  margin-left: 250px; /* ¡IMPORTANTE! Debe ser igual al ancho del sidebar */
-  /* El padding ya no se define aquí, se define dentro de cada página */
+  flex-grow: 1;
+  margin-left: 250px;
+}
+
+/* --- NUEVA CLASE PARA LIMITAR EL ANCHO DEL CONTENIDO (LA SOLUCIÓN AL ZOOM) --- */
+.page-container {
+  width: 100%;
+  max-width: 1100px; /* Límite de ancho para que no se estire demasiado */
+  margin: 0 auto;    /* Centra el contenedor horizontalmente */
+  padding: 2rem;      /* Añade un poco de espacio interno */
+  text-align: center; /* Centra el texto y el botón de "Comenzar ahora" */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
