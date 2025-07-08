@@ -8,7 +8,6 @@ import previewImg from './assets/Preview.png';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 
-// Importar banderas
 import chileFlag from './assets/chile.png';
 import peruFlag from './assets/peru.png';
 import colombiaFlag from './assets/colombia.png';
@@ -45,18 +44,15 @@ function App() {
       {!token ? (
         <div id="paginaInicio">
           <div className="header-bar">
-            <img className="logo" src={logo} alt="Logo Netec" />
+            <img className="logo-left" src={logo} alt="Logo Netec" />
           </div>
 
           <div className="main-content">
             <div className="page-container">
-              {/* Imagen del niño */}
+
+              {/* Imagen centrada */}
               <div className="illustration">
-                <img
-                  src={previewImg}
-                  alt="Ilustración"
-                  className="preview-img"
-                />
+                <img src={previewImg} alt="Ilustración" className="preview-img" />
               </div>
 
               {/* Botón centrado */}
@@ -64,7 +60,7 @@ function App() {
                 🚀 Comenzar Ahora
               </button>
 
-              {/* Banderas */}
+              {/* Banderas en fila */}
               <div className="country-flags">
                 <a href="https://www.netec.com/cursos-ti-chile" target="_blank" rel="noopener noreferrer" className="flag-item">
                   <img src={chileFlag} alt="Chile" className="flag-image" />
@@ -110,3 +106,4 @@ function App() {
 }
 
 export default App;
+
