@@ -4,11 +4,11 @@ import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import './index.css';
 import logo from './assets/Netec.png';
-import previewImg from './assets/Preview.png';
+import previewImg from './assets/preview.png';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 
-// Importar banderas desde src/assets/
+// Importar banderas desde assets/
 import chileFlag from './assets/chile.png';
 import peruFlag from './assets/peru.png';
 import colombiaFlag from './assets/colombia.png';
@@ -50,40 +50,48 @@ function App() {
 
           <div className="main-content">
             <div className="page-container">
+              {/* Imagen arriba */}
               <div className="illustration">
                 <img
                   src={previewImg}
                   alt="Ilustración"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px',
+                    objectFit: 'contain',
+                    marginBottom: '1rem'
+                  }}
                 />
               </div>
-              <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
-                Comenzar Ahora
-              </button>
-            </div>
-          </div>
 
-          {/* Banderas */}
-          <div className="country-flags">
-            <div className="flag-item">
-              <img src={chileFlag} alt="Chile" className="flag-image" />
-              <div className="flag-label">Chile</div>
-            </div>
-            <div className="flag-item">
-              <img src={peruFlag} alt="Perú" className="flag-image" />
-              <div className="flag-label">Perú</div>
-            </div>
-            <div className="flag-item">
-              <img src={colombiaFlag} alt="Colombia" className="flag-image" />
-              <div className="flag-label">Colombia</div>
-            </div>
-            <div className="flag-item">
-              <img src={mexicoFlag} alt="México" className="flag-image" />
-              <div className="flag-label">México</div>
-            </div>
-            <div className="flag-item">
-              <img src={espanaFlag} alt="España" className="flag-image" />
-              <div className="flag-label">España</div>
+              {/* Botón atractivo */}
+              <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
+                🚀 Comenzar Ahora
+              </button>
+
+              {/* Banderas con links */}
+              <div className="country-flags">
+                <a href="https://www.netec.com/cursos-ti-chile" target="_blank" rel="noopener noreferrer" className="flag-item">
+                  <img src={chileFlag} alt="Chile" className="flag-image" />
+                  <div className="flag-label">Chile</div>
+                </a>
+                <a href="https://www.netec.com/cursos-ti-peru" target="_blank" rel="noopener noreferrer" className="flag-item">
+                  <img src={peruFlag} alt="Perú" className="flag-image" />
+                  <div className="flag-label">Perú</div>
+                </a>
+                <a href="https://www.netec.com/cursos-ti-colombia" target="_blank" rel="noopener noreferrer" className="flag-item">
+                  <img src={colombiaFlag} alt="Colombia" className="flag-image" />
+                  <div className="flag-label">Colombia</div>
+                </a>
+                <a href="https://www.netec.com/cursos-ti-mexico" target="_blank" rel="noopener noreferrer" className="flag-item">
+                  <img src={mexicoFlag} alt="México" className="flag-image" />
+                  <div className="flag-label">México</div>
+                </a>
+                <a href="https://www.netec.es/" target="_blank" rel="noopener noreferrer" className="flag-item">
+                  <img src={espanaFlag} alt="España" className="flag-image" />
+                  <div className="flag-label">España</div>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -107,5 +115,3 @@ function App() {
 }
 
 export default App;
-
-
