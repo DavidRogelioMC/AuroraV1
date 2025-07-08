@@ -52,15 +52,22 @@
   margin-bottom: 10px;
 }
 
-#modalChat button {
+#modalChat header .chat-header {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1b5784;
+}
+
+#modalChat header button {
   background: none;
   border: none;
   font-size: 18px;
   cursor: pointer;
   transition: transform 0.2s ease;
+  padding: 5px;
 }
 
-#modalChat button:hover {
+#modalChat header button:hover {
   transform: scale(1.1);
 }
 
@@ -146,48 +153,70 @@
   background-color: #154360;
 }
 
-.chat-header {
-  font-size: 20px;
-  font-weight: bold;
-  color: #1b5784;
-}
+/* --- ESTILOS FINALES Y CORREGIDOS PARA EL SELECTOR DE TEMAS --- */
 
-/* --- ESTILOS PARA EL SELECTOR DE TEMAS DEL BOT --- */
-
-/* Contenedor de los botones de selección de tema */
 .base-selector {
-  display: flex; /* Pone los botones en una fila */
-  flex-wrap: wrap; /* Permite que los botones bajen a la siguiente línea si no caben */
-  gap: 8px; /* Espacio consistente con tu #inputContainer */
-  padding: 0 0 15px 0; /* Espacio inferior antes del historial de chat */
-  margin-bottom: 10px; /* Margen para separarlo del historial */
-  border-bottom: 1px solid #ccc; /* Línea divisoria, igual que la del historial */
+  display: flex; 
+  flex-wrap: wrap; 
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 15px 0;
+  margin-bottom: 10px; 
+  border-bottom: 1px solid #e0e0e0;
 }
 
-/* Estilo para cada botón de tema individual */
 .btn-tema {
-  padding: 6px 14px; /* Un poco más pequeño que el botón de Enviar */
-  background-color: #f2f2f2; /* Un gris suave, como las burbujas de la IA */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #f2f2f2; 
   color: #333;
   border: 1px solid #e0e0e0;
-  border-radius: 20px; /* Forma de píldora, muy moderna */
+  border-radius: 20px; 
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease; /* Transición suave como el resto de tu UI */
+  transition: all 0.2s ease-in-out;
+  user-select: none; 
 }
 
-/* Efecto al pasar el ratón por encima */
+.btn-icono {
+  line-height: 1;
+}
+
+.btn-texto {
+  white-space: nowrap;
+}
+
 .btn-tema:hover {
   background-color: #e9e9e9;
-  border-color: #d0d0d0;
-  transform: translateY(-1px); /* Un sutil efecto de elevación */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Estilo para el botón que está ACTIVO/SELECCIONADO */
 .btn-tema.activo {
-  background-color: #1b5784; /* Usa tu color principal para destacar */
+  background-color: #1b5784; 
   color: white;
   border-color: #154360;
   font-weight: bold;
-  box-shadow: 0 2px 5px rgba(27, 87, 132, 0.3); /* Sombra sutil con tu color principal */
+  box-shadow: 0 2px 6px rgba(27, 87, 132, 0.4);
+}
+
+
+/* --- ESTILOS RESPONSIVOS PARA MÓVILES --- */
+
+@media (max-width: 480px) {
+  #modalChat {
+    width: 90vw; 
+    right: 5vw; 
+    bottom: 20px; 
+    max-height: 80vh;
+  }
+
+  #abrirChat {
+    padding: 15px;
+    font-size: 24px;
+    right: 20px;
+  }
 }
