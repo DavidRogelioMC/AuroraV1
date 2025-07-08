@@ -1,4 +1,4 @@
-/* src/index.css (VERSIÓN FINAL Y COMPLETA) */
+/* src/index.css (CÓDIGO COMPLETO) */
 
 /* Forzar modo claro */
 html {
@@ -95,15 +95,15 @@ body {
   width: 250px;
   flex-shrink: 0; /* Evita que la barra lateral se encoja */
   height: 100vh; /* Ocupa toda la altura de la pantalla */
-  position: fixed; /* Opcional pero recomendado para que no se mueva con el scroll */
+  position: fixed; /* Recomendado para que no se mueva con el scroll */
   top: 0;
   left: 0;
   background-color: #0d47a1; /* Ejemplo de color, pon el tuyo */
 }
 
-/* La nueva clase que añadimos en App.jsx */
+/* Esta clase DEBE estar en el <main> que envuelve tus <Routes> en App.jsx */
 .main-content-area {
   flex-grow: 1; /* Ocupa todo el espacio restante */
-  padding: 2rem 3rem; /* Espacio interno */
   margin-left: 250px; /* ¡IMPORTANTE! Debe ser igual al ancho del sidebar */
+  /* El padding ya no se define aquí, se define dentro de cada página */
 }
