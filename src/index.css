@@ -6,6 +6,8 @@ html {
 body {
   background-color: white !important;
   color: black !important;
+  margin: 0;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,89 +17,146 @@ body {
   }
 }
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
+#root {
+  width: 100%;
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
+  text-align: left;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Logo pequeño a la izquierda */
+.logo-left {
+  height: 100px;
+  margin: 10px 0 10px 20px;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
+/* Botón cerrar sesión */
 #logout {
   position: fixed;
   top: 20px;
-  right: 30px;
-  background-color: #d9534f;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #a73200;
   color: white;
   border: none;
-  padding: 10px 20px;
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
   z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
 }
 
 #logout:hover {
-  background-color: #c9302c;
+  background-color: #930d04;
+}
+
+/* Layout principal logueado */
+#contenidoPrincipal {
+  display: flex;
+}
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #0d47a1;
+}
+
+.main-content-area {
+  flex-grow: 1;
+  margin-left: 250px;
+}
+
+/* Página inicial (no logueado) */
+#paginaInicio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.header-bar {
+  width: 100%;
+}
+
+/* Contenido principal centrado */
+.main-content {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Imagen central */
+.preview-image {
+  max-width: 300px;
+  height: auto;
+  margin: 30px 0 20px 0;
+}
+
+/* Botón comenzar atractivo */
+.login-button {
+  padding: 12px 28px;
+  background-color: #035b6e;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #197fa6;
+}
+
+/* Banderas de países */
+.country-flags {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+}
+
+.flag-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.flag-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.flag-image:hover {
+  transform: scale(1.1);
+}
+
+.flag-label {
+  margin-top: 6px;
+  font-size: 14px;
+  text-align: center;
 }
