@@ -4,10 +4,11 @@ import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import './index.css';
 import logo from './assets/Netec.png';
+import previewImg from './assets/Preview.png';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 
-// Importar banderas desde assets/
+// Importar banderas
 import chileFlag from './assets/chile.png';
 import peruFlag from './assets/peru.png';
 import colombiaFlag from './assets/colombia.png';
@@ -49,12 +50,21 @@ function App() {
 
           <div className="main-content">
             <div className="page-container">
-              {/* Botón login */}
+              {/* Imagen del niño */}
+              <div className="illustration">
+                <img
+                  src={previewImg}
+                  alt="Ilustración"
+                  className="preview-img"
+                />
+              </div>
+
+              {/* Botón centrado */}
               <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
                 🚀 Comenzar Ahora
               </button>
 
-              {/* Banderas con enlaces */}
+              {/* Banderas */}
               <div className="country-flags">
                 <a href="https://www.netec.com/cursos-ti-chile" target="_blank" rel="noopener noreferrer" className="flag-item">
                   <img src={chileFlag} alt="Chile" className="flag-image" />
