@@ -1,8 +1,10 @@
-// src/components/ActividadesPage.jsx
+// src/components/ActividadesPage.jsx (CÓDIGO COMPLETO)
 
 import { useState } from 'react';
-import GeneradorActividades from './GeneradorActividades';
-import './ActividadesPage.css'; // Crearemos este CSS a continuación
+import GeneradorActividades from './GeneradorActividades'; // Importa el generador
+
+// Asumimos que este CSS es un archivo separado para ActividadesPage
+import './ActividadesPage.css'; 
 
 const tiposDeActividad = [
   { id: 'quiz', nombre: 'Opción Múltiple', icono: '❓' },
@@ -14,9 +16,11 @@ const tiposDeActividad = [
 function ActividadesPage({ token }) {
   const [tipoSeleccionado, setTipoSeleccionado] = useState(null);
 
+  // Si no se ha seleccionado un tipo, muestra los botones de selección
   if (!tipoSeleccionado) {
     return (
-      <div className="seleccion-actividad-container">
+      // Aplica la clase de layout general y la específica de esta página
+      <div className="page-content-container seleccion-actividad-container">
         <h1>Generador de Actividades</h1>
         <p>Elige el tipo de ejercicio interactivo que deseas crear a partir de tus documentos.</p>
         <div className="botones-actividad">
@@ -31,10 +35,12 @@ function ActividadesPage({ token }) {
     );
   }
 
+  // Si ya se seleccionó un tipo, muestra el generador
   return (
-    <div className="pagina-generador">
+    // Aplica la clase de layout general y la específica de esta vista
+    <div className="page-content-container pagina-generador">
       <button className="btn-volver" onClick={() => setTipoSeleccionado(null)}>
-        ← Volver a seleccionar
+        ← Volver a seleccionar tipo
       </button>
       <GeneradorActividades token={token} tipoActividad={tipoSeleccionado} />
     </div>
