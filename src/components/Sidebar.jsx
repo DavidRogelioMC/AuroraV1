@@ -1,15 +1,13 @@
-// src/components/Sidebar.jsx (CÓDIGO MODIFICADO)
+// src/components/Sidebar.jsx (CÓDIGO FINAL Y COMPLETO)
 
-// --- 1. IMPORTAMOS EL COMPONENTE 'Link' DE REACT ROUTER ---
 import { Link } from 'react-router-dom';
-
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
 
-// El componente ya no necesita la prop 'onOpenActividades'
 function Sidebar() {
   return (
-    <div id="barraLateral">
+    // Añadimos la clase 'sidebar' para que los estilos de index.css se apliquen
+    <div id="barraLateral" className="sidebar"> 
       <div id="perfilSidebar">
         <img id="fotoPerfilSidebar" src={defaultFoto} alt="Foto perfil" />
         <div className="nombre" id="nombreSidebar">Usuario</div>
@@ -23,9 +21,7 @@ function Sidebar() {
           <span>Módulos</span>
         </div>
 
-        {/* --- 2. MODIFICAMOS EL BOTÓN "ACTIVIDADES" --- */}
-        {/* Envolvemos todo el 'step' en un componente <Link> */}
-        {/* Esto lo convierte en un enlace de navegación a la ruta '/actividades' */}
+        {/* ACTIVIDADES: Ahora es un Link de navegación */}
         <Link to="/actividades" className="nav-link">
           <div className="step" style={{ cursor: 'pointer' }}>
             <div className="circle">📘</div>
