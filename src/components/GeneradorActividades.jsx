@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import DOMPurify from 'dompurify';
-import './GeneradorActividades.css'; // Crearemos este archivo a continuación
+import './ActividadesPage.css'; // Crearemos este archivo a continuación
 
 function GeneradorActividades({ token, tipoActividad }) {
   const [tema, setTema] = useState('');
