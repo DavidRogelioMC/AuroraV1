@@ -18,7 +18,7 @@ const basesDeConocimiento = [
     icono: "☁️" 
   },
   { 
-    id: "ZOWS9MQ9GG",
+    id: "SX4C4WD4GV",
     nombreVisual: "AZ-104",
     nombreTemaPrompt: "Microsoft Azure Administrator AZ-104",
     icono: "🔬" 
