@@ -1,5 +1,5 @@
 // src/components/Sidebar.jsx (CÓDIGO FINAL Y COMPLETO)
-
+//x
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
