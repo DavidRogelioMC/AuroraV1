@@ -1,4 +1,4 @@
-// src/App.jsx (CÓDIGO COMPLETO CON MODIFICACIONES INTEGRADAS)
+// src/App.jsx (CÓDIGO FINAL Y COMPLETO)
 
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -8,7 +8,7 @@ import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
-import ActividadesPage from './components/ActividadesPage'; // <-- 1. IMPORTAMOS LA NUEVA PÁGINA
+import ActividadesPage from './components/ActividadesPage';
 
 // Tus Estilos
 import './index.css';
@@ -31,7 +31,6 @@ function App() {
   const redirectUri = import.meta.env.VITE_REDIRECT_URI;
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-  // useEffect para manejar el token (sin cambios)
   useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes("id_token")) {
@@ -42,7 +41,6 @@ function App() {
     }
   }, []);
 
-  // handleLogout (sin cambios)
   const handleLogout = () => {
     localStorage.removeItem("id_token");
     const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
@@ -52,7 +50,6 @@ function App() {
   return (
     <>
       {!token ? (
-        // --- PANTALLA DE INICIO (SIN CAMBIOS) ---
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -91,16 +88,14 @@ function App() {
           </div>
         </div>
       ) : (
-        // --- VISTA PRINCIPAL (CON LA NUEVA RUTA) ---
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar token={token} />
+            <Sidebar />
             <ProfileModal token={token} />
             <ChatModal token={token} />
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
-                {/* --- 2. AÑADIMOS LA RUTA PARA LA PÁGINA DE ACTIVIDADES --- */}
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
               </Routes>
             </main>
