@@ -1,28 +1,33 @@
-// src/components/GeneradorActividades.jsx (CÓDIGO COMPLETO)
+// src/components/GeneradorActividades.jsx (VERSIÓN FINAL PARA KNOWLEDGE BASES)
 
 import { useState } from 'react';
-import DOMPurify from 'dompurify'; // Asegúrate de tener instalado 'dompurify' (npm install dompurify)
+import DOMPurify from 'dompurify';
+import './ActividadesPage.css'; // Usamos el CSS de la página padre para los estilos
 
-// Este componente también importa el CSS de la página padre para compartir estilos
-import './ActividadesPage.css'; 
+// Definimos las Knowledge Bases disponibles (estas deben coincidir con tus KBs reales)
+const knowledgeBasesDisponibles = [
+  { nombre: "Python", id: "AVDJ3M69B7" }, // <-- REEMPLAZA CON TU ID REAL
+  { nombre: "AWS", id: "WKNJIRXQUT" },    // <-- REEMPLAZA CON TU ID REAL
+  { nombre: "AZ-104", id: "ZOWS9MQ9GG" }  // <-- REEMPLAZA CON TU ID REAL
+];
 
 function GeneradorActividades({ token, tipoActividad }) {
-  // Estados para controlar el formulario
-  const [tema, setTema] = useState('');
-  const [modulo, setModulo] = useState('');
-  
-  // Estados para manejar la respuesta
+  // --- Estados para controlar el formulario ---
+  // Ahora seleccionamos una Knowledge Base por su ID
+  const [kbSeleccionadaId, setKbSeleccionadaId] = useState(knowledgeBasesDisponibles[0].id);
+  const [topicoEspecifico, setTopicoEspecifico] = useState(''); // El campo de texto libre
+
+  // ... (tipoActividad viene de las props, resultado, isLoading, error se mantienen)
   const [resultado, setResultado] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // URL de tu API Gateway que invoca la Lambda de actividades (la que lee de S3)
-  const apiUrl = "URL_DE_TU_API_GATEWAY_PARA_ACTIVIDADES"; // <-- ¡REEMPLAZA ESTO!
+  const apiUrl = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev"; // <-- ¡REEMPLAZA ESTO CON TU URL REAL!
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!tema || !modulo) {
-      setError("Por favor, completa los campos de tema y módulo.");
+    if (!topicoEspecifico || !kbSeleccionadaId) {
+      setError("Por favor, selecciona un tema y describe un tópico.");
       return;
     }
     
@@ -34,10 +39,11 @@ function GeneradorActividades({ token, tipoActividad }) {
       const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": token },
+        // --- ¡CAMBIO CLAVE AQUÍ! Enviamos los nuevos parámetros ---
         body: JSON.stringify({
-          tema: tema,
-          modulo: modulo,
-          tipo: tipoActividad,
+          knowledgeBaseId: kbSeleccionadaId,
+          topico: topicoEspecifico,
+          tipo: tipoActividad, // El tipo de actividad sigue siendo el mismo
         }),
       });
 
@@ -57,17 +63,36 @@ function GeneradorActividades({ token, tipoActividad }) {
 
   return (
     <div className="generador-container">
-      {/* Título dinámico */}
       <h2>Crear Actividad: {tipoActividad.charAt(0).toUpperCase() + tipoActividad.slice(1)}</h2>
-
       <form onSubmit={handleSubmit} className="generador-form">
+        {/* --- Nuevo campo para seleccionar la Knowledge Base --- */}
         <div className="form-group">
-          <label htmlFor="tema">Tema (Carpeta en S3)</label>
-          <input id="tema" type="text" value={tema} onChange={(e) => setTema(e.target.value)} placeholder="Ej: aws" required />
+          <label htmlFor="knowledgeBase">Selecciona la Base de Conocimientos</label>
+          <select
+            id="knowledgeBase"
+            value={kbSeleccionadaId}
+            onChange={(e) => setKbSeleccionadaId(e.target.value)}
+            required
+          >
+            {knowledgeBasesDisponibles.map(kb => (
+              <option key={kb.id} value={kb.id}>
+                {kb.nombre}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {/* --- Nuevo campo para el Tópico Específico --- */}
         <div className="form-group">
-          <label htmlFor="modulo">Módulo (Nombre del archivo sin .txt)</label>
-          <input id="modulo" type="text" value={modulo} onChange={(e) => setModulo(e.target.value)} placeholder="Ej: s3-basico" required />
+          <label htmlFor="topico">Tópico Específico</label>
+          <input
+            id="topico"
+            type="text"
+            value={topicoEspecifico}
+            onChange={(e) => setTopicoEspecifico(e.target.value)}
+            placeholder="Ej: Funciones Lambda en AWS, Bucles 'for' en Python"
+            required
+          />
         </div>
         
         <p>Estás a punto de generar una actividad de tipo: <strong>{tipoActividad}</strong>.</p>
@@ -84,7 +109,11 @@ function GeneradorActividades({ token, tipoActividad }) {
           <div className="actividad-generada">
             <h3>Resultado:</h3>
             {resultado.map((item, index) => (
-              <div key={index} className="actividad-item" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.texto) }} />
+              <div 
+                key={index} 
+                className="actividad-item"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.texto) }}
+              />
             ))}
           </div>
         )}
