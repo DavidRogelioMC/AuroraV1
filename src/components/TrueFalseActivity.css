@@ -1,0 +1,73 @@
+/* src/components/TrueFalseActivity.css */
+
+.true-false-activity {
+  margin-top: 1.5rem;
+}
+
+.afirmacion-vf {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.texto-afirmacion {
+  font-size: 1.1rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.botones-vf {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-vf {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.btn-vf:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: #ccc;
+}
+.btn-vf:not(:disabled):hover {
+  border-color: #1b5784;
+}
+
+.btn-vf.btn-seleccionado {
+  background-color: #e3f2fd;
+  border-color: #1b5784;
+  color: #1b5784;
+}
+
+.btn-vf.btn-correcto {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.btn-vf.btn-incorrecto {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.btn-vf.btn-deshabilitado {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.vf-footer {
+  text-align: center;
+  margin-top: 2rem;
+}
