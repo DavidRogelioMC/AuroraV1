@@ -1,81 +1,88 @@
-/* src/index.css (VERSIÓN DEFINITIVA Y COMPLETA) */
+/* src/index.css (VERSIÓN DEFINITIVA Y CORREGIDA PARA MAQUETACIÓN) */
 
-/* Globales y Reset */
+/* Globales y reset */
 html { color-scheme: light; }
 body { background-color: #f5f9ff !important; color: black !important; margin: 0; font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; }
 #root { width: 100%; margin: 0; padding: 0; }
 
-/* Página de Login (sin cambios estructurales) */
+/* --- ESTILOS DE LA PÁGINA DE LOGIN --- */
 #paginaInicio { display: flex; flex-direction: column; min-height: 100vh; }
 .header-bar { width: 100%; padding: 1rem 2rem; box-sizing: border-box; }
 .logo-left { height: 50px; }
-.main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; width: 100%; }
-.page-container { display: flex; flex-direction: column; align-items: center; padding: 2rem; width: 100%; max-width: 1100px; margin: 0 auto; }
-.illustration-centered { /* ... */ }
-.preview-image { max-width: 100%; height: auto; max-height: 400px; margin-bottom: 2rem; }
-.login-button { padding: 12px 28px; background-color: #035b6e; /* ... */ margin-bottom: 3rem; }
-.country-flags { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding: 2rem 0; width: 100%; }
+.main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; width: 100%; box-sizing: border-box; }
+.page-container { display: flex; flex-direction: column; align-items: center; padding: 2rem; width: 100%; max-width: 1100px; margin: 0 auto; box-sizing: border-box; }
+.illustration-centered { display: flex; justify-content: center; align-items: center; width: 100%; margin: 30px 0 20px 0; }
+.preview-image { max-width: 100%; height: auto; max-height: 400px; display: block; }
+.login-button { padding: 12px 28px; background-color: #035b6e; color: white; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease; display: flex; align-items: center; gap: 8px; }
+.login-button:hover { background-color: #197fa6; }
+.country-flags { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding-bottom: 20px; width: 100%; }
 .flag-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; }
 .flag-image { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 6px rgba(0, 0, 0, 0.2); transition: transform 0.2s; }
 .flag-image:hover { transform: scale(1.1); }
 .flag-label { margin-top: 6px; font-size: 14px; text-align: center; }
 
-/* --- MAQUETACIÓN PRINCIPAL (LOGUEADO) --- */
+/* --- ESTILOS DE LA VISTA PRINCIPAL (LOGUEADO) --- */
+#logout { position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #a73200; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 10001; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease; }
+#logout:hover { background-color: #930d04; }
+
+/* Maquetación del Contenido Principal (Sidebar + Contenido) */
 #contenidoPrincipal {
   display: flex;
-  height: 100vh; /* Ocupa toda la altura disponible */
-  overflow: hidden; /* Evita scroll no deseado en el cuerpo principal */
+  height: 100vh; /* Ocupa toda la altura de la ventana */
+  overflow: hidden; /* Evita que el scroll general de la página sea el problema */
 }
 
 .sidebar {
   width: 250px;
   flex-shrink: 0;
   height: 100vh;
-  position: fixed; /* Esto la mantiene fija */
+  position: fixed;
   top: 0;
   left: 0;
   z-index: 1000;
   background-color: #1b5784;
 }
 
-/* El main que envuelve las rutas */
+/* EL CONTENEDOR QUE GESTIONA EL MARGEN DEL SIDEBAR Y EL PADDING GENERAL DE LAS PÁGINAS */
 .main-content-area {
   flex-grow: 1;
-  margin-left: 250px; /* ¡LA CLAVE! Empuja todo el contenido a la derecha del sidebar fijo */
-  padding: 2rem 3rem; /* Padding interno para el contenido de la página */
+  margin-left: 250px; /* Empuja el contenido a la derecha del sidebar fijo */
   box-sizing: border-box;
-  overflow-y: auto; /* Permite scroll solo en el área de contenido si es necesario */
-  height: 100vh; /* Para que el scroll funcione correctamente */
+  overflow-y: auto; /* Permite scroll solo dentro de esta área si el contenido es largo */
+  height: 100vh; /* Asegura que el scroll interno funcione correctamente */
+  /* NO HAY PADDING AQUÍ. El padding se aplica DENTRO de cada página */
 }
 
-/* Estilo para los enlaces de navegación */
+/* Estilo para los enlaces de navegación en el sidebar */
 .nav-link { text-decoration: none; color: inherit; }
 
-/* Botón cerrar sesión */
-#logout { position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #a73200; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 10001; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease; }
-#logout:hover { background-color: #930d04; }
 
 /* --- ESTILOS DE LAS PÁGINAS INDIVIDUALES (HOME, ACTIVIDADES) --- */
-/* Estas clases ya NO necesitan margin-left o padding-left */
-/* Solo definen cómo se ve el contenido DENTRO de su área */
+/* Estas clases actúan como el contenedor FLEX interno de cada página */
 
+.page-content-wrapper {
+  width: 100%;
+  min-height: 100%; /* Permite que el contenido empuje la altura si es necesario */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra horizontalmente el contenido */
+  justify-content: flex-start; /* <<< CLAVE: Alinea al inicio verticalmente (arriba) */
+  box-sizing: border-box; /* Padding incluido en el ancho/alto */
+  text-align: center; /* Alinea el texto en el centro */
+  padding: 2rem 3rem; /* <<<< EL PADDING SE MUEVE AQUÍ >>>> */
+}
+
+/* Estilos específicos para la página de bienvenida (Home) */
 .home-container {
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  text-align: center; height: 100%; /* Ocupa la altura disponible dentro de main-content-area */
-  width: 100%; /* Ocupa el ancho disponible */
+  /* Ya usa .page-content-wrapper, no necesita más estilos de posicionamiento */
 }
 .home-container h1 { font-size: 2.5em; color: #1b5784; }
 .home-container p { font-size: 1.2em; color: #333; margin-top: 20px; }
 
 
+/* Estilos específicos para la página de selección de actividades */
 .seleccion-actividad-container {
-  text-align: center;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start; /* Alinea arriba */
-  align-items: center; /* Centra horizontalmente */
+  /* Ya usa .page-content-wrapper, no necesita más estilos de posicionamiento */
 }
 .seleccion-actividad-container h1 { font-size: 2.2rem; color: #1b5784; margin-bottom: 0.5rem; }
 .seleccion-actividad-container p { font-size: 1.1rem; color: #555; margin-bottom: 3rem; }
@@ -85,16 +92,22 @@ body { background-color: #f5f9ff !important; color: black !important; margin: 0;
 .icono-actividad { font-size: 3rem; line-height: 1; }
 
 
-/* Estilos para el componente generador */
+/* Estilos para el componente generador (cuando se selecciona un tipo) */
+.pagina-generador {
+  /* Ya usa .page-content-wrapper, no necesita más estilos de posicionamiento */
+}
+.btn-volver { background: none; border: 1px solid #ccc; color: #333; font-size: 0.9rem; cursor: pointer; margin-bottom: 2rem; padding: 0.5rem 1rem; border-radius: 20px; transition: all 0.2s ease; }
+.btn-volver:hover { background-color: #f0f0f0; border-color: #aaa; }
+
 .generador-container {
   width: 100%;
-  max-width: 800px; /* Límite de ancho para el formulario */
+  max-width: 800px;
   padding: 1rem;
   background-color: #f9f9f9;
   border-radius: 8px;
   margin: 0 auto; /* Centrar el generador */
   box-sizing: border-box;
-  text-align: left; /* Alinea el texto dentro del generador a la izquierda */
+  text-align: left;
 }
 .generador-form { display: flex; flex-direction: column; gap: 1rem; }
 .form-group { display: flex; flex-direction: column; }
@@ -109,14 +122,3 @@ body { background-color: #f5f9ff !important; color: black !important; margin: 0;
 .error-mensaje { color: #d9534f; background-color: #f2dede; border: 1px solid #d9534f; padding: 1rem; border-radius: 4px; }
 .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1b5784; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 1rem auto; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-/* Estilos para la página del generador (ActividadesPage cuando muestra el generador) */
-.pagina-generador {
-  padding: 2rem 3rem; /* Misma medida que el main-content-area */
-  box-sizing: border-box;
-}
-
-.btn-volver {
-  background: none; border: 1px solid #ccc; color: #333; font-size: 0.9rem; cursor: pointer; margin-bottom: 2rem; padding: 0.5rem 1rem; border-radius: 20px; transition: all 0.2s ease;
-}
-.btn-volver:hover { background-color: #f0f0f0; border-color: #aaa; }
