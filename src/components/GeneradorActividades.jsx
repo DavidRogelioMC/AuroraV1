@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import DOMPurify from 'dompurify';
 import './ActividadesPage.css';
-import QuizActivity from './QuizActivity'; // <-- IMPORTAMOS EL NUEVO COMPONENTE
+import QuizActivity from './QuizActivity';
+import TrueFalseActivity from './TrueFalseActivity'; // <-- IMPORTAMOS EL NUEVO COMPONENTE
 
 const knowledgeBasesDisponibles = [
   { nombre: "Python", id: "AVDJ3M69B7" },
@@ -48,8 +49,7 @@ function GeneradorActividades({ token, tipoActividad }) {
         throw new Error(errorData.error || "Ocurrió un error.");
       }
       const data = await res.json();
-      setResultado(data.resultado); // Guardamos el objeto 'resultado' completo
-
+      setResultado(data.resultado);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -57,21 +57,24 @@ function GeneradorActividades({ token, tipoActividad }) {
     }
   };
   
-  // --- Nueva función para renderizar la actividad correcta ---
+  // --- Función 'renderActividad' ACTUALIZADA ---
   const renderActividad = () => {
     if (!resultado) return null;
 
-    if (tipoActividad === 'quiz') {
-      // Si el resultado es un array (como esperamos para quiz), lo renderizamos
-      if (Array.isArray(resultado)) {
+    if (Array.isArray(resultado)) {
+      if (tipoActividad === 'quiz') {
         return <QuizActivity data={resultado} />;
+      }
+      if (tipoActividad === 'truefalse') {
+        return <TrueFalseActivity data={resultado} />;
       }
     }
     
-    // Fallback para otros tipos de actividad o formatos no esperados
+    // Fallback para otros tipos o formatos no esperados
+    const textoBruto = resultado.texto_bruto || JSON.stringify(resultado);
     return (
       <div className="actividad-generada">
-        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resultado.texto_bruto || JSON.stringify(resultado)) }} />
+        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(textoBruto) }} />
       </div>
     );
   };
