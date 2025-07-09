@@ -1,10 +1,12 @@
-// src/components/GeneradorActividades.jsx (MODIFICADO)
+// src/components/GeneradorActividades.jsx (MODIFICADO PARA TODAS LAS ACTIVIDADES)
 
 import { useState } from 'react';
 import DOMPurify from 'dompurify';
 import './ActividadesPage.css';
 import QuizActivity from './QuizActivity';
-import TrueFalseActivity from './TrueFalseActivity'; // <-- IMPORTAMOS EL NUEVO COMPONENTE
+import TrueFalseActivity from './TrueFalseActivity';
+import MatchActivity from './MatchActivity';
+import FillInTheBlankActivity from './FillInTheBlankActivity';
 
 const knowledgeBasesDisponibles = [
   { nombre: "Python", id: "AVDJ3M69B7" },
@@ -57,26 +59,24 @@ function GeneradorActividades({ token, tipoActividad }) {
     }
   };
   
-  // --- Función 'renderActividad' ACTUALIZADA ---
   const renderActividad = () => {
     if (!resultado) return null;
 
-    if (Array.isArray(resultado)) {
-      if (tipoActividad === 'quiz') {
-        return <QuizActivity data={resultado} />;
-      }
-      if (tipoActividad === 'truefalse') {
-        return <TrueFalseActivity data={resultado} />;
-      }
+    // Usamos un switch para decidir qué componente renderizar
+    switch(tipoActividad) {
+      case 'quiz':
+        return Array.isArray(resultado) ? <QuizActivity data={resultado} /> : <div>Error de formato en la respuesta del Quiz.</div>;
+      case 'truefalse':
+        return Array.isArray(resultado) ? <TrueFalseActivity data={resultado} /> : <div>Error de formato en la respuesta de Verdadero/Falso.</div>;
+      case 'match':
+        return resultado.conceptos ? <MatchActivity data={resultado} /> : <div>Error de formato en la respuesta de Emparejamiento.</div>;
+      case 'fill':
+        return Array.isArray(resultado) ? <FillInTheBlankActivity data={resultado} /> : <div>Error de formato en la respuesta de Completar Espacios.</div>;
+      default:
+        // Fallback para cualquier otro caso o formato inesperado
+        const textoBruto = resultado.texto_bruto || JSON.stringify(resultado);
+        return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(textoBruto) }} />;
     }
-    
-    // Fallback para otros tipos o formatos no esperados
-    const textoBruto = resultado.texto_bruto || JSON.stringify(resultado);
-    return (
-      <div className="actividad-generada">
-        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(textoBruto) }} />
-      </div>
-    );
   };
 
   return (
