@@ -22,7 +22,7 @@ function GeneradorActividades({ token, tipoActividad }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const apiUrl = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev/generarActividad"; 
+  const apiUrl = import.meta.env.VITE_API_GENERAR_ACTIVIDADES; 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
