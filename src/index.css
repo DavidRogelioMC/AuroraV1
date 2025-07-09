@@ -1,3 +1,5 @@
+/* src/index.css (VERSIÓN DEFINITIVA Y COMPLETA) */
+
 /* Forzar modo claro */
 html {
   color-scheme: light;
@@ -24,69 +26,28 @@ body {
   text-align: left;
 }
 
-/* Logo pequeño a la izquierda */
-.logo-left {
-  height: 100px;
-  margin: 10px 0 10px 20px;
-}
-
-/* Botón cerrar sesión */
-#logout {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background-color: #a73200;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
-}
-
-#logout:hover {
-  background-color: #930d04;
-}
-
-/* Layout principal logueado */
-#contenidoPrincipal {
-  display: flex;
-}
-
-.sidebar {
-  width: 250px;
-  flex-shrink: 0;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: #0d47a1;
-}
-
-.main-content-area {
-  flex-grow: 1;
-  margin-left: 250px;
-}
-
-/* Página inicial (no logueado) */
+/* --- ESTILOS DE LA PÁGINA DE LOGIN --- */
 #paginaInicio {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 20px;
+  min-height: 100vh;
 }
 
 .header-bar {
   width: 100%;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
 }
 
-/* Contenido principal centrado */
+.logo-left {
+  height: 50px; /* Ajustado para un header */
+}
+
 .main-content {
+  flex-grow: 1; /* Hace que ocupe el espacio central */
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
 }
 
@@ -100,14 +61,17 @@ body {
   margin: 0 auto;
 }
 
-/* Imagen central */
-.preview-image {
-  max-width: 300px;
-  height: auto;
-  margin: 30px 0 20px 0;
+.illustration-centered {
+  /* Contenedor de la ilustración si necesitas estilos específicos */
 }
 
-/* Botón comenzar atractivo */
+.preview-image {
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
+  margin-bottom: 2rem;
+}
+
 .login-button {
   padding: 12px 28px;
   background-color: #035b6e;
@@ -116,7 +80,7 @@ body {
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  margin-bottom: 30px;
+  margin-bottom: 3rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s ease;
 }
@@ -125,13 +89,13 @@ body {
   background-color: #197fa6;
 }
 
-/* Banderas de países */
 .country-flags {
   display: flex;
   justify-content: center;
   gap: 24px;
   flex-wrap: wrap;
-  padding-bottom: 20px;
+  padding: 2rem 0;
+  width: 100%;
 }
 
 .flag-item {
@@ -161,7 +125,49 @@ body {
   text-align: center;
 }
 
-/* Actividades interactivas */
+
+/* --- ESTILOS DE LA VISTA PRINCIPAL (LOGUEADO) --- */
+#logout {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #a73200;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 10001;
+}
+
+#logout:hover {
+  background-color: #930d04;
+}
+
+/* Maquetación del Contenido Principal (Sidebar + Contenido) */
+#contenidoPrincipal {
+  display: flex;
+  position: relative; /* Contexto para elementos posicionados dentro */
+}
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: #1b5784;
+}
+
+.main-content-area {
+  flex-grow: 1;
+  margin-left: 250px;
+  width: calc(100% - 250px);
+}
+
 .nav-link {
   text-decoration: none;
   color: inherit;
