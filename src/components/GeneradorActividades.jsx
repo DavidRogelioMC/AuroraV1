@@ -8,7 +8,7 @@ import './ActividadesPage.css'; // Usamos el CSS de la página padre para los es
 const knowledgeBasesDisponibles = [
   { nombre: "Python", id: "AVDJ3M69B7" }, // <-- REEMPLAZA CON TU ID REAL
   { nombre: "AWS", id: "WKNJIRXQUT" },    // <-- REEMPLAZA CON TU ID REAL
-  { nombre: "AZ-104", id: "RZ4AILMCHM" }  // <-- REEMPLAZA CON TU ID REAL
+  { nombre: "AZ-104", id: "SX4C4WD4GV" }  // <-- REEMPLAZA CON TU ID REAL
 ];
 
 function GeneradorActividades({ token, tipoActividad }) {
