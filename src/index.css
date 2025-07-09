@@ -1,59 +1,35 @@
-/* Forzar modo claro */
-html {
-  color-scheme: light;
-}
+/* src/index.css (VERSIÓN FINAL Y CORREGIDA PARA MAQUETACIÓN) */
+/*HOLA*/
+/* Globales y reset */
+html { color-scheme: light; }
+body { background-color: #f5f9ff !important; color: black !important; margin: 0; font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; }
+#root { width: 100%; margin: 0; padding: 0; }
 
-body {
-  background-color: white !important;
-  color: black !important;
-  margin: 0;
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-}
+/* --- ESTILOS DE LA PÁGINA DE LOGIN --- */
+#paginaInicio { display: flex; flex-direction: column; min-height: 100vh; }
+.header-bar { width: 100%; padding: 1rem 2rem; box-sizing: border-box; }
+.logo-left { height: 50px; }
+.main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; width: 100%; box-sizing: border-box; }
+.page-container { display: flex; flex-direction: column; align-items: center; padding: 2rem; width: 100%; max-width: 1100px; margin: 0 auto; box-sizing: border-box; }
+.illustration-centered { display: flex; justify-content: center; align-items: center; width: 100%; margin: 30px 0 20px 0; }
+.preview-image { max-width: 100%; height: auto; max-height: 400px; display: block; }
+.login-button { padding: 12px 28px; background-color: #035b6e; color: white; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease; display: flex; align-items: center; gap: 8px; }
+.login-button:hover { background-color: #197fa6; }
+.country-flags { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding-bottom: 20px; width: 100%; }
+.flag-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; }
+.flag-image { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 6px rgba(0, 0, 0, 0.2); transition: transform 0.2s; }
+.flag-image:hover { transform: scale(1.1); }
+.flag-label { margin-top: 6px; font-size: 14px; text-align: center; }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: white !important;
-    color: black !important;
-  }
-}
+/* --- ESTILOS DE LA VISTA PRINCIPAL (LOGUEADO) --- */
+#logout { position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #a73200; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 10001; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease; }
+#logout:hover { background-color: #930d04; }
 
-#root {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  text-align: left;
-}
-
-/* Logo pequeño a la izquierda */
-.logo-left {
-  height: 100px;
-  margin: 10px 0 10px 20px;
-}
-
-/* Botón cerrar sesión */
-#logout {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background-color: #a73200;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
-}
-
-#logout:hover {
-  background-color: #930d04;
-}
-
-/* Layout principal logueado */
+/* Maquetación del Contenido Principal (Sidebar + Contenido) */
 #contenidoPrincipal {
   display: flex;
+  height: 100vh; /* Ocupa toda la altura de la ventana */
+  overflow: hidden; /* Evita que el scroll general de la página sea el problema */
 }
 
 .sidebar {
@@ -63,100 +39,93 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  background-color: #0d47a1;
+  z-index: 1000;
+  background-color: #1b5784;
 }
 
+/* Este es ahora solo un contenedor flex-grow, SIN margin-left ni padding */
 .main-content-area {
   flex-grow: 1;
-  margin-left: 250px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  height: 100vh;
 }
 
-/* Página inicial (no logueado) */
-#paginaInicio {
+/* Estilo para los enlaces de navegación en el sidebar */
+.nav-link { text-decoration: none; color: inherit; }
+
+
+/* --- ESTAS SON LAS CLASES CLAVE QUE RECIBEN EL MARGEN Y EL PADDING --- */
+/* Se aplican a los contenedores principales de CADA PÁGINA (Home, ActividadesPage, etc.) */
+.page-content-container {
+  width: calc(100% - 250px); /* Ocupa el ancho restante después del sidebar */
+  margin-left: 250px; /* ¡LA CLAVE! Empuja el contenido fuera del sidebar */
+  min-height: 100vh; /* Permite que el contenido empuje la altura si es necesario */
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 20px;
+  box-sizing: border-box;
+  padding: 2rem 3rem; /* <<<< EL PADDING FINAL SE APLICA AQUÍ >>>> */
 }
 
-.header-bar {
+/* Estilos específicos para la página de bienvenida (Home) */
+.home-container {
+  /* Alineaciones dentro del contenedor */
+  align-items: center; /* Centra horizontalmente */
+  justify-content: center; /* Centra verticalmente */
+  text-align: center; /* Centra el texto */
+  flex-grow: 1; /* Ocupa el espacio restante dentro de su padre */
+}
+.home-container h1 { font-size: 2.5em; color: #1b5784; }
+.home-container p { font-size: 1.2em; color: #333; margin-top: 20px; }
+
+
+/* Estilos específicos para la página de selección de actividades */
+.seleccion-actividad-container {
+  /* Alineaciones dentro del contenedor */
+  align-items: center; /* Centra horizontalmente */
+  justify-content: flex-start; /* Alinea al inicio verticalmente */
+  text-align: center; /* Centra el texto */
+  flex-grow: 1; /* Ocupa el espacio restante dentro de su padre */
+}
+.seleccion-actividad-container h1 { font-size: 2.2rem; color: #1b5784; margin-bottom: 0.5rem; }
+.seleccion-actividad-container p { font-size: 1.1rem; color: #555; margin-bottom: 3rem; }
+.botones-actividad { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; max-width: 900px; margin: 0 auto; }
+.btn-tipo-actividad { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2rem; border-radius: 12px; border: 1px solid #dfe6e9; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); font-size: 1rem; font-weight: 600; color: #333; }
+.btn-tipo-actividad:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: #1b5784; }
+.icono-actividad { font-size: 3rem; line-height: 1; }
+
+
+/* Estilos para la página del generador (cuando se selecciona un tipo) */
+.pagina-generador {
+  /* Alineaciones dentro del contenedor */
+  align-items: center; /* Centra horizontalmente */
+  justify-content: flex-start; /* Alinea al inicio verticalmente */
+  text-align: center; /* Centra el texto por defecto */
+  flex-grow: 1; /* Ocupa el espacio restante dentro de su padre */
+}
+.btn-volver { background: none; border: 1px solid #ccc; color: #333; font-size: 0.9rem; cursor: pointer; margin-bottom: 2rem; padding: 0.5rem 1rem; border-radius: 20px; transition: all 0.2s ease; }
+.btn-volver:hover { background-color: #f0f0f0; border-color: #aaa; }
+
+.generador-container {
   width: 100%;
+  max-width: 800px;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin: 0 auto; /* Centrar el generador */
+  box-sizing: border-box;
+  text-align: left; /* Alinea el texto dentro del generador a la izquierda */
 }
-
-/* Contenido principal centrado */
-.main-content {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.page-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-/* Imagen central */
-.preview-image {
-  max-width: 300px;
-  height: auto;
-  margin: 30px 0 20px 0;
-}
-
-/* Botón comenzar atractivo */
-.login-button {
-  padding: 12px 28px;
-  background-color: #035b6e;
-  color: white;
-  font-size: 16px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
-}
-
-.login-button:hover {
-  background-color: #197fa6;
-}
-
-/* Banderas de países */
-.country-flags {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding-bottom: 20px;
-}
-
-.flag-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  color: inherit;
-}
-
-.flag-image {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s;
-}
-
-.flag-image:hover {
-  transform: scale(1.1);
-}
-
-.flag-label {
-  margin-top: 6px;
-  font-size: 14px;
-  text-align: center;
-}
+.generador-form { display: flex; flex-direction: column; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { margin-bottom: 0.5rem; font-weight: 500; }
+.form-group input, .form-group select { padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; }
+.btn-generar { padding: 1rem; background-color: #1b5784; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+.btn-generar:disabled { background-color: #999; }
+.resultado-area { margin-top: 2rem; }
+.actividad-generada { background: white; padding: 1.5rem; border-radius: 4px; border: 1px solid #ddd; }
+.actividad-item { padding: 0.8rem 0; border-bottom: 1px solid #eee; }
+.actividad-item:last-child { border-bottom: none; }
+.error-mensaje { color: #d9534f; background-color: #f2dede; border: 1px solid #d9534f; padding: 1rem; border-radius: 4px; }
+.spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1b5784; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 1rem auto; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
