@@ -1,29 +1,150 @@
 /* src/index.css (VERSIÓN DEFINITIVA Y CORREGIDA PARA MAQUETACIÓN) */
 
 /* Globales y reset */
-html { color-scheme: light; }
-body { background-color: #f5f9ff !important; color: black !important; margin: 0; font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; }
-#root { width: 100%; margin: 0; padding: 0; }
+html {
+  color-scheme: light;
+}
+body {
+  background-color: #f5f9ff !important;
+  color: black !important;
+  margin: 0;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
 
 /* --- ESTILOS DE LA PÁGINA DE LOGIN --- */
-#paginaInicio { display: flex; flex-direction: column; min-height: 100vh; }
-.header-bar { width: 100%; padding: 1rem 2rem; box-sizing: border-box; }
-.logo-left { height: 50px; }
-.main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; width: 100%; box-sizing: border-box; }
-.page-container { display: flex; flex-direction: column; align-items: center; padding: 2rem; width: 100%; max-width: 1100px; margin: 0 auto; box-sizing: border-box; }
-.illustration-centered { display: flex; justify-content: center; align-items: center; width: 100%; margin: 30px 0 20px 0; }
-.preview-image { max-width: 100%; height: auto; max-height: 400px; display: block; }
-.login-button { padding: 12px 28px; background-color: #035b6e; color: white; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease; display: flex; align-items: center; gap: 8px; }
-.login-button:hover { background-color: #197fa6; }
-.country-flags { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; padding-bottom: 20px; width: 100%; }
-.flag-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; }
-.flag-image { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 6px rgba(0, 0, 0, 0.2); transition: transform 0.2s; }
-.flag-image:hover { transform: scale(1.1); }
-.flag-label { margin-top: 6px; font-size: 14px; text-align: center; }
+#paginaInicio {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header-bar {
+  width: 100%;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
+}
+
+.logo-left {
+  height: 50px;
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.illustration-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 30px 0 20px 0;
+}
+
+.preview-image {
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
+  display: block;
+}
+
+.login-button {
+  padding: 12px 28px;
+  background-color: #035b6e;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+  display: flex; /* Para el icono de cohete */
+  align-items: center;
+  gap: 8px; /* Espacio entre icono y texto */
+}
+
+.login-button:hover {
+  background-color: #197fa6;
+}
+
+.country-flags {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  width: 100%;
+}
+
+.flag-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.flag-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.flag-image:hover {
+  transform: scale(1.1);
+}
+
+.flag-label {
+  margin-top: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
 
 /* --- ESTILOS DE LA VISTA PRINCIPAL (LOGUEADO) --- */
-#logout { position: fixed; top: 20px; right: 20px; padding: 10px 20px; background-color: #a73200; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; z-index: 10001; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: background-color 0.3s ease; }
-#logout:hover { background-color: #930d04; }
+#logout {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #a73200;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 10001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+#logout:hover {
+  background-color: #930d04;
+}
 
 /* Maquetación del Contenido Principal (Sidebar + Contenido) */
 #contenidoPrincipal {
@@ -43,14 +164,15 @@ body { background-color: #f5f9ff !important; color: black !important; margin: 0;
   background-color: #1b5784;
 }
 
-/* EL CONTENEDOR QUE GESTIONA EL MARGEN DEL SIDEBAR Y EL PADDING GENERAL DE LAS PÁGINAS */
+/* ESTA ES LA CLASE CLAVE QUE ENVUELVE EL CONTENIDO DINÁMICO */
+/* Es la que recibe el 'margin-left' para empujar el contenido */
 .main-content-area {
   flex-grow: 1;
-  margin-left: 250px; /* Empuja el contenido a la derecha del sidebar fijo */
+  margin-left: 250px; /* ¡LA CLAVE! Empuja el contenido a la derecha del sidebar fijo */
   box-sizing: border-box;
   overflow-y: auto; /* Permite scroll solo dentro de esta área si el contenido es largo */
   height: 100vh; /* Asegura que el scroll interno funcione correctamente */
-  /* NO HAY PADDING AQUÍ. El padding se aplica DENTRO de cada página */
+  /* El padding se aplica DENTRO de cada página, no aquí */
 }
 
 /* Estilo para los enlaces de navegación en el sidebar */
@@ -66,10 +188,10 @@ body { background-color: #f5f9ff !important; color: black !important; margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center; /* Centra horizontalmente el contenido */
-  justify-content: flex-start; /* <<< CLAVE: Alinea al inicio verticalmente (arriba) */
+  justify-content: flex-start; /* Alinea al inicio verticalmente (arriba) */
   box-sizing: border-box; /* Padding incluido en el ancho/alto */
   text-align: center; /* Alinea el texto en el centro */
-  padding: 2rem 3rem; /* <<<< EL PADDING SE MUEVE AQUÍ >>>> */
+  padding: 2rem 3rem; /* <<<< EL PADDING SE APLICA AQUÍ >>>> */
 }
 
 /* Estilos específicos para la página de bienvenida (Home) */
