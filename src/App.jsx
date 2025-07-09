@@ -1,26 +1,26 @@
-// src/App.jsx (CÓDIGO FINAL Y COMPLETO)
+// src/App.jsx (CÓDIGO COMPLETO Y CORREGIDO)
 
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// Tus Componentes
+// Componentes
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
-import ActividadesPage from './components/ActividadesPage';
+import ActividadesPage from './components/ActividadesPage'; // Importa la página de actividades
 
-// Tus Estilos
-import './index.css';
-
-// Tus Assets
+// Estilos y Assets
+import './index.css'; // Tu CSS principal
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
+// Importa tus banderas si las usas en este archivo
 import chileFlag from './assets/chile.png';
 import peruFlag from './assets/peru.png';
 import colombiaFlag from './assets/colombia.png';
 import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
+
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
@@ -50,6 +50,7 @@ function App() {
   return (
     <>
       {!token ? (
+        // --- PÁGINA DE LOGIN (sin cambios significativos en la estructura aquí) ---
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -88,17 +89,21 @@ function App() {
           </div>
         </div>
       ) : (
+        // --- VISTA PRINCIPAL (ESTRUCTURA CORREGIDA) ---
         <Router>
-          <div id="contenidoPrincipal">
-            <Sidebar />
+          <div id="contenidoPrincipal"> {/* Este div es ahora el contenedor flex */}
+            <Sidebar /> {/* Sidebar ahora tiene 'position: fixed' y 'width' */}
             <ProfileModal token={token} />
             <ChatModal token={token} />
+
+            {/* El <main> con 'margin-left' que empuja el contenido */}
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
               </Routes>
             </main>
+            
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </Router>
