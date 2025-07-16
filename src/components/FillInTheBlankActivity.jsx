@@ -1,11 +1,12 @@
 // src/components/FillInTheBlankActivity.jsx
+
 import React, { useState } from 'react';
-import './FillInTheBlankActivity.css'; // Usaremos un CSS compartido
+import './FillInTheBlankActivity.css'; // Asegúrate de que este archivo CSS exista y tenga los estilos
 
-function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrarResultado }) {
-  const [valorUsuario, setValorUsuario] = useState('');
-
-  const esCorrecta = valorUsuario.trim().toLowerCase() === respuesta.trim().toLowerCase();
+// Componente para una sola frase
+function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrarResultado, valorInicial }) {
+  // El valor del input ahora se controla desde el componente padre
+  const esCorrecta = valorInicial.trim().toLowerCase() === respuesta.trim().toLowerCase();
 
   const getClassName = () => {
     if (!mostrarResultado) return '';
@@ -13,7 +14,6 @@ function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrar
   };
   
   const handleChange = (e) => {
-    setValorUsuario(e.target.value);
     onRespuesta(e.target.value);
   };
 
@@ -28,7 +28,7 @@ function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrar
                 id={`fill-${index}`}
                 type="text"
                 className={`fill-input ${getClassName()}`}
-                value={valorUsuario}
+                value={valorInicial}
                 onChange={handleChange}
                 disabled={mostrarResultado}
               />
@@ -41,7 +41,7 @@ function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrar
   );
 }
 
-
+// Componente principal de la actividad
 function FillInTheBlankActivity({ data }) {
   const [respuestasUsuario, setRespuestasUsuario] = useState({});
   const [mostrarResultados, setMostrarResultados] = useState(false);
@@ -54,7 +54,8 @@ function FillInTheBlankActivity({ data }) {
   const calificarActividad = () => {
     let correctas = 0;
     data.forEach((item, index) => {
-      if (respuestasUsuario[index] && respuestasUsuario[index].trim().toLowerCase() === item.respuesta.trim().toLowerCase()) {
+      const respuestaUsuario = respuestasUsuario[index] || '';
+      if (respuestaUsuario.trim().toLowerCase() === item.respuesta.trim().toLowerCase()) {
         correctas++;
       }
     });
@@ -62,11 +63,10 @@ function FillInTheBlankActivity({ data }) {
     setMostrarResultados(true);
   };
 
-   // --- NUEVA FUNCIÓN PARA REINICIAR ---
   const reiniciarActividad = () => {
-    setRespuestasUsuario({});    // Limpia las respuestas del usuario
-    setMostrarResultados(false); // Oculta los resultados y correcciones
-    setPuntuacion(0);            // Resetea la puntuación
+    setRespuestasUsuario({});
+    setMostrarResultados(false);
+    setPuntuacion(0);
   };
 
   return (
@@ -79,13 +79,21 @@ function FillInTheBlankActivity({ data }) {
           respuesta={item.respuesta}
           onRespuesta={(valor) => handleRespuesta(index, valor)}
           mostrarResultado={mostrarResultados}
+          // Pasamos el valor actual o un string vacío para que el input se resetee
+          valorInicial={respuestasUsuario[index] || ''} 
         />
       ))}
       <div className="activity-footer">
         {!mostrarResultados ? (
           <button onClick={calificarActividad} className="btn-revisar">Calificar</button>
         ) : (
-          <div className="resultado-final">Tu puntuación: {puntuacion} de {data.length}</div>
+          <div className="resultado-y-reinicio">
+            <div className="resultado-final">Tu puntuación: {puntuacion} de {data.length}</div>
+            {/* --- ESTA ES LA SECCIÓN CORREGIDA --- */}
+            <button onClick={reiniciarActividad} className="btn-reiniciar">
+              🔄 Intentar de nuevo
+            </button>
+          </div>
         )}
       </div>
     </div>
