@@ -1,6 +1,6 @@
 // src/components/FillInTheBlankActivity.jsx
 import React, { useState } from 'react';
-import './InteractiveActivity.css'; // Usaremos un CSS compartido
+import './FillInTheBlankActivity.css'; // Usaremos un CSS compartido
 
 function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrarResultado }) {
   const [valorUsuario, setValorUsuario] = useState('');
