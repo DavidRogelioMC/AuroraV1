@@ -1,0 +1,89 @@
+/* src/components/FillInTheBlankActivity.css */
+
+.interactive-activity {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.fill-statement {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.fill-input {
+  border: none;
+  border-bottom: 1px solid #333;
+  font-size: 1em;
+  text-align: center;
+  width: 150px;
+  margin: 0 5px;
+  padding: 2px 0;
+  transition: border-color 0.3s;
+}
+
+.fill-input.input-correcto {
+  border-color: #28a745;
+}
+
+.fill-input.input-incorrecto {
+  border-color: #dc3545;
+}
+
+.respuesta-correcta-fill {
+  color: #28a745;
+  font-style: italic;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+/* --- ESTILOS COMPARTIDOS PARA EL FOOTER --- */
+
+.activity-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.resultado-y-reinicio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.resultado-final {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.btn-revisar, .btn-reiniciar {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-revisar {
+  background-color: #1b5784;
+}
+
+.btn-revisar:hover {
+  background-color: #154360;
+}
+
+.btn-reiniciar {
+  background-color: #6c757d;
+}
+
+.btn-reiniciar:hover {
+  background-color: #5a6268;
+}
