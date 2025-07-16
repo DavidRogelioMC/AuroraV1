@@ -1,9 +1,10 @@
-// src/components/QuizActivity.jsx (CÓDIGO ORIGINAL + BOTÓN DE REINICIO)
+// src/components/QuizActivity.jsx (VERSIÓN CORREGIDA Y FUNCIONAL CON REINICIO)
 
 import React, { useState } from 'react';
-import './QuizActivity.css'; // Importamos su CSS
+import './QuizActivity.css'; // Asegúrate de que este archivo CSS exista
 
-// --- El componente QuizQuestion se mantiene 100% igual ---
+// El componente para una sola pregunta se mantiene igual.
+// Recibe los datos ya procesados.
 function QuizQuestion({ pregunta, opciones, seleccion, onSeleccion, mostrarResultado, respuestaCorrecta }) {
   
   const getOpcionClassName = (opcion) => {
@@ -38,8 +39,9 @@ function QuizQuestion({ pregunta, opciones, seleccion, onSeleccion, mostrarResul
   );
 }
 
-// --- El componente QuizActivity es el que modificamos ---
+// El componente principal que recibe los datos de la Lambda
 function QuizActivity({ data }) {
+  // data es el array de objetos con {pregunta, opciones, respuesta}
   const [respuestasUsuario, setRespuestasUsuario] = useState({});
   const [mostrarResultados, setMostrarResultados] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
@@ -61,17 +63,19 @@ function QuizActivity({ data }) {
     setPuntuacion(correctas);
     setMostrarResultados(true);
   };
-
-  // --- 1. AÑADIMOS LA FUNCIÓN PARA REINICIAR ---
+  
+  // --- FUNCIÓN DE REINICIO ---
   const reiniciarQuiz = () => {
-    setRespuestasUsuario({});    // Limpia las respuestas seleccionadas
-    setMostrarResultados(false); // Oculta los resultados
-    setPuntuacion(0);            // Resetea la puntuación
+    setRespuestasUsuario({});
+    setMostrarResultados(false);
+    setPuntuacion(0);
   };
+
 
   return (
     <div className="quiz-activity">
-      {data.map((preguntaData, index) => (
+      {/* Mapeamos sobre los datos y pasamos las props correctas */
+      data.map((preguntaData, index) => (
         <QuizQuestion
           key={index}
           pregunta={preguntaData.pregunta}
@@ -88,11 +92,11 @@ function QuizActivity({ data }) {
             Calificar Quiz
           </button>
         ) : (
-          // --- 2. MODIFICAMOS ESTA SECCIÓN PARA INCLUIR EL BOTÓN ---
           <div className="resultado-y-reinicio">
             <div className="resultado-final">
               Tu puntuación: {puntuacion} de {data.length}
             </div>
+            {/* --- BOTÓN DE REINICIO AÑADIDO --- */}
             <button onClick={reiniciarQuiz} className="btn-reiniciar">
               🔄 Intentar de nuevo
             </button>
