@@ -62,6 +62,13 @@ function FillInTheBlankActivity({ data }) {
     setMostrarResultados(true);
   };
 
+   // --- NUEVA FUNCIÓN PARA REINICIAR ---
+  const reiniciarActividad = () => {
+    setRespuestasUsuario({});    // Limpia las respuestas del usuario
+    setMostrarResultados(false); // Oculta los resultados y correcciones
+    setPuntuacion(0);            // Resetea la puntuación
+  };
+
   return (
     <div className="interactive-activity">
       {data.map((item, index) => (
