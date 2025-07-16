@@ -1,100 +1,118 @@
 // src/components/QuizActivity.jsx
 
-import React, { useState } from 'react';
-import './QuizActivity.css'; // Importamos su CSS
+import React, { useState, useEffect } from 'react';
+import './QuizActivity.css'; // Asegúrate de que este archivo CSS exista
 
-// --- El componente QuizQuestion no necesita cambios ---
-function QuizQuestion({ pregunta, opciones, seleccion, onSeleccion, mostrarResultado, respuestaCorrecta }) {
+// Componente para una sola pregunta del quiz
+function QuizQuestion({ bloqueTexto, index, onRespuesta, respuestaUsuario, mostrarResultado }) {
+  const [pregunta, setPregunta] = useState('');
+  const [opciones, setOpciones] = useState([]);
+  const [respuestaCorrecta, setRespuestaCorrecta] = useState('');
+
+  // Esta es la lógica clave: procesar el bloque de texto cuando llega
+  useEffect(() => {
+    const lineas = bloqueTexto.split('\n').map(l => l.trim()).filter(l => l);
+    if (lineas.length > 0) {
+      setPregunta(lineas[0].split('.', 1).slice(1).join('.').trim());
+      
+      const opcionesParseadas = [];
+      let respuestaCorrectaParseada = '';
+      
+      lineas.slice(1).forEach(linea => {
+        let textoOpcion = linea.split(')', 1).slice(1).join(')').trim();
+        if (linea.startsWith('*')) {
+          respuestaCorrectaParseada = textoOpcion;
+        }
+        opcionesParseadas.push(textoOpcion);
+      });
+      
+      setOpciones(opcionesParseadas);
+      setRespuestaCorrecta(respuestaCorrectaParseada);
+    }
+  }, [bloqueTexto]); // Se ejecuta cada vez que el texto del bloque cambia
+
   const getOpcionClassName = (opcion) => {
     if (!mostrarResultado) {
-      return seleccion === opcion ? 'opcion-seleccionada' : '';
+      return respuestaUsuario === opcion ? 'opcion-seleccionada' : '';
     }
-    if (opcion === respuestaCorrecta) {
-      return 'opcion-correcta';
-    }
-    if (seleccion === opcion && opcion !== respuestaCorrecta) {
-      return 'opcion-incorrecta';
-    }
-    return '';
+    if (opcion === respuestaCorrecta) return 'opcion-correcta';
+    if (respuestaUsuario === opcion) return 'opcion-incorrecta';
+    return 'btn-deshabilitado';
   };
 
   return (
     <div className="pregunta-quiz">
-      <h3>{pregunta}</h3>
+      <h3>{index + 1}. {pregunta}</h3>
       <div className="opciones-quiz">
-        {opciones.map((opcion, index) => (
-          <div
-            key={index}
-            className={`opcion-quiz ${getOpcionClassName(opcion)}`}
-            onClick={() => !mostrarResultado && onSeleccion(opcion)}
+        {opciones.map((opcion, i) => (
+          <button
+            key={i}
+            className={`btn-opcion ${getOpcionClassName(opcion)}`}
+            onClick={() => !mostrarResultado && onRespuesta(opcion)}
+            disabled={mostrarResultado}
           >
-            <span className="letra-opcion">{String.fromCharCode(97 + index)})</span>
             {opcion}
-          </div>
+          </button>
         ))}
       </div>
     </div>
   );
 }
 
-// --- El componente QuizActivity es el que modificamos ---
+// Componente principal que recibe los datos de la Lambda
 function QuizActivity({ data }) {
   const [respuestasUsuario, setRespuestasUsuario] = useState({});
   const [mostrarResultados, setMostrarResultados] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
 
-  const handleSeleccion = (preguntaIndex, opcionSeleccionada) => {
-    setRespuestasUsuario(prev => ({
-      ...prev,
-      [preguntaIndex]: opcionSeleccionada
-    }));
+  const handleRespuesta = (preguntaIndex, respuesta) => {
+    setRespuestasUsuario(prev => ({ ...prev, [preguntaIndex]: respuesta }));
   };
 
-  const calificarQuiz = () => {
+  const calificarActividad = () => {
     let correctas = 0;
-    data.forEach((preguntaData, index) => {
-      if (respuestasUsuario[index] === preguntaData.respuesta) {
-        correctas++;
+    data.forEach((item, index) => {
+      // Para calificar, también necesitamos procesar la respuesta correcta del texto original
+      const lineas = item.texto.split('\n');
+      const lineaCorrecta = lineas.find(l => l.trim().startsWith('*'));
+      if (lineaCorrecta) {
+        const respuestaCorrecta = lineaCorrecta.split(')', 1).slice(1).join(')').trim();
+        if (respuestasUsuario[index] === respuestaCorrecta) {
+          correctas++;
+        }
       }
     });
     setPuntuacion(correctas);
     setMostrarResultados(true);
   };
 
-  // --- 1. AÑADIMOS LA FUNCIÓN PARA REINICIAR ---
   const reiniciarQuiz = () => {
-    setRespuestasUsuario({});    // Limpia las respuestas seleccionadas
-    setMostrarResultados(false); // Oculta los resultados
-    setPuntuacion(0);            // Resetea la puntuación
+    setRespuestasUsuario({});
+    setMostrarResultados(false);
+    setPuntuacion(0);
   };
 
   return (
-    <div className="quiz-activity">
-      {data.map((preguntaData, index) => (
+    <div className="interactive-activity">
+      {data.map((item, index) => (
         <QuizQuestion
           key={index}
-          pregunta={preguntaData.pregunta}
-          opciones={preguntaData.opciones}
-          seleccion={respuestasUsuario[index]}
-          onSeleccion={(opcion) => handleSeleccion(index, opcion)}
+          index={index}
+          bloqueTexto={item.texto}
+          onRespuesta={(respuesta) => handleRespuesta(index, respuesta)}
+          respuestaUsuario={respuestasUsuario[index]}
           mostrarResultado={mostrarResultados}
-          respuestaCorrecta={preguntaData.respuesta}
         />
       ))}
-      <div className="quiz-footer">
+      <div className="activity-footer">
         {!mostrarResultados ? (
-          <button onClick={calificarQuiz} disabled={Object.keys(respuestasUsuario).length !== data.length} className="btn-revisar">
-            Calificar Quiz
+          <button onClick={calificarActividad} disabled={Object.keys(respuestasUsuario).length !== data.length} className="btn-revisar">
+            Calificar
           </button>
         ) : (
-          // --- 2. MODIFICAMOS ESTA SECCIÓN PARA INCLUIR EL BOTÓN ---
           <div className="resultado-y-reinicio">
-            <div className="resultado-final">
-              Tu puntuación: {puntuacion} de {data.length}
-            </div>
-            <button onClick={reiniciarQuiz} className="btn-reiniciar">
-              🔄 Intentar de nuevo
-            </button>
+            <div className="resultado-final">Tu puntuación: {puntuacion} de {data.length}</div>
+            <button onClick={reiniciarQuiz} className="btn-reiniciar">🔄 Intentar de nuevo</button>
           </div>
         )}
       </div>
