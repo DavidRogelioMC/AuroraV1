@@ -1,4 +1,4 @@
-/* src/components/TrueFalseActivity.css */
+/* src/components/TrueFalseActivity.css (CÓDIGO MODIFICADO Y COMPLETO) */
 
 .true-false-activity {
   margin-top: 1.5rem;
@@ -67,7 +67,66 @@
   cursor: not-allowed;
 }
 
+/* --- SECCIÓN MODIFICADA Y AÑADIDA PARA EL FOOTER --- */
+
 .vf-footer {
-  text-align: center;
   margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end; /* Alinea el contenido a la derecha */
+}
+
+/* Nuevo contenedor para el resultado y el botón de reinicio */
+.resultado-y-reinicio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.resultado-final {
+  /* Ya no necesita estilos de fondo o borde */
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+/* Estilos para el botón de calificar */
+.btn-revisar {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  background-color: #1b5784;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-revisar:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-revisar:hover:not(:disabled) {
+  background-color: #154360;
+}
+
+/* Nuevo estilo para el botón de reinicio */
+.btn-reiniciar {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.btn-reiniciar:hover {
+  background-color: #5a6268;
 }
