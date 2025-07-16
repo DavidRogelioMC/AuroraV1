@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import './QuizActivity.css'; // Importamos su CSS
 
+// --- El componente QuizQuestion no necesita cambios ---
 function QuizQuestion({ pregunta, opciones, seleccion, onSeleccion, mostrarResultado, respuestaCorrecta }) {
-  
   const getOpcionClassName = (opcion) => {
     if (!mostrarResultado) {
       return seleccion === opcion ? 'opcion-seleccionada' : '';
@@ -37,6 +37,7 @@ function QuizQuestion({ pregunta, opciones, seleccion, onSeleccion, mostrarResul
   );
 }
 
+// --- El componente QuizActivity es el que modificamos ---
 function QuizActivity({ data }) {
   const [respuestasUsuario, setRespuestasUsuario] = useState({});
   const [mostrarResultados, setMostrarResultados] = useState(false);
@@ -60,6 +61,13 @@ function QuizActivity({ data }) {
     setMostrarResultados(true);
   };
 
+  // --- 1. AÑADIMOS LA FUNCIÓN PARA REINICIAR ---
+  const reiniciarQuiz = () => {
+    setRespuestasUsuario({});    // Limpia las respuestas seleccionadas
+    setMostrarResultados(false); // Oculta los resultados
+    setPuntuacion(0);            // Resetea la puntuación
+  };
+
   return (
     <div className="quiz-activity">
       {data.map((preguntaData, index) => (
@@ -79,8 +87,14 @@ function QuizActivity({ data }) {
             Calificar Quiz
           </button>
         ) : (
-          <div className="resultado-final">
-            Tu puntuación: {puntuacion} de {data.length}
+          // --- 2. MODIFICAMOS ESTA SECCIÓN PARA INCLUIR EL BOTÓN ---
+          <div className="resultado-y-reinicio">
+            <div className="resultado-final">
+              Tu puntuación: {puntuacion} de {data.length}
+            </div>
+            <button onClick={reiniciarQuiz} className="btn-reiniciar">
+              🔄 Intentar de nuevo
+            </button>
           </div>
         )}
       </div>
