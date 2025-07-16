@@ -1,14 +1,87 @@
-/* --- ESTILOS COMPARTIDOS PARA EL FOOTER DE LA ACTIVIDAD --- */
-/* Pega este bloque al final de tu QuizActivity.css */
+/* src/components/QuizActivity.css (CÓDIGO COMPLETO CON ESTILOS DE REINICIO) */
 
-.quiz-footer { /* Adaptamos el nombre de la clase a tu JSX */
+.quiz-activity {
+  margin-top: 1.5rem;
+}
+
+.pregunta-quiz {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.pregunta-quiz:last-of-type {
+  border-bottom: none;
+}
+
+.pregunta-quiz h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.opciones-quiz {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.opcion-quiz {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.opcion-quiz:hover:not(.opcion-correcta):not(.opcion-incorrecta) {
+  border-color: #1b5784;
+  background-color: #f0f8ff;
+}
+
+.letra-opcion {
+  font-weight: bold;
+  margin-right: 0.75rem;
+  color: #1b5784;
+}
+
+.opcion-seleccionada {
+  border-color: #1b5784;
+  background-color: #e3f2fd;
+  font-weight: bold;
+  box-shadow: 0 0 0 2px #1b5784;
+}
+
+.opcion-correcta {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+  font-weight: bold;
+}
+
+.opcion-incorrecta {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+  font-weight: bold;
+}
+
+
+/* --- SECCIÓN MODIFICADA Y AÑADIDA PARA EL FOOTER --- */
+
+.quiz-footer {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #eee;
-  display: flex;
-  justify-content: flex-end; /* Alinea el botón de calificar a la derecha */
+  display: flex; /* Cambiamos a flex para alinear */
+  justify-content: flex-end; /* Alineamos el contenido a la derecha */
 }
 
+/* Nuevo contenedor para el resultado y el botón de reinicio */
 .resultado-y-reinicio {
   display: flex;
   align-items: center;
@@ -16,18 +89,14 @@
   width: 100%;
 }
 
-.resultado-final {
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.btn-revisar, .btn-reiniciar {
-  border: none;
+.btn-revisar {
   padding: 10px 20px;
-  border-radius: 5px;
   font-size: 1rem;
   font-weight: 500;
+  background-color: #1b5784;
   color: white;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -37,16 +106,28 @@
   cursor: not-allowed;
 }
 
-.btn-revisar {
-  background-color: #1b5784; /* Tu color principal */
-}
-
 .btn-revisar:hover:not(:disabled) {
   background-color: #154360;
 }
 
+/* Se han eliminado los estilos de fondo y borde para que sea solo texto */
+.resultado-final {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+/* Nuevo estilo para el botón de reinicio */
 .btn-reiniciar {
-  background-color: #6c757d; /* Un color secundario neutro */
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
 .btn-reiniciar:hover {
