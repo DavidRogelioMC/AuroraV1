@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import './TrueFalseActivity.css'; // Importamos su CSS
 
+// --- El componente TrueFalseStatement no necesita cambios ---
 function TrueFalseStatement({ afirmacion, respuesta, seleccion, onSeleccion, mostrarResultado }) {
-  
   const getButtonClassName = (valor) => {
     if (!mostrarResultado) {
       return seleccion === valor ? 'btn-seleccionado' : '';
@@ -41,6 +41,7 @@ function TrueFalseStatement({ afirmacion, respuesta, seleccion, onSeleccion, mos
   );
 }
 
+// --- El componente TrueFalseActivity es el que modificamos ---
 function TrueFalseActivity({ data }) {
   const [respuestasUsuario, setRespuestasUsuario] = useState({});
   const [mostrarResultados, setMostrarResultados] = useState(false);
@@ -64,6 +65,13 @@ function TrueFalseActivity({ data }) {
     setMostrarResultados(true);
   };
 
+  // --- 1. AÑADIMOS LA FUNCIÓN PARA REINICIAR ---
+  const reiniciarActividad = () => {
+    setRespuestasUsuario({});
+    setMostrarResultados(false);
+    setPuntuacion(0);
+  };
+
   return (
     <div className="true-false-activity">
       {data.map((item, index) => (
@@ -77,14 +85,19 @@ function TrueFalseActivity({ data }) {
         />
       ))}
       <div className="vf-footer">
-        {!mostrarResultados && (
+        {!mostrarResultados ? (
           <button onClick={calificarActividad} disabled={Object.keys(respuestasUsuario).length !== data.length} className="btn-revisar">
             Calificar
           </button>
-        )}
-        {mostrarResultados && (
-          <div className="resultado-final">
-            Tu puntuación: {puntuacion} de {data.length}
+        ) : (
+          // --- 2. MODIFICAMOS ESTA SECCIÓN PARA INCLUIR EL BOTÓN ---
+          <div className="resultado-y-reinicio">
+            <div className="resultado-final">
+              Tu puntuación: {puntuacion} de {data.length}
+            </div>
+            <button onClick={reiniciarActividad} className="btn-reiniciar">
+              🔄 Intentar de nuevo
+            </button>
           </div>
         )}
       </div>
