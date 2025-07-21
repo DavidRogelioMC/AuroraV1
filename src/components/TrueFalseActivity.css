@@ -1,0 +1,132 @@
+/* src/components/TrueFalseActivity.css (CÓDIGO MODIFICADO Y COMPLETO) */
+
+.true-false-activity {
+  margin-top: 1.5rem;
+}
+
+.afirmacion-vf {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.texto-afirmacion {
+  font-size: 1.1rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.botones-vf {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-vf {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.btn-vf:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: #ccc;
+}
+.btn-vf:not(:disabled):hover {
+  border-color: #1b5784;
+}
+
+.btn-vf.btn-seleccionado {
+  background-color: #e3f2fd;
+  border-color: #1b5784;
+  color: #1b5784;
+}
+
+.btn-vf.btn-correcto {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.btn-vf.btn-incorrecto {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.btn-vf.btn-deshabilitado {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* --- SECCIÓN MODIFICADA Y AÑADIDA PARA EL FOOTER --- */
+
+.vf-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end; /* Alinea el contenido a la derecha */
+}
+
+/* Nuevo contenedor para el resultado y el botón de reinicio */
+.resultado-y-reinicio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.resultado-final {
+  /* Ya no necesita estilos de fondo o borde */
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+/* Estilos para el botón de calificar */
+.btn-revisar {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  background-color: #1b5784;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-revisar:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-revisar:hover:not(:disabled) {
+  background-color: #154360;
+}
+
+/* Nuevo estilo para el botón de reinicio */
+.btn-reiniciar {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.btn-reiniciar:hover {
+  background-color: #5a6268;
+}
