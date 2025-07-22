@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // ✅ CORRECTO PARA VITE
+import { Auth } from 'aws-amplify';
+import { jwtDecode } from 'jwt-decode';
 
-// Componentes
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 
-// Estilos y Assets
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
@@ -21,7 +20,8 @@ import espanaFlag from './assets/espana.png';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
-  const [grupo, setGrupo] = useState(null);
+  const [email, setEmail] = useState("");
+  const [nombre, setNombre] = useState("");
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
@@ -36,20 +36,19 @@ function App() {
       setToken(newToken);
       window.history.pushState("", document.title, window.location.pathname + window.location.search);
     }
+  }, []);
 
-    const storedToken = localStorage.getItem("id_token");
-    if (storedToken) {
+  useEffect(() => {
+    if (token) {
       try {
-        const decoded = jwtDecode(storedToken); // ✅ CORRECTO
-        const grupos = decoded["cognito:groups"];
-        if (grupos && grupos.length > 0) {
-          setGrupo(grupos[0]);
-        }
-      } catch (e) {
-        console.error("Error decodificando el token", e);
+        const decoded = jwtDecode(token);
+        if (decoded.email) setEmail(decoded.email);
+        if (decoded.name) setNombre(decoded.name); // También puede ser given_name o preferred_username
+      } catch (err) {
+        console.error("❌ Error al decodificar el token:", err);
       }
     }
-  }, []);
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem("id_token");
@@ -99,20 +98,14 @@ function App() {
         </div>
       ) : (
         <Router>
-          <div id="contenidoPrincipal" className={grupo}>
-            <Sidebar />
+          <div id="contenidoPrincipal">
+            <Sidebar email={email} nombre={nombre} />
             <ProfileModal token={token} />
             <ChatModal token={token} />
             <main className="main-content-area">
-              {/* Bienvenida según grupo */}
-              {grupo === "administrador" && <h2>Bienvenido, Administrador</h2>}
-              {grupo === "participante" && <h2>Bienvenido, Participante</h2>}
-
               <Routes>
                 <Route path="/" element={<Home />} />
-                {grupo === "administrador" && (
-                  <Route path="/actividades" element={<ActividadesPage token={token} />} />
-                )}
+                <Route path="/actividades" element={<ActividadesPage token={token} />} />
               </Routes>
             </main>
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
