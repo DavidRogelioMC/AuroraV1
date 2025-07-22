@@ -32,30 +32,33 @@ function App() {
     const hash = window.location.hash;
     if (hash.includes("id_token")) {
       const newToken = hash.split("id_token=")[1].split("&")[0];
+      console.log("🪪 Token recibido:", newToken); // <-- Agrega esto
       localStorage.setItem("id_token", newToken);
       setToken(newToken);
       window.history.pushState("", document.title, window.location.pathname + window.location.search);
     }
   }, []);
 
-  useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        if (decoded.email) setEmail(decoded.email);
-        if (decoded.name) setNombre(decoded.name); // También puede ser given_name o preferred_username
-      } catch (err) {
-        console.error("❌ Error al decodificar el token:", err);
-      }
-    }
-  }, [token]);
-
-  const handleLogout = () => {
+    const handleLogout = () => {
     localStorage.removeItem("id_token");
     const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
     window.location.href = logoutUrl;
   };
 
+  useEffect(() => {
+    if (token) {
+      try {
+        console.log("🪪 Token recibido:", token); // <-- AÑADIDO
+        const decoded = jwtDecode(token);
+        console.log("✅ Token decodificado:", decoded);
+        setEmail(decoded.email);
+      } catch (err) {
+        console.error("❌ Error al decodificar el token:", err);
+      }
+    }
+  }, [token]);
+  console.log("🧪 Email en App.jsx:", email);
+  
   return (
     <>
       {!token ? (
@@ -99,7 +102,10 @@ function App() {
       ) : (
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar email={email} nombre={nombre} />
+            <Sidebar email={email} /> 
+            <div style={{ padding: '1rem', background: '#f3f3f3', fontSize: '0.9rem' }}>
+              <strong>📧 Correo: {email}</strong>
+            </div>
             <ProfileModal token={token} />
             <ChatModal token={token} />
             <main className="main-content-area">
