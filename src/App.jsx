@@ -1,3 +1,4 @@
+este es mi App.jsx debo hacer un cambio ?
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -6,28 +7,28 @@ import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
-import ActividadesPage from './components/ActividadesPage';
-import RolSelector from './components/RolSelector';
+import ActividadesPage from './components/ActividadesPage'; // Importa la página de actividades
 
 // Estilos y Assets
-import './index.css';
+import './index.css'; // Tu CSS principal
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
+// Importa tus banderas si las usas en este archivo
 import chileFlag from './assets/chile.png';
 import peruFlag from './assets/peru.png';
 import colombiaFlag from './assets/colombia.png';
 import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
-  const [rol, setRol] = useState(localStorage.getItem("user_rol")); // Estado para el rol seleccionado
 
-  // Variables Cognito
+  // Lógica de Cognito (sin cambios)
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI;
-  const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+  const loginUrl = ${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)};
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -41,15 +42,14 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("id_token");
-    localStorage.removeItem("user_rol"); // También elimina el rol al cerrar sesión
-    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
+    const logoutUrl = ${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)};
     window.location.href = logoutUrl;
   };
 
   return (
     <>
       {!token ? (
-        // Pantalla de login
+        // --- PÁGINA DE LOGIN (sin cambios significativos en la estructura aquí) ---
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -87,25 +87,22 @@ function App() {
             </div>
           </div>
         </div>
-      ) : !rol ? (
-        // Mostrar selector de rol si no se ha elegido ninguno
-        <RolSelector onRolSelect={(selectedRol) => {
-          localStorage.setItem("user_rol", selectedRol);
-          setRol(selectedRol);
-        }} />
       ) : (
-        // Vista principal de la app
+        // --- VISTA PRINCIPAL (ESTRUCTURA CORREGIDA) ---
         <Router>
-          <div id="contenidoPrincipal">
-            <Sidebar rol={rol} />
+          <div id="contenidoPrincipal"> {/* Este div es ahora el contenedor flex */}
+            <Sidebar /> {/* Sidebar ahora tiene 'position: fixed' y 'width' */}
             <ProfileModal token={token} />
             <ChatModal token={token} />
+
+            {/* El <main> con 'margin-left' que empuja el contenido */}
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
               </Routes>
             </main>
+            
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </Router>
