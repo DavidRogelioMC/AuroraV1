@@ -10,7 +10,7 @@ import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
-import RolSelector from './components/RolSelector'; // Componente para elegir rol
+import RolSelector from './components/RolSelector';
 
 // Estilos y Assets
 import './index.css';
