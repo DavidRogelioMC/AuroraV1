@@ -32,7 +32,7 @@ function App() {
     const hash = window.location.hash;
     if (hash.includes("id_token")) {
       const newToken = hash.split("id_token=")[1].split("&")[0];
-      console.log("🪪 Token recibido:", newToken); // <-- Agrega esto
+      console.log(" Token recibido:", newToken); // <-- Agrega esto
       localStorage.setItem("id_token", newToken);
       setToken(newToken);
       window.history.pushState("", document.title, window.location.pathname + window.location.search);
