@@ -41,3 +41,7 @@ function Sidebar({ email }) {
 }
 
 export default Sidebar;
+  );
+}
+
+export default Sidebar;
