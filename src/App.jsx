@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode'; // ✅ CORRECTO PARA VITE
 
 // Componentes
 import Sidebar from './components/Sidebar';
@@ -40,7 +40,7 @@ function App() {
     const storedToken = localStorage.getItem("id_token");
     if (storedToken) {
       try {
-        const decoded = jwtDecode(storedToken);
+        const decoded = jwtDecode(storedToken); // ✅ CORRECTO
         const grupos = decoded["cognito:groups"];
         if (grupos && grupos.length > 0) {
           setGrupo(grupos[0]);
@@ -99,18 +99,17 @@ function App() {
         </div>
       ) : (
         <Router>
-          <div id="contenidoPrincipal">
+          <div id="contenidoPrincipal" className={grupo}>
             <Sidebar />
             <ProfileModal token={token} />
             <ChatModal token={token} />
             <main className="main-content-area">
-              {/* Mensaje de bienvenida por grupo */}
+              {/* Bienvenida según grupo */}
               {grupo === "administrador" && <h2>Bienvenido, Administrador</h2>}
               {grupo === "participante" && <h2>Bienvenido, Participante</h2>}
 
               <Routes>
                 <Route path="/" element={<Home />} />
-                {/* Solo admins pueden ver actividades */}
                 {grupo === "administrador" && (
                   <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 )}
@@ -125,4 +124,3 @@ function App() {
 }
 
 export default App;
-
