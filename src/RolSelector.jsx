@@ -1,13 +1,14 @@
+// src/components/RolSelector.jsx
 import React from 'react';
 
 const RolSelector = ({ onSelect }) => {
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
+    <div className="rol-selector-container">
       <h2>Selecciona tu rol para continuar:</h2>
-      <button style={{ margin: '1rem', padding: '0.5rem 1rem' }} onClick={() => onSelect('admin')}>
+      <button className="rol-selector-btn admin" onClick={() => onSelect('admin')}>
         Administrador
       </button>
-      <button style={{ margin: '1rem', padding: '0.5rem 1rem' }} onClick={() => onSelect('participant')}>
+      <button className="rol-selector-btn participant" onClick={() => onSelect('participant')}>
         Participante
       </button>
     </div>
