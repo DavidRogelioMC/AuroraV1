@@ -78,8 +78,7 @@ body {
   background-color: #930d04;
 }
 
-/* NUEVO: Estilos para selector de rol */
-
+/* Estilos para selector de rol */
 .rol-selector-container {
   padding: 2rem;
   max-width: 400px;
