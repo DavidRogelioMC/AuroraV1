@@ -9,3 +9,4 @@ export const avatarOptions = [
   "https://thor-app-avatars.s3.us-east-1.amazonaws.com/Avatar+Thor/avatar8.png",
   "https://thor-app-avatars.s3.us-east-1.amazonaws.com/Avatar+Thor/avatar9.png"
 ];
+export default avatarOptions;
