@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
+
 
 
 // Componentes
