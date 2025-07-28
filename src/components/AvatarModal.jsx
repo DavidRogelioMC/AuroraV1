@@ -7,7 +7,8 @@ export default function AvatarModal({ isOpen, onClose }) {
 
   const handleSave = async () => {
     try {
-      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+      const user = await Auth.currentAuthenticatedUser();
+      console.log("👤 Usuario autenticado:", user);
 
       await Auth.updateUserAttributes(user, {
         picture: selectedAvatar
