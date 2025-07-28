@@ -1,0 +1,108 @@
+/* src/components/MatchActivity.css */
+
+.interactive-activity {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.match-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.column {
+  flex: 1;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.droppable-area {
+  padding: 1.5rem;
+  border: 2px dashed #ccc;
+  margin-bottom: 1rem;
+  min-height: 60px;
+  transition: background-color 0.2s;
+}
+
+.droppable-area:hover {
+  background-color: #eef;
+}
+
+.concepto-texto {
+  font-weight: bold;
+}
+
+.definicion-conectada {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #ddeeff;
+  border-radius: 4px;
+  font-style: italic;
+}
+
+.draggable-item {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  background-color: white;
+  margin-bottom: 1rem;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.draggable-item:active {
+  cursor: grabbing;
+}
+
+
+/* --- ESTILOS COMPARTIDOS PARA EL FOOTER --- */
+
+.activity-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.resultado-y-reinicio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.resultado-final {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.btn-revisar, .btn-reiniciar {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-revisar {
+  background-color: #1b5784;
+}
+
+.btn-revisar:hover {
+  background-color: #154360;
+}
+
+.btn-reiniciar {
+  background-color: #6c757d;
+}
+
+.btn-reiniciar:hover {
+  background-color: #5a6268;
+}
