@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
-import { jwtDecode } from "jwt-decode";
-
+import jwtDecode from "jwt-decode";
 
 
 // Componentes
@@ -36,7 +35,9 @@ function App() {
   // Lógica de Cognito (sin cambios)
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
+  const redirectUri = window.location.hostname === 'localhost'
+      ? 'http://localhost:5173'
+      : import.meta.env.VITE_REDIRECT_URI; // Usa la variable en lugar de hardcodear el URL
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
    useEffect(() => {
@@ -62,7 +63,7 @@ useEffect(() => {
   if (token) {
     try {
       console.log("🪪 Token recibido:", token); // <-- AÑADIDO
-      const decoded = jwtDecode(token); 
+      const decoded = jwtDecode(token);
       console.log("✅ Token decodificado:", decoded);
       setEmail(decoded.email);
     } catch (err) {
