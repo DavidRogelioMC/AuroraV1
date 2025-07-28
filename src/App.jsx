@@ -42,6 +42,12 @@ function App() {
       : import.meta.env.VITE_REDIRECT_URI; // Usa la variable en lugar de hardcodear el URL
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
+  useEffect(() => {
+  Auth.currentSession()
+    .then(session => console.log("✅ Sesión activa:", session))
+    .catch(() => Auth.signOut());
+}, []);
+
    useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes("id_token")) {
