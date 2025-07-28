@@ -36,7 +36,10 @@ function App() {
   // Lógica de Cognito (sin cambios)
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI;
+  const redirectUri =
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5173'
+    : 'https://testing.d28h59guct50tx.amplifyapp.com';
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
    useEffect(() => {
