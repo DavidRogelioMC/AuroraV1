@@ -5,24 +5,24 @@ export default function AvatarModal({ isOpen, onClose }) {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [error, setError] = useState("");
 
-  const handleSave = async () => {
-    try {
-      const user = await Auth.currentAuthenticatedUser();
-      console.log("👤 Usuario autenticado:", user);
+ const handleSave = async () => {
+  try {
+    // Forzar autenticación válida
+    const user = await Auth.currentAuthenticatedUser({ bypassCache: false });
+    console.log("✅ Usuario autenticado:", user);
 
-      await Auth.updateUserAttributes(user, {
-        picture: selectedAvatar
-      });
+    await Auth.updateUserAttributes(user, {
+      picture: selectedAvatar
+    });
 
-      setError("");
-      alert("✅ Avatar actualizado correctamente");
-      onClose();
-    } catch (err) {
-      console.error("❌ Error al actualizar avatar:", err);
-      setError("Error al actualizar avatar");
-    }
-  };
-
+    setError("");
+    alert("✅ Avatar actualizado correctamente");
+    onClose();
+  } catch (err) {
+    console.error("❌ Error al actualizar avatar:", err);
+    setError("Error al actualizar avatar");
+  }
+};
   if (!isOpen) return null;
 
   return (
