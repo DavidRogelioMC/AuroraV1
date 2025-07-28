@@ -1,6 +1,6 @@
+import { useState } from "react";
 import { Auth } from "aws-amplify";
-import avatarOptions from "../assets/avatars"; // Ajusta la ruta si es distinta
-
+import { avatarOptions } from "../assets/avatars";
 export default function AvatarModal({ isOpen, onClose }) {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [error, setError] = useState("");
