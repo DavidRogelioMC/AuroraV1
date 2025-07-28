@@ -28,6 +28,7 @@ import espanaFlag from './assets/espana.png';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
+  const [avatar, setAvatar] = useState(null); 
   const [email, setEmail] = useState("");
 
   console.log("📦 Token desde localStorage:", localStorage.getItem("id_token")); // <--- AÑADE ESTO
