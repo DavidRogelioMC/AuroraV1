@@ -37,9 +37,7 @@ function App() {
   // Lógica de Cognito (sin cambios)
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const redirectUri = window.location.hostname === 'localhost'
-      ? 'http://localhost:5173'
-      : import.meta.env.VITE_REDIRECT_URI; // Usa la variable en lugar de hardcodear el URL
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING; // Usa la variable en lugar de hardcodear el URL
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
   useEffect(() => {
