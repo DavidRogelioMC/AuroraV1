@@ -1,4 +1,4 @@
-// src/components/FillInTheBlankActivity.jsx (CÓDIGO COMPLETO Y CORREGIDO)
+// src/components/FillInTheBlankActivity.jsx (VERSIÓN MEJORADA)
 
 import React, { useState } from 'react';
 import './FillInTheBlankActivity.css';
@@ -7,11 +7,11 @@ import './FillInTheBlankActivity.css';
 function FillInTheBlankStatement({ 
   frase, 
   respuesta, 
-  justificacion, // Nueva prop
+  justificacion,
   onRespuesta, 
   index, 
   mostrarResultado, 
-  mostrarJustificaciones // Nueva prop
+  mostrarJustificaciones 
 }) {
   const [valorUsuario, setValorUsuario] = useState('');
 
@@ -27,28 +27,36 @@ function FillInTheBlankStatement({
     onRespuesta(e.target.value);
   };
 
+  // --- LÓGICA MEJORADA PARA EL INPUT ---
+  // Calculamos el tamaño del input basado en la longitud de la respuesta, con un mínimo.
+  const inputSize = Math.max(respuesta.length, 10); // Mínimo de 10 caracteres de ancho
+
   return (
-    <div className="fill-statement">
-      <label htmlFor={`fill-${index}`}>
-        {frase.split('______').map((part, i) => (
-          <React.Fragment key={i}>
-            {part}
-            {i < frase.split('______').length - 1 && (
-              <input
-                id={`fill-${index}`}
-                type="text"
-                className={`fill-input ${getClassName()}`}
-                value={valorUsuario}
-                onChange={handleChange}
-                disabled={mostrarResultado}
-              />
-            )}
-          </React.Fragment>
-        ))}
-      </label>
-      {mostrarResultado && !esCorrecta && <span className="respuesta-correcta-fill">Respuesta: {respuesta}</span>}
+    <div className="fill-statement-wrapper">
+      <div className="fill-statement">
+        <label htmlFor={`fill-${index}`}>
+          {frase.split('______').map((part, i) => (
+            <React.Fragment key={i}>
+              {part}
+              {i < frase.split('______').length - 1 && (
+                <input
+                  id={`fill-${index}`}
+                  type="text"
+                  className={`fill-input ${getClassName()}`}
+                  value={valorUsuario}
+                  onChange={handleChange}
+                  disabled={mostrarResultado}
+                  size={inputSize} // <-- ¡AQUÍ ESTÁ LA MAGIA!
+                  style={{ width: `${inputSize}ch` }} // ch = unidad de ancho de carácter
+                />
+              )}
+            </React.Fragment>
+          ))}
+        </label>
+        {mostrarResultado && !esCorrecta && <span className="respuesta-correcta-fill">Respuesta: {respuesta}</span>}
+      </div>
       
-      {/* --- NUEVA ÁREA PARA MOSTRAR LA JUSTIFICACIÓN --- */}
+      {/* --- La justificación ahora está fuera del div de la frase --- */}
       {mostrarResultado && mostrarJustificaciones && (
         <div className="justificacion-fill">
           <strong>Justificación:</strong> {justificacion}
@@ -59,13 +67,11 @@ function FillInTheBlankStatement({
 }
 
 
-// --- Componente Principal ---
-function FillInTheBlankActivity({ data }) { // data es [{id, frase, respuesta, justificacion}, ...]
+// --- Componente Principal (sin cambios en la lógica, solo para completitud) ---
+function FillInTheBlankActivity({ data }) {
   const [respuestasUsuario, setRespuestasUsuario] = useState({});
   const [mostrarResultados, setMostrarResultados] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
-
-  // --- NUEVO ESTADO PARA LAS JUSTIFICACIONES ---
   const [mostrarJustificaciones, setMostrarJustificaciones] = useState(false);
 
   const handleRespuesta = (index, valor) => {
@@ -98,33 +104,23 @@ function FillInTheBlankActivity({ data }) { // data es [{id, frase, respuesta, j
           index={index}
           frase={item.frase}
           respuesta={item.respuesta}
-          justificacion={item.justificacion} // Pasamos la justificación
+          justificacion={item.justificacion}
           onRespuesta={(valor) => handleRespuesta(index, valor)}
           mostrarResultado={mostrarResultados}
-          mostrarJustificaciones={mostrarJustificaciones} // Pasamos el estado
+          mostrarJustificaciones={mostrarJustificaciones}
         />
       ))}
-
-      {/* --- SECCIÓN DEL FOOTER MODIFICADA --- */}
       <div className="activity-footer">
         {!mostrarResultados ? (
-          <div className="resultado-y-reinicio" style={{ justifyContent: 'flex-end' }}>
-            <button onClick={calificarActividad} className="btn-revisar">Calificar</button>
-          </div>
+          <button onClick={calificarActividad} className="btn-revisar">Calificar</button>
         ) : (
           <div className="resultado-y-reinicio">
-            <div className="resultado-final">
-              Puntuación: {puntuacion} de {data.length}
-            </div>
-            
-            {/* Grupo de botones para Justificación y Reinicio */}
+            <div className="resultado-final">Puntuación: {puntuacion} de {data.length}</div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setMostrarJustificaciones(prev => !prev)} className="btn-justificacion">
                 {mostrarJustificaciones ? 'Ocultar Justificaciones' : 'Ver Justificaciones'}
               </button>
-              <button onClick={reiniciarActividad} className="btn-reiniciar">
-                Reiniciar
-              </button>
+              <button onClick={reiniciarActividad} className="btn-reiniciar">Reiniciar</button>
             </div>
           </div>
         )}
