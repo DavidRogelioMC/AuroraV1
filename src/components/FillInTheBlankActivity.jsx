@@ -1,12 +1,21 @@
-// src/components/FillInTheBlankActivity.jsx
+// src/components/FillInTheBlankActivity.jsx (CÓDIGO COMPLETO Y CORREGIDO)
 
 import React, { useState } from 'react';
-import './FillInTheBlankActivity.css'; // Asegúrate de que este archivo CSS exista y tenga los estilos
+import './FillInTheBlankActivity.css';
 
-// Componente para una sola frase
-function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrarResultado, valorInicial }) {
-  // El valor del input ahora se controla desde el componente padre
-  const esCorrecta = valorInicial.trim().toLowerCase() === respuesta.trim().toLowerCase();
+// --- Componente interno para una sola frase ---
+function FillInTheBlankStatement({ 
+  frase, 
+  respuesta, 
+  justificacion, // Nueva prop
+  onRespuesta, 
+  index, 
+  mostrarResultado, 
+  mostrarJustificaciones // Nueva prop
+}) {
+  const [valorUsuario, setValorUsuario] = useState('');
+
+  const esCorrecta = valorUsuario.trim().toLowerCase() === respuesta.trim().toLowerCase();
 
   const getClassName = () => {
     if (!mostrarResultado) return '';
@@ -14,6 +23,7 @@ function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrar
   };
   
   const handleChange = (e) => {
+    setValorUsuario(e.target.value);
     onRespuesta(e.target.value);
   };
 
@@ -28,7 +38,7 @@ function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrar
                 id={`fill-${index}`}
                 type="text"
                 className={`fill-input ${getClassName()}`}
-                value={valorInicial}
+                value={valorUsuario}
                 onChange={handleChange}
                 disabled={mostrarResultado}
               />
@@ -37,15 +47,26 @@ function FillInTheBlankStatement({ frase, respuesta, onRespuesta, index, mostrar
         ))}
       </label>
       {mostrarResultado && !esCorrecta && <span className="respuesta-correcta-fill">Respuesta: {respuesta}</span>}
+      
+      {/* --- NUEVA ÁREA PARA MOSTRAR LA JUSTIFICACIÓN --- */}
+      {mostrarResultado && mostrarJustificaciones && (
+        <div className="justificacion-fill">
+          <strong>Justificación:</strong> {justificacion}
+        </div>
+      )}
     </div>
   );
 }
 
-// Componente principal de la actividad
-function FillInTheBlankActivity({ data }) {
+
+// --- Componente Principal ---
+function FillInTheBlankActivity({ data }) { // data es [{id, frase, respuesta, justificacion}, ...]
   const [respuestasUsuario, setRespuestasUsuario] = useState({});
   const [mostrarResultados, setMostrarResultados] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
+
+  // --- NUEVO ESTADO PARA LAS JUSTIFICACIONES ---
+  const [mostrarJustificaciones, setMostrarJustificaciones] = useState(false);
 
   const handleRespuesta = (index, valor) => {
     setRespuestasUsuario(prev => ({ ...prev, [index]: valor }));
@@ -54,8 +75,7 @@ function FillInTheBlankActivity({ data }) {
   const calificarActividad = () => {
     let correctas = 0;
     data.forEach((item, index) => {
-      const respuestaUsuario = respuestasUsuario[index] || '';
-      if (respuestaUsuario.trim().toLowerCase() === item.respuesta.trim().toLowerCase()) {
+      if (respuestasUsuario[index] && respuestasUsuario[index].trim().toLowerCase() === item.respuesta.trim().toLowerCase()) {
         correctas++;
       }
     });
@@ -67,32 +87,45 @@ function FillInTheBlankActivity({ data }) {
     setRespuestasUsuario({});
     setMostrarResultados(false);
     setPuntuacion(0);
+    setMostrarJustificaciones(false);
   };
 
   return (
     <div className="interactive-activity">
       {data.map((item, index) => (
         <FillInTheBlankStatement
-          key={index}
+          key={item.id || index}
           index={index}
           frase={item.frase}
           respuesta={item.respuesta}
+          justificacion={item.justificacion} // Pasamos la justificación
           onRespuesta={(valor) => handleRespuesta(index, valor)}
           mostrarResultado={mostrarResultados}
-          // Pasamos el valor actual o un string vacío para que el input se resetee
-          valorInicial={respuestasUsuario[index] || ''} 
+          mostrarJustificaciones={mostrarJustificaciones} // Pasamos el estado
         />
       ))}
+
+      {/* --- SECCIÓN DEL FOOTER MODIFICADA --- */}
       <div className="activity-footer">
         {!mostrarResultados ? (
-          <button onClick={calificarActividad} className="btn-revisar">Calificar</button>
+          <div className="resultado-y-reinicio" style={{ justifyContent: 'flex-end' }}>
+            <button onClick={calificarActividad} className="btn-revisar">Calificar</button>
+          </div>
         ) : (
           <div className="resultado-y-reinicio">
-            <div className="resultado-final">Tu puntuación: {puntuacion} de {data.length}</div>
-            {/* --- ESTA ES LA SECCIÓN CORREGIDA --- */}
-            <button onClick={reiniciarActividad} className="btn-reiniciar">
-              🔄 Intentar de nuevo
-            </button>
+            <div className="resultado-final">
+              Puntuación: {puntuacion} de {data.length}
+            </div>
+            
+            {/* Grupo de botones para Justificación y Reinicio */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setMostrarJustificaciones(prev => !prev)} className="btn-justificacion">
+                {mostrarJustificaciones ? 'Ocultar Justificaciones' : 'Ver Justificaciones'}
+              </button>
+              <button onClick={reiniciarActividad} className="btn-reiniciar">
+                Reiniciar
+              </button>
+            </div>
           </div>
         )}
       </div>
