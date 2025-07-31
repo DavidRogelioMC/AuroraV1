@@ -1,4 +1,4 @@
-// src/components/QuizActivity.jsx (CÓDIGO COMPLETO)
+// src/components/QuizActivity.jsx (CÓDIGO COMPLETO Y CORREGIDO)
 
 import { useState } from 'react';
 import './QuizActivity.css'; // Asegúrate de que este archivo CSS exista
@@ -9,7 +9,6 @@ function QuizActivity({ data }) {
   const [haRespondido, setHaRespondido] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
   
-  // --- Estados nuevos ---
   const [mostrarJustificacion, setMostrarJustificacion] = useState(false);
   const [mostrarResultadosFinales, setMostrarResultadosFinales] = useState(false);
 
@@ -98,12 +97,14 @@ function QuizActivity({ data }) {
             <button onClick={siguientePregunta} className="btn-siguiente">
               {preguntaActualIndex < data.length - 1 ? 'Siguiente Pregunta' : 'Finalizar'}
             </button>
-            <button onClick={() => setMostrarJustificacion(true)} className="btn-justificacion">
-              Ver Justificación
-            </button>
-            <button onClick={reiniciarActividad} className="btn-reinicio">
-              Reiniciar
-            </button>
+            <div className="grupo-botones-secundarios">
+              <button onClick={() => setMostrarJustificacion(true)} className="btn-secundario btn-justificacion">
+                Ver Justificación
+              </button>
+              <button onClick={reiniciarActividad} className="btn-secundario">
+                Reiniciar
+              </button>
+            </div>
           </div>
         )}
       </div>
