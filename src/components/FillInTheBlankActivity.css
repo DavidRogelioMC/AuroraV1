@@ -87,3 +87,45 @@
 .btn-reiniciar:hover {
   background-color: #5a6268;
 }
+
+/* --- INICIO DE LOS NUEVOS ESTILOS AÑADIDOS --- */
+
+/* Contenedor para los 3 botones que aparecen después de calificar */
+/* Reutiliza .resultado-y-reinicio que ya tienes */
+
+/* Botón específico para la justificación */
+.btn-justificacion {
+  border: 1px solid #1b5784;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1b5784;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-justificacion:hover {
+  background-color: #eef5fa; /* Un azul muy claro al pasar el ratón */
+}
+
+/* Contenedor donde se muestra el texto de la justificación */
+/* Se muestra DENTRO de cada .fill-statement */
+.justificacion-fill {
+  display: block; /* Para que aparezca en una nueva línea */
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  background-color: #f8f9fa;
+  border-left: 3px solid #1b5784;
+  border-radius: 4px;
+  color: #333;
+  animation: fadeIn 0.5s ease;
+}
+
+/* Animación de aparición */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
