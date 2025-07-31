@@ -1,7 +1,7 @@
 // src/components/QuizActivity.jsx (CÓDIGO COMPLETO)
 
 import { useState } from 'react';
-import './QuizzActivity.css'; // Asegúrate de que este archivo CSS exista
+import './QuizActivity.css'; // Asegúrate de que este archivo CSS exista
 
 function QuizActivity({ data }) {
   const [preguntaActualIndex, setPreguntaActualIndex] = useState(0);
