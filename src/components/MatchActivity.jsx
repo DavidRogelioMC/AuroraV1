@@ -1,27 +1,27 @@
-// src/components/MatchActivity.jsx (CÓDIGO COMPLETO CON JUSTIFICACIONES)
+// src/components/MatchActivity.jsx (CÓDIGO COMPLETO Y CORREGIDO)
 
 import { useState, useEffect, useMemo } from 'react';
 import './MatchActivity.css';
 
-// Función para barajar un array, la usaremos para las definiciones
+// Función para barajar un array
 const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
 function MatchActivity({ data }) { // data es {conceptos, definiciones, justificaciones}
   const [conceptos, setConceptos] = useState(data.conceptos);
   const [definiciones, setDefiniciones] = useState([]);
-  const [conexiones, setConexiones] = useState({}); // { [conceptoId]: definicionId }
-  
-  // --- Estados nuevos ---
+  const [conexiones, setConexiones] = useState({});
+
+  // Estados nuevos para la interactividad
   const [haRevisado, setHaRevisado] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
   const [mostrarJustificaciones, setMostrarJustificaciones] = useState(false);
 
-  // Barajamos las definiciones solo una vez cuando el componente se carga
+  // Barajamos las definiciones solo una vez
   useEffect(() => {
     setDefiniciones(shuffleArray(data.definiciones));
   }, [data.definiciones]);
 
-  // Mapeo para facilitar la búsqueda de la definición correcta para cada concepto
+  // Creamos un mapa de respuestas correctas para una verificación más fácil
   const mapaRespuestasCorrectas = useMemo(() => {
     const map = {};
     data.conceptos.forEach(c => {
@@ -33,7 +33,7 @@ function MatchActivity({ data }) { // data es {conceptos, definiciones, justific
 
   const handleDrop = (e, conceptoId) => {
     e.preventDefault();
-    if (haRevisado) return; // No permitir cambios después de revisar
+    if (haRevisado) return;
     const definicionId = e.dataTransfer.getData("definicionId");
     setConexiones(prev => ({ ...prev, [conceptoId]: definicionId }));
   };
@@ -58,7 +58,6 @@ function MatchActivity({ data }) { // data es {conceptos, definiciones, justific
     setHaRevisado(false);
     setPuntuacion(0);
     setMostrarJustificaciones(false);
-    // Volvemos a barajar las definiciones para un nuevo intento
     setDefiniciones(shuffleArray(data.definiciones));
   };
   
@@ -66,28 +65,26 @@ function MatchActivity({ data }) { // data es {conceptos, definiciones, justific
     if (!haRevisado) return '';
     const esCorrecto = conexiones[conceptoId] && conexiones[conceptoId] === mapaRespuestasCorrectas[conceptoId];
     return esCorrecto ? 'match-correcto' : 'match-incorrecto';
-  }
+  };
 
   return (
     <div className="interactive-activity">
-      <div className="activity-header">
-        <h3>Actividad de Emparejamiento</h3>
-        {haRevisado && <div className="puntuacion-actual">Puntuación: {puntuacion} / {conceptos.length}</div>}
-      </div>
-      <p className="instruccion-match">Arrastra cada definición de la derecha hacia su concepto correspondiente a la izquierda.</p>
-      
       <div className="match-columns">
         <div className="column conceptos-column">
           <h3>Conceptos</h3>
           {conceptos.map(concepto => (
-            <div key={concepto.id} className={`droppable-area ${getMatchStatusClass(concepto.id)}`} onDrop={(e) => handleDrop(e, concepto.id)} onDragOver={(e) => e.preventDefault()}>
+            <div 
+              key={concepto.id} 
+              className={`droppable-area ${getMatchStatusClass(concepto.id)}`} 
+              onDrop={(e) => handleDrop(e, concepto.id)} 
+              onDragOver={(e) => e.preventDefault()}
+            >
               <div className="concepto-texto">{concepto.texto}</div>
               {conexiones[concepto.id] && (
                 <div className="definicion-conectada">
                   {definiciones.find(d => d.id === conexiones[concepto.id])?.texto}
                 </div>
               )}
-              {/* --- Área para la justificación --- */}
               {mostrarJustificaciones && haRevisado && (
                 <div className="justificacion-container-match">
                   <p>{data.justificaciones[concepto.id]}</p>
@@ -99,23 +96,35 @@ function MatchActivity({ data }) { // data es {conceptos, definiciones, justific
         <div className="column definiciones-column">
           <h3>Definiciones</h3>
           {definiciones.map(definicion => (
-            <div key={definicion.id} className="draggable-item" draggable={!haRevisado} onDragStart={(e) => handleDragStart(e, definicion.id)}>
+            <div 
+              key={definicion.id} 
+              className="draggable-item" 
+              draggable={!haRevisado} // No se puede arrastrar después de revisar
+              onDragStart={(e) => handleDragStart(e, definicion.id)}
+            >
               {definicion.texto}
             </div>
           ))}
         </div>
       </div>
 
+      {/* --- SECCIÓN DEL FOOTER MODIFICADA --- */}
       <div className="activity-footer">
         {!haRevisado ? (
-          <button onClick={revisarRespuestas} className="btn-revisar">Revisar Respuestas</button>
+          <div className="resultado-y-reinicio" style={{ justifyContent: 'flex-end' }}>
+            <button onClick={revisarRespuestas} className="btn-revisar">Revisar Respuestas</button>
+          </div>
         ) : (
-          <div className="footer-botones-resultado">
-             {/* Botón para mostrar/ocultar justificaciones */}
-            <button onClick={() => setMostrarJustificaciones(prev => !prev)} className="btn-secundario btn-justificacion">
+          <div className="resultado-y-reinicio footer-botones-resultado">
+            <div className="resultado-final">
+              Puntuación: {puntuacion} de {conceptos.length}
+            </div>
+            
+            <button onClick={() => setMostrarJustificaciones(prev => !prev)} className="btn-justificacion">
               {mostrarJustificaciones ? 'Ocultar Justificaciones' : 'Ver Justificaciones'}
             </button>
-            <button onClick={reiniciarActividad} className="btn-secundario">
+            
+            <button onClick={reiniciarActividad} className="btn-reiniciar">
               Reiniciar
             </button>
           </div>
@@ -124,4 +133,5 @@ function MatchActivity({ data }) { // data es {conceptos, definiciones, justific
     </div>
   );
 }
+
 export default MatchActivity;
