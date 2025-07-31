@@ -1,26 +1,39 @@
-// src/components/MatchActivity.jsx
+// src/components/MatchActivity.jsx (CÓDIGO COMPLETO CON JUSTIFICACIONES)
 
-import { useState, useEffect } from 'react';
-import './MatchActivity.css'; 
+import { useState, useEffect, useMemo } from 'react';
+import './MatchActivity.css';
 
+// Función para barajar un array, la usaremos para las definiciones
 const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
-function MatchActivity({ data }) {
-  const [conceptos, setConceptos] = useState([]); // Inicializa como array vacío
+function MatchActivity({ data }) { // data es {conceptos, definiciones, justificaciones}
+  const [conceptos, setConceptos] = useState(data.conceptos);
   const [definiciones, setDefiniciones] = useState([]);
-  const [conexiones, setConexiones] = useState({});
-  const [resultado, setResultado] = useState(null);
+  const [conexiones, setConexiones] = useState({}); // { [conceptoId]: definicionId }
+  
+  // --- Estados nuevos ---
+  const [haRevisado, setHaRevisado] = useState(false);
+  const [puntuacion, setPuntuacion] = useState(0);
+  const [mostrarJustificaciones, setMostrarJustificaciones] = useState(false);
 
+  // Barajamos las definiciones solo una vez cuando el componente se carga
   useEffect(() => {
-    // Cuando los datos cambian, reiniciamos todo el componente
-    setConceptos(data.conceptos);
     setDefiniciones(shuffleArray(data.definiciones));
-    setConexiones({});
-    setResultado(null);
-  }, [data]);
+  }, [data.definiciones]);
+
+  // Mapeo para facilitar la búsqueda de la definición correcta para cada concepto
+  const mapaRespuestasCorrectas = useMemo(() => {
+    const map = {};
+    data.conceptos.forEach(c => {
+      const idNumerico = c.id.split('_')[1];
+      map[c.id] = `definicion_${idNumerico}`;
+    });
+    return map;
+  }, [data.conceptos]);
 
   const handleDrop = (e, conceptoId) => {
     e.preventDefault();
+    if (haRevisado) return; // No permitir cambios después de revisar
     const definicionId = e.dataTransfer.getData("definicionId");
     setConexiones(prev => ({ ...prev, [conceptoId]: definicionId }));
   };
@@ -32,66 +45,78 @@ function MatchActivity({ data }) {
   const revisarRespuestas = () => {
     let correctas = 0;
     conceptos.forEach(concepto => {
-      const conceptoNum = concepto.id.split('_')[1];
-      const definicionConectadaId = conexiones[concepto.id];
-      if (definicionConectadaId) {
-        const definicionNum = definicionConectadaId.split('_')[1];
-        if (conceptoNum === definicionNum) {
-          correctas++;
-        }
+      if (conexiones[concepto.id] && conexiones[concepto.id] === mapaRespuestasCorrectas[concepto.id]) {
+        correctas++;
       }
     });
-    setResultado(`Obtuviste ${correctas} de ${conceptos.length} correctas.`);
+    setPuntuacion(correctas);
+    setHaRevisado(true);
   };
 
-  // --- 1. AÑADIMOS LA FUNCIÓN PARA REINICIAR LA ACTIVIDAD ---
   const reiniciarActividad = () => {
-    setConexiones({}); // Limpia las conexiones hechas por el usuario
-    setResultado(null); // Oculta el mensaje de resultado
-    // Volvemos a mezclar las definiciones para que sea un nuevo reto
-    setDefiniciones(shuffleArray(data.definiciones)); 
+    setConexiones({});
+    setHaRevisado(false);
+    setPuntuacion(0);
+    setMostrarJustificaciones(false);
+    // Volvemos a barajar las definiciones para un nuevo intento
+    setDefiniciones(shuffleArray(data.definiciones));
   };
+  
+  const getMatchStatusClass = (conceptoId) => {
+    if (!haRevisado) return '';
+    const esCorrecto = conexiones[conceptoId] && conexiones[conceptoId] === mapaRespuestasCorrectas[conceptoId];
+    return esCorrecto ? 'match-correcto' : 'match-incorrecto';
+  }
 
   return (
     <div className="interactive-activity">
+      <div className="activity-header">
+        <h3>Actividad de Emparejamiento</h3>
+        {haRevisado && <div className="puntuacion-actual">Puntuación: {puntuacion} / {conceptos.length}</div>}
+      </div>
+      <p className="instruccion-match">Arrastra cada definición de la derecha hacia su concepto correspondiente a la izquierda.</p>
+      
       <div className="match-columns">
         <div className="column conceptos-column">
           <h3>Conceptos</h3>
           {conceptos.map(concepto => (
-            <div key={concepto.id} className="droppable-area" onDrop={(e) => handleDrop(e, concepto.id)} onDragOver={(e) => e.preventDefault()}>
+            <div key={concepto.id} className={`droppable-area ${getMatchStatusClass(concepto.id)}`} onDrop={(e) => handleDrop(e, concepto.id)} onDragOver={(e) => e.preventDefault()}>
               <div className="concepto-texto">{concepto.texto}</div>
               {conexiones[concepto.id] && (
                 <div className="definicion-conectada">
                   {definiciones.find(d => d.id === conexiones[concepto.id])?.texto}
                 </div>
               )}
+              {/* --- Área para la justificación --- */}
+              {mostrarJustificaciones && haRevisado && (
+                <div className="justificacion-container-match">
+                  <p>{data.justificaciones[concepto.id]}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
         <div className="column definiciones-column">
-          <h3>Definiciones (Arrastra y suelta)</h3>
-          {/* Ocultamos las definiciones que ya han sido usadas */
-          definiciones
-            .filter(definicion => !Object.values(conexiones).includes(definicion.id))
-            .map(definicion => (
-              <div key={definicion.id} className="draggable-item" draggable onDragStart={(e) => handleDragStart(e, definicion.id)}>
-                {definicion.texto}
-              </div>
+          <h3>Definiciones</h3>
+          {definiciones.map(definicion => (
+            <div key={definicion.id} className="draggable-item" draggable={!haRevisado} onDragStart={(e) => handleDragStart(e, definicion.id)}>
+              {definicion.texto}
+            </div>
           ))}
         </div>
       </div>
 
-      {/* --- 2. MODIFICAMOS EL FOOTER DE LA ACTIVIDAD --- */}
       <div className="activity-footer">
-        {!resultado ? (
-          // Si no hay resultado, muestra el botón de "Revisar"
-          <button onClick={revisarRespuestas} className="btn-revisar">Revisar</button>
+        {!haRevisado ? (
+          <button onClick={revisarRespuestas} className="btn-revisar">Revisar Respuestas</button>
         ) : (
-          // Si ya hay un resultado, muestra la puntuación y el botón de "Reiniciar"
-          <div className="resultado-y-reinicio">
-            <div className="resultado-final">{resultado}</div>
-            <button onClick={reiniciarActividad} className="btn-reiniciar">
-              🔄 Reiniciar Actividad
+          <div className="footer-botones-resultado">
+             {/* Botón para mostrar/ocultar justificaciones */}
+            <button onClick={() => setMostrarJustificaciones(prev => !prev)} className="btn-secundario btn-justificacion">
+              {mostrarJustificaciones ? 'Ocultar Justificaciones' : 'Ver Justificaciones'}
+            </button>
+            <button onClick={reiniciarActividad} className="btn-secundario">
+              Reiniciar
             </button>
           </div>
         )}
@@ -99,5 +124,4 @@ function MatchActivity({ data }) {
     </div>
   );
 }
-
 export default MatchActivity;
