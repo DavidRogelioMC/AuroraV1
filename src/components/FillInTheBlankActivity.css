@@ -1,4 +1,4 @@
-/* src/components/FillInTheBlankActivity.css */
+/* src/components/FillInTheBlankActivity.css (VERSIÓN MEJORADA) */
 
 .interactive-activity {
   background-color: #fff;
@@ -7,29 +7,48 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.fill-statement {
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-  line-height: 1.8;
+/* Nuevo contenedor para cada par de frase + justificación */
+.fill-statement-wrapper {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+.fill-statement-wrapper:last-of-type {
+  border-bottom: none;
 }
 
+.fill-statement {
+  font-size: 1.1rem;
+  line-height: 2; /* Aumentamos el espacio entre líneas para el input */
+}
+
+/* El input ahora tendrá un tamaño dinámico */
 .fill-input {
   border: none;
-  border-bottom: 1px solid #333;
-  font-size: 1em;
+  border-bottom: 2px solid #333;
+  font-size: 1em; /* Hereda el tamaño de la fuente del texto */
+  font-family: inherit; /* Hereda la fuente */
   text-align: center;
-  width: 150px;
-  margin: 0 5px;
+  margin: 0 0.5ch; /* Usa la unidad 'ch' para un espaciado consistente */
   padding: 2px 0;
-  transition: border-color 0.3s;
+  background-color: transparent;
+  transition: all 0.3s;
+  outline: none; /* Quitamos el borde azul al hacer focus */
+}
+
+.fill-input:focus {
+  border-bottom-color: #1b5784;
 }
 
 .fill-input.input-correcto {
   border-color: #28a745;
+  color: #28a745;
+  font-weight: bold;
 }
 
 .fill-input.input-incorrecto {
   border-color: #dc3545;
+  color: #dc3545;
 }
 
 .respuesta-correcta-fill {
@@ -39,81 +58,8 @@
   margin-left: 10px;
 }
 
-/* --- ESTILOS COMPARTIDOS PARA EL FOOTER --- */
-
-.activity-footer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #eee;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.resultado-y-reinicio {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.resultado-final {
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.btn-revisar, .btn-reiniciar {
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-size: 1rem;
-  font-weight: 500;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.btn-revisar {
-  background-color: #1b5784;
-}
-
-.btn-revisar:hover {
-  background-color: #154360;
-}
-
-.btn-reiniciar {
-  background-color: #6c757d;
-}
-
-.btn-reiniciar:hover {
-  background-color: #5a6268;
-}
-
-/* --- INICIO DE LOS NUEVOS ESTILOS AÑADIDOS --- */
-
-/* Contenedor para los 3 botones que aparecen después de calificar */
-/* Reutiliza .resultado-y-reinicio que ya tienes */
-
-/* Botón específico para la justificación */
-.btn-justificacion {
-  border: 1px solid #1b5784;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #1b5784;
-  background-color: transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-justificacion:hover {
-  background-color: #eef5fa; /* Un azul muy claro al pasar el ratón */
-}
-
-/* Contenedor donde se muestra el texto de la justificación */
-/* Se muestra DENTRO de cada .fill-statement */
 .justificacion-fill {
-  display: block; /* Para que aparezca en una nueva línea */
+  display: block;
   margin-top: 0.75rem;
   padding: 0.75rem;
   font-size: 0.9rem;
@@ -124,8 +70,15 @@
   animation: fadeIn 0.5s ease;
 }
 
-/* Animación de aparición */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+/* --- ESTILOS COMPARTIDOS PARA EL FOOTER (sin cambios) --- */
+.activity-footer { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; }
+.resultado-y-reinicio { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.resultado-final { font-weight: bold; font-size: 1.1rem; }
+.btn-revisar, .btn-reiniciar { border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; font-weight: 500; color: white; cursor: pointer; transition: background-color 0.2s ease; }
+.btn-revisar { background-color: #1b5784; }
+.btn-revisar:hover { background-color: #154360; }
+.btn-reiniciar { background-color: #6c757d; }
+.btn-reiniciar:hover { background-color: #5a6268; }
+.btn-justificacion { border: 1px solid #1b5784; padding: 10px 20px; border-radius: 5px; font-size: 1rem; font-weight: 500; color: #1b5784; background-color: transparent; cursor: pointer; transition: all 0.2s ease; }
+.btn-justificacion:hover { background-color: #eef5fa; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
