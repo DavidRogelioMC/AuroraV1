@@ -1,0 +1,85 @@
+/* src/components/ResumenesPage.css */
+
+.pagina-resumenes {
+  padding: 2rem 3rem;
+  text-align: center;
+}
+
+.pagina-resumenes h1 {
+  font-size: 2.2rem;
+  color: #1b5784;
+  margin-bottom: 0.5rem;
+}
+
+.pagina-resumenes p {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 3rem;
+}
+
+.formulario-resumenes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+.formulario-resumenes input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.formulario-resumenes button {
+  background-color: #035b6e;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.formulario-resumenes button:hover {
+  background-color: #197fa6;
+}
+
+.error-resumenes {
+  color: #c0392b;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.resultado-resumenes {
+  background: #ffffff;
+  border: 1px solid #dfe6e9;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.texto-mejorado {
+  background: #eef7ff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  white-space: pre-wrap;
+  font-size: 1rem;
+}
+
+.imagen-generada {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+}
