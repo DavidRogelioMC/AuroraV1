@@ -43,7 +43,7 @@ function Sidebar({ email, nombre, grupo }) {
         {/* Módulos */}
         <div className="step">
           <div className="circle">🧠</div>
-          <span>Módulos</span>
+          <span>Resúmenes</span>
         </div>
 
         {/* Actividades */}
