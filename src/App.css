@@ -4,19 +4,19 @@ html {
 }
 
 body {
-  background-color: white !important;
-  color: black !important;
+  background-color: white;
+  color: black;
 }
 
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: white !important;
-    color: black !important;
+    background-color: white;
+    color: black;
   }
 }
 
 #root {
-  max-width: 1280px;
+  max-width: 1400px; /* Ampliado para mejor visualización en resúmenes */
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -28,9 +28,11 @@ body {
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -57,6 +59,8 @@ body {
 .read-the-docs {
   color: #888;
 }
+
+/* Botón de cerrar sesión */
 #logout {
   position: fixed;
   top: 20px;
@@ -75,5 +79,17 @@ body {
 
 #logout:hover {
   background-color: #930d04;
+}
 
+/* NUEVO: Estilo para mostrar bloques JSON en ResumenesPage */
+pre {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: left;
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
