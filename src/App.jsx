@@ -5,14 +5,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
 import { jwtDecode } from "jwt-decode";
 
-
-
 // Componentes
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage'; // Importa la página de actividades
+import ResumenesPage from './components/ResumenesPage'; // ← NUEVO: importa la página de resúmenes
 
 // Estilos y Assets
 import './index.css'; // Tu CSS principal
@@ -33,7 +32,6 @@ function App() {
 
   console.log("📦 Token desde localStorage:", localStorage.getItem("id_token")); // <--- AÑADE ESTO
 
-
   // Lógica de Cognito (sin cambios)
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
@@ -41,12 +39,12 @@ function App() {
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
   useEffect(() => {
-  Auth.currentSession()
-    .then(session => console.log("✅ Sesión activa:", session))
-    .catch(() => Auth.signOut());
-}, []);
+    Auth.currentSession()
+      .then(session => console.log("✅ Sesión activa:", session))
+      .catch(() => Auth.signOut());
+  }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes("id_token")) {
       const newToken = hash.split("id_token=")[1].split("&")[0];
@@ -65,20 +63,20 @@ function App() {
     window.location.href = logoutUrl;
   };
 
-useEffect(() => {
-  if (token) {
-    try {
-      console.log("🪪 Token recibido:", token); // <-- AÑADIDO
-      const decoded = jwtDecode(token);
-      console.log("✅ Token decodificado:", decoded);
-      setEmail(decoded.email);
-    } catch (err) {
-      console.error("❌ Error al decodificar el token:", err);
+  useEffect(() => {
+    if (token) {
+      try {
+        console.log("🪪 Token recibido:", token); // <-- AÑADIDO
+        const decoded = jwtDecode(token);
+        console.log("✅ Token decodificado:", decoded);
+        setEmail(decoded.email);
+      } catch (err) {
+        console.error("❌ Error al decodificar el token:", err);
+      }
     }
-  }
-}, [token]);
+  }, [token]);
 
-console.log("🧪 Email en App.jsx:", email);
+  console.log("🧪 Email en App.jsx:", email);
 
   return (
     <>
@@ -138,6 +136,7 @@ console.log("🧪 Email en App.jsx:", email);
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
+                <Route path="/resumenes" element={<ResumenesPage />} /> {/* ← NUEVO: ruta para resúmenes */}
               </Routes>
             </main>
             
