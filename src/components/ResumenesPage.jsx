@@ -1,5 +1,3 @@
-// src/components/ResumenesPage.jsx
-
 import { useState } from 'react';
 import './ResumenesPage.css'; // Importa los estilos
 
@@ -16,7 +14,7 @@ function ResumenesPage() {
     setResultado(null);
 
     try {
-      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/prod', {
+      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/prod/resumen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tema, modulo })
@@ -50,7 +48,7 @@ function ResumenesPage() {
         />
         <input
           type="text"
-          placeholder="Módulo (ej: modulo1)"
+          placeholder="Módulo (ej: modulo1.txt)"
           value={modulo}
           onChange={(e) => setModulo(e.target.value)}
         />
