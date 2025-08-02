@@ -32,15 +32,7 @@ function ResumenesPage() {
       });
 
       const data = await response.json();
-      let parsed;
-
-      try {
-        parsed = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-      } catch (e) {
-        console.error('Error al interpretar la respuesta del servidor:', e, data.body);
-        setError('⚠️ La respuesta del servidor no tiene el formato esperado.');
-        return;
-      }
+      let parsed = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
 
       if (response.ok) {
         setResultado(parsed);
@@ -85,7 +77,7 @@ function ResumenesPage() {
           <h2>📘 Resumen: {topico}</h2>
           {Object.entries(resultado).map(([seccion, datos]) => (
             <div key={seccion} className="seccion-resumen">
-              <h3 style={{ fontSize: '1.4rem', color: '#1b5784', marginTop: '1.5em' }}>{seccion}</h3>
+              <h3>{seccion}</h3>
               <div className="texto-mejorado">{datos.texto}</div>
               {datos.imagen_url && (
                 <img
