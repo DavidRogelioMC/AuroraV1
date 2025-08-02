@@ -71,15 +71,17 @@ function ResumenesPage() {
 
       {resultado && (
         <div className="resultado-resumenes">
-          <h2>📘 Resumen </h2>
-          <div className="texto-mejorado">{resultado.mejorado}</div>
-
-          <h2>🖼️ Imagen Generada</h2>
-          <img
-            src={resultado.imagen_url}
-            alt="Imagen generada por IA"
-            className="imagen-generada"
-          />
+          {Object.entries(resultado).map(([seccion, contenido]) => (
+            <div key={seccion} style={{ marginBottom: '2rem' }}>
+              <h2>📘 {seccion}</h2>
+              <div className="texto-mejorado">{contenido.texto}</div>
+              <img
+                src={contenido.imagen_url}
+                alt={`Imagen para ${seccion}`}
+                className="imagen-generada"
+              />
+            </div>
+          ))}
         </div>
       )}
     </div>
