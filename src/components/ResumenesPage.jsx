@@ -71,7 +71,7 @@ function ResumenesPage() {
 
       {resultado && (
         <div className="resultado-resumenes">
-          <h2>✨ Contenido Mejorado</h2>
+          <h2>📘 Resumen </h2>
           <div className="texto-mejorado">{resultado.mejorado}</div>
 
           <h2>🖼️ Imagen Generada</h2>
