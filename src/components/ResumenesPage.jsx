@@ -15,6 +15,11 @@ function ResumenesPage() {
   const [error, setError] = useState('');
 
   const obtenerResumen = async () => {
+    if (!topico.trim()) {
+      setError('Debes ingresar un tópico válido');
+      return;
+    }
+
     setCargando(true);
     setError('');
     setResultado(null);
