@@ -1,9 +1,15 @@
 import { useState } from 'react';
-import './ResumenesPage.css'; // Importa los estilos
+import './ResumenesPage.css';
+
+const basesDeConocimiento = [
+  { id: 'AVDJ3M69B7', nombre: 'Python' },
+  { id: 'WKNJIRXQUT', nombre: 'AWS' },
+  { id: 'ZOWS9MQ9GG', nombre: 'AZ-104' }
+];
 
 function ResumenesPage() {
-  const [tema, setTema] = useState('');
-  const [modulo, setModulo] = useState('');
+  const [knowledgeBaseId, setKnowledgeBaseId] = useState(basesDeConocimiento[0].id);
+  const [topico, setTopico] = useState('');
   const [resultado, setResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
@@ -17,7 +23,7 @@ function ResumenesPage() {
       const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/resumen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tema, modulo })
+        body: JSON.stringify({ knowledgeBaseId, topico })
       });
 
       const data = await response.json();
@@ -37,23 +43,24 @@ function ResumenesPage() {
   return (
     <div className="page-content-container pagina-resumenes">
       <h1>Generador de Resúmenes Educativos</h1>
-      <p>Genera automáticamente un resumen mejorado y una imagen educativa a partir de tu módulo.</p>
+      <p>Selecciona una base de conocimientos y escribe un tópico específico para generar un resumen e imagen.</p>
 
       <div className="formulario-resumenes">
-        <select value={tema} onChange={(e) => setTema(e.target.value)}>
-          <option value="">-- Selecciona un tema --</option>
-          <option value="python">🧠 Python</option>
-          <option value="aws">☁️ AWS</option>
-          <option value="az-104">🔬 AZ-104</option>
+        <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
+          {basesDeConocimiento.map((kb) => (
+            <option key={kb.id} value={kb.id}>
+              {kb.nombre}
+            </option>
+          ))}
         </select>
 
         <input
           type="text"
-          placeholder="Módulo (ej: modulo1)"
-          value={modulo}
-          onChange={(e) => setModulo(e.target.value)}
+          placeholder="Tópico (ej: funciones en Python)"
+          value={topico}
+          onChange={(e) => setTopico(e.target.value)}
         />
-        
+
         <button onClick={obtenerResumen} disabled={cargando}>
           {cargando ? 'Generando...' : 'Obtener resumen'}
         </button>
@@ -63,9 +70,6 @@ function ResumenesPage() {
 
       {resultado && (
         <div className="resultado-resumenes">
-          <h2>🧾 Contenido Original</h2>
-          <pre>{JSON.stringify(resultado.original, null, 2)}</pre>
-
           <h2>✨ Contenido Mejorado</h2>
           <div className="texto-mejorado">{resultado.mejorado}</div>
 
