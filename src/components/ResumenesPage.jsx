@@ -32,7 +32,15 @@ function ResumenesPage() {
       });
 
       const data = await response.json();
-      const parsed = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+      let parsed;
+
+      try {
+        parsed = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+      } catch (e) {
+        console.error('Error al interpretar la respuesta del servidor:', e, data.body);
+        setError('⚠️ La respuesta del servidor no tiene el formato esperado.');
+        return;
+      }
 
       if (response.ok) {
         setResultado(parsed);
@@ -49,7 +57,7 @@ function ResumenesPage() {
   return (
     <div className="page-content-container pagina-resumenes">
       <h1>📚 Generador de Resúmenes Educativos</h1>
-      <p>Selecciona tu curso  y escribe un tópico específico para generar un resumen.</p>
+      <p>Selecciona tu curso y escribe un tópico específico para generar un resumen.</p>
 
       <div className="formulario-resumenes">
         <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
@@ -77,7 +85,7 @@ function ResumenesPage() {
           <h2>📘 Resumen: {topico}</h2>
           {Object.entries(resultado).map(([seccion, datos]) => (
             <div key={seccion} className="seccion-resumen">
-              <h3 style={{ fontSize: '1.4rem', color: '#1b5784', marginTop: '1em' }}>{seccion}</h3>
+              <h3 style={{ fontSize: '1.4rem', color: '#1b5784', marginTop: '1.5em' }}>{seccion}</h3>
               <div className="texto-mejorado">{datos.texto}</div>
               {datos.imagen_url && (
                 <img
@@ -95,4 +103,3 @@ function ResumenesPage() {
 }
 
 export default ResumenesPage;
-
