@@ -1,5 +1,3 @@
-// src/App.jsx (CORREGIDO)
-
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
@@ -25,7 +23,7 @@ import espanaFlag from './assets/espana.png';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
-  const [avatar, setAvatar] = useState(null); 
+  const [avatar, setAvatar] = useState(null);
   const [email, setEmail] = useState("");
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
@@ -49,12 +47,6 @@ function App() {
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("id_token");
-    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
-    window.location.href = logoutUrl;
-  };
-
   useEffect(() => {
     if (token) {
       try {
@@ -65,6 +57,12 @@ function App() {
       }
     }
   }, [token]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("id_token");
+    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = logoutUrl;
+  };
 
   return (
     <>
@@ -121,4 +119,16 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
-                <Route path="/
+                <Route path="/resumenes" element={<ResumenesPage token={token} />} />
+              </Routes>
+            </main>
+
+            <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
+          </div>
+        </Router>
+      )}
+    </>
+  );
+}
+
+export default App;
