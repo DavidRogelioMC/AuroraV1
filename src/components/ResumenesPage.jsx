@@ -7,7 +7,7 @@ const knowledgeBases = [
   { nombre: "AZ-104", id: "ZOWS9MQ9GG" }
 ];
 
-function ResumenesPage() {
+function ResumenesPage({ token }) {
   const [kbSeleccionadaId, setKbSeleccionadaId] = useState(knowledgeBases[0].id);
   const [topico, setTopico] = useState('');
   const [resultado, setResultado] = useState(null);
@@ -15,6 +15,11 @@ function ResumenesPage() {
   const [error, setError] = useState('');
 
   const obtenerResumen = async () => {
+    if (!topico.trim()) {
+      setError("Por favor, escribe un tópico.");
+      return;
+    }
+
     setCargando(true);
     setError('');
     setResultado(null);
@@ -22,7 +27,10 @@ function ResumenesPage() {
     try {
       const response = await fetch(import.meta.env.VITE_API_GENERAR_RESUMENES, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
         body: JSON.stringify({
           knowledgeBaseId: kbSeleccionadaId,
           topico: topico
@@ -72,7 +80,10 @@ function ResumenesPage() {
       {resultado && (
         <div className="resultado-resumenes">
           <h2>✨ Contenido Mejorado</h2>
-          <div className="texto-mejorado">{resultado.mejorado}</div>
+          <div
+            className="texto-mejorado"
+            dangerouslySetInnerHTML={{ __html: resultado.mejorado }}
+          />
 
           <h2>🖼️ Imagen Generada</h2>
           <img
