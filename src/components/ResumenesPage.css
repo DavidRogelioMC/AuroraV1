@@ -1,46 +1,109 @@
-@media (max-width: 768px) {
-  .pagina-resumenes {
-    padding: 1.5rem 1rem;
-  }
-
-  .pagina-resumenes h1 {
-    font-size: 1.8rem;
-  }
-
-  .pagina-resumenes p {
-    font-size: 1rem;
-  }
-
-  .formulario-resumenes {
-    max-width: 100%;
-    gap: 0.75rem;
-  }
-
-  .formulario-resumenes select,
-  .formulario-resumenes input {
-    font-size: 0.95rem;
-    padding: 0.6rem 0.8rem;
-  }
-
-  .formulario-resumenes button {
-    padding: 0.6rem 1.5rem;
-    font-size: 0.95rem;
-  }
-
-  .resultado-resumenes {
-    padding: 1.5rem;
-  }
-
-  .resultado-resumenes h2 {
-    font-size: 1.4rem;
-  }
-
-  .seccion-resumen h3 {
-    font-size: 1.2rem;
-  }
-
-  .texto-mejorado {
-    font-size: 0.95rem;
-  }
+.pagina-resumenes {
+  padding: 2rem 3rem;
+  text-align: center;
+  background-color: #f5fafd;
+  min-height: 100vh;
 }
 
+.pagina-resumenes h1 {
+  font-size: 2.4rem;
+  color: #1b5784;
+  margin-bottom: 0.5rem;
+}
+
+.pagina-resumenes p {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 2rem;
+}
+
+.formulario-resumenes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+.formulario-resumenes select,
+.formulario-resumenes input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.formulario-resumenes button {
+  background-color: #035b6e;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.formulario-resumenes button:hover {
+  background-color: #197fa6;
+}
+
+.error-resumenes {
+  color: #c0392b;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.resultado-resumenes {
+  background: #ffffff;
+  border: 1px solid #dfe6e9;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.resultado-resumenes h2 {
+  font-size: 1.8rem;
+  color: #035b6e;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #197fa6;
+  padding-bottom: 0.5rem;
+}
+
+.seccion-resumen {
+  margin-bottom: 2.5rem;
+  border-left: 4px solid #45ab9f;
+  padding-left: 1rem;
+}
+
+.seccion-resumen h3 {
+  font-size: 1.4rem;
+  color: #1b5784;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.texto-mejorado {
+  background: #eef7ff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  white-space: pre-wrap;
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.6;
+}
+
+.imagen-generada {
+  display: block;
+  max-width: 100%;
+  border-radius: 10px;
+  margin-top: 1rem;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+}
