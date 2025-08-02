@@ -16,7 +16,7 @@ function ResumenesPage() {
 
   const obtenerResumen = async () => {
     if (!topico.trim()) {
-      setError('Debes ingresar un tópico válido');
+      setError('⚠️ Debes ingresar un tópico válido.');
       return;
     }
 
@@ -37,10 +37,10 @@ function ResumenesPage() {
       if (response.ok) {
         setResultado(parsed);
       } else {
-        setError(parsed.error || 'Error al generar el resumen');
+        setError(parsed?.error || '❌ Error al generar el resumen.');
       }
     } catch (err) {
-      setError('Error de conexión con el servidor');
+      setError('🚫 Error de conexión con el servidor.');
     } finally {
       setCargando(false);
     }
@@ -48,7 +48,7 @@ function ResumenesPage() {
 
   return (
     <div className="page-content-container pagina-resumenes">
-      <h1>Generador de Resúmenes Educativos</h1>
+      <h1>📚 Generador de Resúmenes Educativos</h1>
       <p>Selecciona una base de conocimientos y escribe un tópico específico para generar un resumen con imágenes por sección.</p>
 
       <div className="formulario-resumenes">
@@ -74,16 +74,18 @@ function ResumenesPage() {
 
       {resultado && (
         <div className="resultado-resumenes">
-          <h2>📘 Resumen con imágenes por sección</h2>
+          <h2>📘 Resumen: {topico}</h2>
           {Object.entries(resultado).map(([seccion, datos]) => (
             <div key={seccion} className="seccion-resumen">
-              <h3>{seccion}</h3>
+              <h3 style={{ fontSize: '1.4rem', color: '#1b5784', marginTop: '1em' }}>{seccion}</h3>
               <div className="texto-mejorado">{datos.texto}</div>
-              <img
-                src={datos.imagen_url}
-                alt={`Imagen de la sección ${seccion}`}
-                className="imagen-generada"
-              />
+              {datos.imagen_url && (
+                <img
+                  src={datos.imagen_url}
+                  alt={`Imagen de la sección ${seccion}`}
+                  className="imagen-generada"
+                />
+              )}
             </div>
           ))}
         </div>
@@ -93,3 +95,4 @@ function ResumenesPage() {
 }
 
 export default ResumenesPage;
+
