@@ -49,7 +49,7 @@ function ResumenesPage() {
   return (
     <div className="page-content-container pagina-resumenes">
       <h1>📚 Generador de Resúmenes Educativos</h1>
-      <p>Selecciona una base de conocimientos y escribe un tópico específico para generar un resumen con imágenes por sección.</p>
+      <p>Selecciona tu curso  y escribe un tópico específico para generar un resumen.</p>
 
       <div className="formulario-resumenes">
         <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
