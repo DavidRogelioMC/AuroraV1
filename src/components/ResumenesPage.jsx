@@ -40,18 +40,20 @@ function ResumenesPage() {
       <p>Genera automáticamente un resumen mejorado y una imagen educativa a partir de tu módulo.</p>
 
       <div className="formulario-resumenes">
+        <select value={tema} onChange={(e) => setTema(e.target.value)}>
+          <option value="">-- Selecciona un tema --</option>
+          <option value="python">🧠 Python</option>
+          <option value="aws">☁️ AWS</option>
+          <option value="az-104">🔬 AZ-104</option>
+        </select>
+
         <input
           type="text"
-          placeholder="Tema (ej: arquitectura)"
-          value={tema}
-          onChange={(e) => setTema(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Módulo (ej: modulo1.txt)"
+          placeholder="Módulo (ej: modulo1)"
           value={modulo}
           onChange={(e) => setModulo(e.target.value)}
         />
+        
         <button onClick={obtenerResumen} disabled={cargando}>
           {cargando ? 'Generando...' : 'Obtener resumen'}
         </button>
