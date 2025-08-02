@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import './ResumenesPage.css';
 
-const basesDeConocimiento = [
-  { id: 'AVDJ3M69B7', nombre: 'Python' },
-  { id: 'WKNJIRXQUT', nombre: 'AWS' },
-  { id: 'ZOWS9MQ9GG', nombre: 'AZ-104' }
+const knowledgeBases = [
+  { nombre: "Python", id: "AVDJ3M69B7" },
+  { nombre: "AWS", id: "WKNJIRXQUT" },
+  { nombre: "AZ-104", id: "ZOWS9MQ9GG" }
 ];
 
 function ResumenesPage() {
-  const [knowledgeBaseId, setKnowledgeBaseId] = useState(basesDeConocimiento[0].id);
+  const [kbSeleccionadaId, setKbSeleccionadaId] = useState(knowledgeBases[0].id);
   const [topico, setTopico] = useState('');
   const [resultado, setResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -20,10 +20,13 @@ function ResumenesPage() {
     setResultado(null);
 
     try {
-      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/resumen', {
+      const response = await fetch(import.meta.env.VITE_API_GENERAR_RESUMENES, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ knowledgeBaseId, topico })
+        body: JSON.stringify({
+          knowledgeBaseId: kbSeleccionadaId,
+          topico: topico
+        })
       });
 
       const data = await response.json();
@@ -46,17 +49,15 @@ function ResumenesPage() {
       <p>Selecciona una base de conocimientos y escribe un tópico específico para generar un resumen e imagen.</p>
 
       <div className="formulario-resumenes">
-        <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
-          {basesDeConocimiento.map((kb) => (
-            <option key={kb.id} value={kb.id}>
-              {kb.nombre}
-            </option>
+        <select value={kbSeleccionadaId} onChange={(e) => setKbSeleccionadaId(e.target.value)}>
+          {knowledgeBases.map((kb) => (
+            <option key={kb.id} value={kb.id}>{kb.nombre}</option>
           ))}
         </select>
 
         <input
           type="text"
-          placeholder="Tópico (ej: funciones en Python)"
+          placeholder="Ej: módulo 1, redes en AWS..."
           value={topico}
           onChange={(e) => setTopico(e.target.value)}
         />
