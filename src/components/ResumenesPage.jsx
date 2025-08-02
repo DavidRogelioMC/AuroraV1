@@ -27,11 +27,12 @@ function ResumenesPage() {
       });
 
       const data = await response.json();
+      const parsed = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
 
       if (response.ok) {
-        setResultado(data);
+        setResultado(parsed);
       } else {
-        setError(data.error || 'Error al generar el resumen');
+        setError(parsed.error || 'Error al generar el resumen');
       }
     } catch (err) {
       setError('Error de conexión con el servidor');
