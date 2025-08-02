@@ -1,40 +1,29 @@
 import { useState } from 'react';
 import './ResumenesPage.css';
 
-const knowledgeBases = [
-  { nombre: "Python", id: "AVDJ3M69B7" },
-  { nombre: "AWS", id: "WKNJIRXQUT" },
-  { nombre: "AZ-104", id: "ZOWS9MQ9GG" }
+const basesDeConocimiento = [
+  { id: 'AVDJ3M69B7', nombre: 'Python' },
+  { id: 'WKNJIRXQUT', nombre: 'AWS' },
+  { id: 'ZOWS9MQ9GG', nombre: 'AZ-104' }
 ];
 
-function ResumenesPage({ token }) {
-  const [kbSeleccionadaId, setKbSeleccionadaId] = useState(knowledgeBases[0].id);
+function ResumenesPage() {
+  const [knowledgeBaseId, setKnowledgeBaseId] = useState(basesDeConocimiento[0].id);
   const [topico, setTopico] = useState('');
   const [resultado, setResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
 
   const obtenerResumen = async () => {
-    if (!topico.trim()) {
-      setError("Por favor, escribe un tópico.");
-      return;
-    }
-
     setCargando(true);
     setError('');
     setResultado(null);
 
     try {
-      const response = await fetch(import.meta.env.VITE_API_GENERAR_RESUMENES, {
+      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/resumen', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token
-        },
-        body: JSON.stringify({
-          knowledgeBaseId: kbSeleccionadaId,
-          topico: topico
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ knowledgeBaseId, topico })
       });
 
       const data = await response.json();
@@ -57,15 +46,17 @@ function ResumenesPage({ token }) {
       <p>Selecciona una base de conocimientos y escribe un tópico específico para generar un resumen e imagen.</p>
 
       <div className="formulario-resumenes">
-        <select value={kbSeleccionadaId} onChange={(e) => setKbSeleccionadaId(e.target.value)}>
-          {knowledgeBases.map((kb) => (
-            <option key={kb.id} value={kb.id}>{kb.nombre}</option>
+        <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
+          {basesDeConocimiento.map((kb) => (
+            <option key={kb.id} value={kb.id}>
+              {kb.nombre}
+            </option>
           ))}
         </select>
 
         <input
           type="text"
-          placeholder="Ej: módulo 1, redes en AWS..."
+          placeholder="Tópico (ej: funciones en Python)"
           value={topico}
           onChange={(e) => setTopico(e.target.value)}
         />
@@ -80,10 +71,7 @@ function ResumenesPage({ token }) {
       {resultado && (
         <div className="resultado-resumenes">
           <h2>✨ Contenido Mejorado</h2>
-          <div
-            className="texto-mejorado"
-            dangerouslySetInnerHTML={{ __html: resultado.mejorado }}
-          />
+          <div className="texto-mejorado">{resultado.mejorado}</div>
 
           <h2>🖼️ Imagen Generada</h2>
           <img
