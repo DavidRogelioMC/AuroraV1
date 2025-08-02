@@ -26,12 +26,17 @@
   margin: 0 auto 2rem;
 }
 
-.formulario-resumenes input {
+.formulario-resumenes input,
+.formulario-resumenes select {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   border: 1px solid #ccc;
   font-size: 1rem;
+  background-color: white;
+  color: #333;
+  appearance: none;
+  cursor: pointer;
 }
 
 .formulario-resumenes button {
