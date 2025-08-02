@@ -11,7 +11,7 @@ import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 
-// Estilos y Assets
+// Estilos y assets
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
@@ -23,7 +23,6 @@ import espanaFlag from './assets/espana.png';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
-  const [avatar, setAvatar] = useState(null);
   const [email, setEmail] = useState("");
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
@@ -119,7 +118,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
-                <Route path="/resumenes" element={<ResumenesPage token={token} />} />
+                <Route path="/resumenes" element={<ResumenesPage />} />
               </Routes>
             </main>
 
