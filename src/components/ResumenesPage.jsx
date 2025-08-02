@@ -44,20 +44,18 @@ function ResumenesPage() {
   return (
     <div className="page-content-container pagina-resumenes">
       <h1>Generador de Resúmenes Educativos</h1>
-      <p>Selecciona una base de conocimientos y escribe un tópico específico para generar un resumen e imagen.</p>
+      <p>Selecciona una base de conocimientos y escribe un tópico específico para generar un resumen con imágenes por sección.</p>
 
       <div className="formulario-resumenes">
         <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
           {basesDeConocimiento.map((kb) => (
-            <option key={kb.id} value={kb.id}>
-              {kb.nombre}
-            </option>
+            <option key={kb.id} value={kb.id}>{kb.nombre}</option>
           ))}
         </select>
 
         <input
           type="text"
-          placeholder="Tópico (ej: funciones en Python)"
+          placeholder="Tópico (ej: regiones en AWS, funciones en Python...)"
           value={topico}
           onChange={(e) => setTopico(e.target.value)}
         />
@@ -71,13 +69,14 @@ function ResumenesPage() {
 
       {resultado && (
         <div className="resultado-resumenes">
-          {Object.entries(resultado).map(([seccion, contenido]) => (
-            <div key={seccion} style={{ marginBottom: '2rem' }}>
-              <h2>📘 {seccion}</h2>
-              <div className="texto-mejorado">{contenido.texto}</div>
+          <h2>📘 Resumen con imágenes por sección</h2>
+          {Object.entries(resultado).map(([seccion, datos]) => (
+            <div key={seccion} className="seccion-resumen">
+              <h3>{seccion}</h3>
+              <div className="texto-mejorado">{datos.texto}</div>
               <img
-                src={contenido.imagen_url}
-                alt={`Imagen para ${seccion}`}
+                src={datos.imagen_url}
+                alt={`Imagen de la sección ${seccion}`}
                 className="imagen-generada"
               />
             </div>
