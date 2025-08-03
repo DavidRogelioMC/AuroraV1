@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './Examen.css';
+import './ExamenesPage.css'; // ✅ Este es el nombre correcto del CSS
 
-function Examen() {
+function ExamenesPage() {
   const [curso, setCurso] = useState('Python');
   const [topico, setTopico] = useState('');
   const [examen, setExamen] = useState(null);
@@ -26,10 +26,7 @@ function Examen() {
       });
 
       const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
+      if (data.error) throw new Error(data.error);
       setExamen(data);
     } catch (err) {
       setError('Error al generar el examen: ' + err.message);
@@ -41,6 +38,7 @@ function Examen() {
   return (
     <div className="contenedor-examenes">
       <h1 className="titulo">🧪 Generador de Exámenes</h1>
+      <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
 
       <div className="formulario">
         <select value={curso} onChange={(e) => setCurso(e.target.value)}>
@@ -52,7 +50,7 @@ function Examen() {
 
         <input
           type="text"
-          placeholder="Tópico (ej: IAM, funciones Lambda...)"
+          placeholder="Tópico (ej: IAM, Lambda...)"
           value={topico}
           onChange={(e) => setTopico(e.target.value)}
         />
@@ -62,26 +60,26 @@ function Examen() {
         </button>
       </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="mensaje-error">{error}</p>}
 
       {examen && (
         <div className="resultado">
           <h2>📝 {examen.tema}</h2>
-          <h4>📌 Tipos de respuesta</h4>
+          <h4>📌 Tipos de pregunta</h4>
           <ul>
-            <li>✔️ Opción múltiple: una respuesta correcta y tres distractores.</li>
-            <li>✔️ Respuesta múltiple: dos o más respuestas correctas entre varias opciones.</li>
+            <li>✔️ Opción múltiple: una correcta y tres distractores</li>
+            <li>✔️ Respuesta múltiple: dos o más correctas</li>
           </ul>
 
           {examen.preguntas?.map((p, idx) => (
-            <div key={idx} style={{ marginBottom: '1.5rem' }}>
+            <div key={idx}>
               <h3>{idx + 1}. {p.enunciado}</h3>
               <ul>
                 {Object.entries(p.opciones).map(([letra, texto]) => (
                   <li key={letra}><strong>{letra}:</strong> {texto}</li>
                 ))}
               </ul>
-              <p><strong>✅ Respuesta correcta:</strong> {p.respuestaCorrecta}</p>
+              <p><strong>✅ Correcta:</strong> {p.respuestaCorrecta}</p>
               <p><em>🧠 Justificación:</em> {p.justificacion}</p>
             </div>
           ))}
@@ -91,4 +89,5 @@ function Examen() {
   );
 }
 
-export default Examen;
+export default ExamenesPage;
+
