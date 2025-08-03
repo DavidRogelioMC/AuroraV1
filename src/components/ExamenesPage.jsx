@@ -1,4 +1,3 @@
-// Examen.jsx
 import React, { useState } from 'react';
 import './Examen.css';
 
@@ -40,12 +39,11 @@ function Examen() {
   };
 
   return (
-    <div className="examen-container">
-      <h1 className="titulo-examen">🧪 Generador de Exámenes</h1>
-      <p className="descripcion-examen">Selecciona el curso y un tema para generar preguntas de práctica.</p>
+    <div className="contenedor-examenes">
+      <h1 className="titulo">🧪 Generador de Exámenes</h1>
 
-      <div className="formulario-examen">
-        <select value={curso} onChange={(e) => setCurso(e.target.value)} className="dropdown-curso">
+      <div className="formulario">
+        <select value={curso} onChange={(e) => setCurso(e.target.value)}>
           <option value="Python">Python</option>
           <option value="AWS">AWS</option>
           <option value="Azure">Azure</option>
@@ -57,18 +55,17 @@ function Examen() {
           placeholder="Tópico (ej: IAM, funciones Lambda...)"
           value={topico}
           onChange={(e) => setTopico(e.target.value)}
-          className="input-topico"
         />
 
-        <button className="btn-generar" onClick={handleGenerarExamen} disabled={loading}>
+        <button onClick={handleGenerarExamen} disabled={loading}>
           {loading ? 'Generando...' : 'Generar examen'}
         </button>
       </div>
 
-      {error && <p className="mensaje-error">{error}</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {examen && (
-        <div className="examen-preview">
+        <div className="resultado">
           <h2>📝 {examen.tema}</h2>
           <h4>📌 Tipos de respuesta</h4>
           <ul>
@@ -77,9 +74,9 @@ function Examen() {
           </ul>
 
           {examen.preguntas?.map((p, idx) => (
-            <div key={idx} className="pregunta">
+            <div key={idx} style={{ marginBottom: '1.5rem' }}>
               <h3>{idx + 1}. {p.enunciado}</h3>
-              <ul className="opciones">
+              <ul>
                 {Object.entries(p.opciones).map(([letra, texto]) => (
                   <li key={letra}><strong>{letra}:</strong> {texto}</li>
                 ))}
