@@ -1,31 +1,40 @@
 import React, { useState } from "react";
 import "./ExamenesPage.css";
 
-const ExamenesPage = () => {
-  const [curso, setCurso] = useState("Python");
-  const [modulo, setModulo] = useState("");
-  const [resultado, setResultado] = useState("");
+function ExamenesPage() {
+  const [curso, setCurso] = useState("AWS");
+  const [topico, setTopico] = useState("");
+  const [resultado, setResultado] = useState(null);
   const [error, setError] = useState("");
 
-  const handleGenerar = async () => {
-    setResultado("");
+  const generarExamen = async () => {
     setError("");
+    setResultado(null);
 
     try {
       const response = await fetch(
         "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ curso, topico: modulo }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ curso, topico }),
         }
       );
 
-      if (!response.ok) throw new Error("Error al generar el examen");
+      if (!response.ok) {
+        throw new Error("No se pudo generar el examen.");
+      }
 
       const data = await response.json();
-      setResultado(data.resumen || "No se recibió contenido");
+
+      // Manejo por si la Lambda devuelve string en lugar de JSON directo
+      const parsed = typeof data === "string" ? JSON.parse(data) : data;
+
+      setResultado(parsed.resumen || "No se recibió contenido");
     } catch (err) {
+      console.error(err);
       setError("Error al generar el examen: " + err.message);
     }
   };
@@ -37,19 +46,19 @@ const ExamenesPage = () => {
 
       <div className="formulario-examenes">
         <select value={curso} onChange={(e) => setCurso(e.target.value)}>
-          <option value="Python">Python</option>
           <option value="AWS">AWS</option>
+          <option value="Python">Python</option>
           <option value="Azure">Azure</option>
         </select>
 
         <input
           type="text"
-          placeholder="Ej: módulo 1"
-          value={modulo}
-          onChange={(e) => setModulo(e.target.value)}
+          placeholder="Escribe el módulo de tu examen"
+          value={topico}
+          onChange={(e) => setTopico(e.target.value)}
         />
 
-        <button onClick={handleGenerar}>Generar examen</button>
+        <button onClick={generarExamen}>Generar examen</button>
 
         {error && <div className="error-examenes">{error}</div>}
       </div>
@@ -57,11 +66,11 @@ const ExamenesPage = () => {
       {resultado && (
         <div className="resultado-examenes">
           <h2>📄 Examen Generado</h2>
-          <div>{resultado}</div>
+          <p>{resultado}</p>
         </div>
       )}
     </div>
   );
-};
+}
 
 export default ExamenesPage;
