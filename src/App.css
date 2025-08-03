@@ -1,95 +1,41 @@
-/* Forzar modo claro */
-html {
-  color-scheme: light;
-}
+/* Sección para ExamenesPage o Examen.jsx */
 
-body {
-  background-color: white;
-  color: black;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: white;
-    color: black;
-  }
-}
-
-#root {
-  max-width: 1400px; /* Ampliado para mejor visualización en resúmenes */
-  margin: 0 auto;
+.examen-container {
+  background-color: #ffffff;
   padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-/* Botón de cerrar sesión */
-#logout {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background-color: #a73200;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
-}
-
-#logout:hover {
-  background-color: #930d04;
-}
-
-/* NUEVO: Estilo para mostrar bloques JSON en ResumenesPage */
-pre {
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-top: 1rem;
   text-align: left;
-  overflow-x: auto;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.95rem;
-  line-height: 1.4;
 }
+
+.examen-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.pregunta-bloque {
+  border-left: 4px solid #035b6e;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+.pregunta-enunciado {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.opciones {
+  margin-left: 1rem;
+  line-height: 1.6;
+}
+
+.justificacion {
+  margin-top: 0.5rem;
+  font-style: italic;
+  color: #444;
+}
+
