@@ -1,41 +1,37 @@
-import React, { useState } from "react";
-import "./ExamenesPage.css";
+import React, { useState } from 'react';
+import './ExamenesPage.css';
 
-function ExamenesPage() {
-  const [curso, setCurso] = useState("AWS");
-  const [topico, setTopico] = useState("");
-  const [resultado, setResultado] = useState(null);
-  const [error, setError] = useState("");
+const ExamenesPage = () => {
+  const [curso, setCurso] = useState('Python');
+  const [modulo, setModulo] = useState('');
+  const [error, setError] = useState('');
+  const [examen, setExamen] = useState(null);
+  const [cargando, setCargando] = useState(false);
 
   const generarExamen = async () => {
-    setError("");
-    setResultado(null);
+    setCargando(true);
+    setError('');
+    setExamen(null);
 
     try {
-      const response = await fetch(
-        "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ curso, topico }),
-        }
-      );
+      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ curso, topico: modulo })
+      });
 
-      if (!response.ok) {
-        throw new Error("No se pudo generar el examen.");
-      }
-
+      if (!response.ok) throw new Error('Error en la respuesta del servidor');
       const data = await response.json();
 
-      // Manejo por si la Lambda devuelve string en lugar de JSON directo
-      const parsed = typeof data === "string" ? JSON.parse(data) : data;
-
-      setResultado(parsed.resumen || "No se recibió contenido");
+      if (!data || !data.preguntas || data.preguntas.length === 0) {
+        setExamen({ preguntas: [] });
+      } else {
+        setExamen(data);
+      }
     } catch (err) {
-      console.error(err);
-      setError("Error al generar el examen: " + err.message);
+      setError('Error al generar el examen: ' + err.message);
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -46,31 +42,45 @@ function ExamenesPage() {
 
       <div className="formulario-examenes">
         <select value={curso} onChange={(e) => setCurso(e.target.value)}>
-          <option value="AWS">AWS</option>
           <option value="Python">Python</option>
+          <option value="AWS">AWS</option>
           <option value="Azure">Azure</option>
         </select>
-
         <input
           type="text"
-          placeholder="Escribe el módulo de tu examen"
-          value={topico}
-          onChange={(e) => setTopico(e.target.value)}
+          placeholder="Ej. módulo de tu examen"
+          value={modulo}
+          onChange={(e) => setModulo(e.target.value)}
         />
-
-        <button onClick={generarExamen}>Generar examen</button>
-
-        {error && <div className="error-examenes">{error}</div>}
+        <button onClick={generarExamen} disabled={cargando}>
+          {cargando ? 'Generando...' : 'Generar examen'}
+        </button>
       </div>
 
-      {resultado && (
-        <div className="resultado-examenes">
+      {error && <div className="error-examenes">{error}</div>}
+
+      {examen && (
+        <div className="resultado-examen">
           <h2>📄 Examen Generado</h2>
-          <p>{resultado}</p>
+          {examen.preguntas.length === 0 ? (
+            <p>No se recibió contenido</p>
+          ) : (
+            examen.preguntas.map((pregunta, index) => (
+              <div className="pregunta" key={index}>
+                <strong>{index + 1}. {pregunta.pregunta}</strong>
+                <ul>
+                  {pregunta.opciones.map((opcion, i) => (
+                    <li key={i}>{opcion}</li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>
   );
-}
+};
 
 export default ExamenesPage;
+
