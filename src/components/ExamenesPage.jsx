@@ -1,46 +1,41 @@
-import React, { useState } from 'react';
-import './ExamenesPage.css'; // ✅ Este es el nombre correcto del CSS
+import React, { useState } from "react";
+import "./ExamenesPage.css";
 
-function ExamenesPage() {
-  const [curso, setCurso] = useState('Python');
-  const [topico, setTopico] = useState('');
-  const [examen, setExamen] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+const ExamenesPage = () => {
+  const [curso, setCurso] = useState("Python");
+  const [modulo, setModulo] = useState("");
+  const [resultado, setResultado] = useState("");
+  const [error, setError] = useState("");
 
-  const handleGenerarExamen = async () => {
-    if (!topico.trim()) {
-      setError('Por favor ingresa un tópico válido.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setExamen(null);
+  const handleGenerar = async () => {
+    setResultado("");
+    setError("");
 
     try {
-      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ curso, topico })
-      });
+      const response = await fetch(
+        "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ curso, topico: modulo }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al generar el examen");
 
       const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      setExamen(data);
+      setResultado(data.resumen || "No se recibió contenido");
     } catch (err) {
-      setError('Error al generar el examen: ' + err.message);
-    } finally {
-      setLoading(false);
+      setError("Error al generar el examen: " + err.message);
     }
   };
 
   return (
-    <div className="contenedor-examenes">
-      <h1 className="titulo">🧪 Generador de Exámenes</h1>
+    <div className="pagina-examenes">
+      <h1>🧪 Generador de Exámenes</h1>
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
 
-      <div className="formulario">
+      <div className="formulario-examenes">
         <select value={curso} onChange={(e) => setCurso(e.target.value)}>
           <option value="Python">Python</option>
           <option value="AWS">AWS</option>
@@ -49,44 +44,24 @@ function ExamenesPage() {
 
         <input
           type="text"
-          placeholder="Escribe el módulo de tu examen "
-          value={topico}
-          onChange={(e) => setTopico(e.target.value)}
+          placeholder="Ej: módulo 1"
+          value={modulo}
+          onChange={(e) => setModulo(e.target.value)}
         />
 
-        <button onClick={handleGenerarExamen} disabled={loading}>
-          {loading ? 'Generando...' : 'Generar examen'}
-        </button>
+        <button onClick={handleGenerar}>Generar examen</button>
+
+        {error && <div className="error-examenes">{error}</div>}
       </div>
 
-      {error && <p className="mensaje-error">{error}</p>}
-
-      {examen && (
-        <div className="resultado">
-          <h2>📝 {examen.tema}</h2>
-          <h4>📌 Tipos de pregunta</h4>
-          <ul>
-            <li>✔️ Opción múltiple: una correcta y tres distractores</li>
-            <li>✔️ Respuesta múltiple: dos o más correctas</li>
-          </ul>
-
-          {examen.preguntas?.map((p, idx) => (
-            <div key={idx}>
-              <h3>{idx + 1}. {p.enunciado}</h3>
-              <ul>
-                {Object.entries(p.opciones).map(([letra, texto]) => (
-                  <li key={letra}><strong>{letra}:</strong> {texto}</li>
-                ))}
-              </ul>
-              <p><strong>✅ Correcta:</strong> {p.respuestaCorrecta}</p>
-              <p><em>🧠 Justificación:</em> {p.justificacion}</p>
-            </div>
-          ))}
+      {resultado && (
+        <div className="resultado-examenes">
+          <h2>📄 Examen Generado</h2>
+          <div>{resultado}</div>
         </div>
       )}
     </div>
   );
-}
+};
 
 export default ExamenesPage;
-
