@@ -25,7 +25,7 @@ function ResumenesPage() {
     setResultado(null);
 
     try {
-      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen', {
+      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/resumen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ knowledgeBaseId, topico })
@@ -95,3 +95,4 @@ function ResumenesPage() {
 }
 
 export default ResumenesPage;
+
