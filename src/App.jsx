@@ -119,6 +119,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
+                <Route path="/examenes" element={<Examen />} /> 
               </Routes>
             </main>
 
