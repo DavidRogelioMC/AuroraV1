@@ -1,54 +1,74 @@
-.contenedor-examenes {
-  padding: 2rem;
+.pagina-examenes {
+  padding: 2rem 3rem;
   text-align: center;
+  background-color: #f5fafd;
+  min-height: 100vh;
+  margin-left: 11cm; /* espacio para el sidebar */
 }
 
-.titulo {
-  font-size: 1.8rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
+.pagina-examenes h1 {
+  font-size: 2.4rem;
   color: #1b5784;
+  margin-bottom: 0.5rem;
 }
 
-.formulario {
+.pagina-examenes p {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 2rem;
+}
+
+.formulario-examenes {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1rem;
-  max-width: 400px;
-  margin: auto;
+  max-width: 500px;
+  margin: 0 auto 2rem;
 }
 
-select,
-input {
-  padding: 0.6rem;
-  border-radius: 6px;
+.formulario-examenes select,
+.formulario-examenes input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   border: 1px solid #ccc;
+  font-size: 1rem;
 }
 
-button {
+.formulario-examenes button {
   background-color: #035b6e;
   color: white;
-  padding: 0.6rem;
   border: none;
-  border-radius: 6px;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: bold;
+  transition: background-color 0.2s ease;
 }
 
-button:hover {
-  background-color: #023a4a;
+.formulario-examenes button:hover {
+  background-color: #197fa6;
 }
 
-.resultado {
-  margin-top: 2rem;
-  text-align: left;
-  white-space: pre-wrap;
-  background: #f0f8ff;
-  padding: 1rem;
-  border-radius: 6px;
-}
-
-.mensaje-error {
-  color: red;
+.error-examenes {
+  color: #c0392b;
+  font-weight: 500;
   margin-top: 1rem;
+}
+
+.resultado-examenes {
+  background: #ffffff;
+  border: 1px solid #dfe6e9;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  white-space: pre-wrap;
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.6;
 }
