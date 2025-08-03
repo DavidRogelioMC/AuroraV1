@@ -1,17 +1,18 @@
-// App.jsx
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
 import { jwtDecode } from "jwt-decode";
 
+// Componentes
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
-import Examen from './components/Examen'; // ✅ Importar Examen.jsx
+import ExamenesPage from './components/ExamenesPage'; // ✅ IMPORTACIÓN CORRECTA
 
+// Estilos y assets
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
@@ -119,7 +120,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<Examen />} /> {/* ✅ Aquí está el examen */}
+                <Route path="/examenes" element={<ExamenesPage />} /> {/* ✅ Ruta agregada */}
               </Routes>
             </main>
 
@@ -132,3 +133,4 @@ function App() {
 }
 
 export default App;
+
