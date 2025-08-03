@@ -40,7 +40,6 @@ function Sidebar({ email, nombre, grupo }) {
       <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       <div id="caminito">
-        {/* Resúmenes */}
         <Link to="/resumenes" className="nav-link">
           <div className="step" style={{ cursor: 'pointer' }}>
             <div className="circle">🧠</div>
@@ -48,7 +47,6 @@ function Sidebar({ email, nombre, grupo }) {
           </div>
         </Link>
 
-        {/* Actividades */}
         <Link to="/actividades" className="nav-link">
           <div className="step" style={{ cursor: 'pointer' }}>
             <div className="circle">📘</div>
@@ -56,7 +54,6 @@ function Sidebar({ email, nombre, grupo }) {
           </div>
         </Link>
 
-        {/* Examen */}
         <Link to="/examenes" className="nav-link">
           <div className="step" style={{ cursor: 'pointer' }}>
             <div className="circle">🔬</div>
