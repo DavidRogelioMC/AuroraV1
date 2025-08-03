@@ -1,9 +1,9 @@
 .pagina-examenes {
   padding: 2rem 3rem;
-  text-align: center;
+  padding-left: 420px; /* Compensación por el sidebar */
   background-color: #f5fafd;
   min-height: 100vh;
-  margin-left: 11cm; /* espacio para el sidebar */
+  text-align: center;
 }
 
 .pagina-examenes h1 {
@@ -67,8 +67,12 @@
   margin: 0 auto;
   text-align: left;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-  white-space: pre-wrap;
-  font-size: 1rem;
-  color: #333;
-  line-height: 1.6;
+}
+
+.resultado-examenes h2 {
+  font-size: 1.8rem;
+  color: #035b6e;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #197fa6;
+  padding-bottom: 0.5rem;
 }
