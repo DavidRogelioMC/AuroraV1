@@ -45,12 +45,11 @@ function ExamenesPage() {
           <option value="Python">Python</option>
           <option value="AWS">AWS</option>
           <option value="Azure">Azure</option>
-          <option value="IA">IA</option>
         </select>
 
         <input
           type="text"
-          placeholder="Tópico (ej: IAM, Lambda...)"
+          placeholder="Escribe el módulo de tu examen "
           value={topico}
           onChange={(e) => setTopico(e.target.value)}
         />
