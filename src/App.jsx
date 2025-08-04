@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
-import { jwtDecode } from "jwt-decode";
 
 // Componentes
 import Sidebar from './components/Sidebar';
@@ -23,67 +22,56 @@ import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("id_token"));
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
-  const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-  
-useEffect(() => {
-  Auth.currentAuthenticatedUser()
-    .then(user => {
-      console.log("🟢 Sesión activa:", user);
-    })
-    .catch(async err => {
-      // Aquí Amplify detectará el code en la URL y lo intercambiará por tokens
-      try {
-        const user = await Auth.federatedSignIn(); // << esta llamada ya maneja el "code"
-        console.log("✅ Usuario autenticado por código:", user);
-      } catch (error) {
-        console.log("❌ Error al autenticar:", error);
-      }
-    });
-}, []);
+  const loginUrl = `${domain}/login?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
   useEffect(() => {
-    Auth.currentSession()
-      .then(session => console.log("✅ Sesión activa:", session))
-      .catch(() => Auth.signOut());
+    Auth.currentAuthenticatedUser()
+      .then(user => {
+        console.log("🟢 Sesión activa:", user);
+        setEmail(user.attributes.email);
+        setIsAuthenticated(true);
+      })
+      .catch(async () => {
+        try {
+          const user = await Auth.federatedSignIn(); // Amplify maneja el ?code
+          console.log("✅ Usuario autenticado por código:", user);
+          setEmail(user.attributes.email);
+          setIsAuthenticated(true);
+        } catch {
+          console.log("❌ No se pudo autenticar");
+          setIsAuthenticated(false);
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("id_token")) {
-      const newToken = hash.split("id_token=")[1].split("&")[0];
-      localStorage.setItem("id_token", newToken);
-      setToken(newToken);
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+  const handleLogout = async () => {
+    try {
+      await Auth.signOut({ global: true });
+      const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
+      window.location.href = logoutUrl;
+    } catch (err) {
+      console.error("❌ Error al cerrar sesión:", err);
     }
-  }, []);
-
-  useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setEmail(decoded.email);
-      } catch (err) {
-        console.error("❌ Error al decodificar el token:", err);
-      }
-    }
-  }, [token]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("id_token");
-    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
-    window.location.href = logoutUrl;
   };
+
+  // Mostrar pantalla de carga
+  if (isLoading) {
+    return <p style={{ textAlign: 'center', marginTop: '20%' }}>🔄 Cargando sesión...</p>;
+  }
 
   return (
     <>
-      {!token ? (
+      {!isAuthenticated ? (
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -129,13 +117,13 @@ useEffect(() => {
               <strong>📧 Correo: {email}</strong>
             </div>
 
-            <ProfileModal token={token} />
-            <ChatModal token={token} />
+            <ProfileModal />
+            <ChatModal />
 
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/actividades" element={<ActividadesPage token={token} />} />
+                <Route path="/actividades" element={<ActividadesPage />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} /> {/* ✅ Ruta agregada */}
               </Routes>
