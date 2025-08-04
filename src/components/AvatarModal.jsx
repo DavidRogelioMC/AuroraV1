@@ -15,10 +15,19 @@ export default function AvatarModal({ isOpen, onClose }) {
 
  const handleSave = async () => {
   try {
-    await Auth.currentSession();
+    // ✅ Intenta recuperar sesión activa
+    const session = await Auth.currentSession().catch(() => null);
+    if (!session) {
+      setError("⚠️ La sesión expiró. Cierra sesión e inicia nuevamente.");
+      return;
+    }
+
+    // ✅ Recupera el usuario autenticado
     const user = await Auth.currentAuthenticatedUser({ bypassCache: false });
     console.log("✅ Usuario autenticado:", user);
     console.log("🔎 Avatar seleccionado:", selectedAvatar);
+
+    // ✅ Actualiza el atributo del avatar
     await Auth.updateUserAttributes(user, {
       picture: selectedAvatar
     });
