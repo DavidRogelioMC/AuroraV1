@@ -34,22 +34,39 @@ function App() {
   const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
 
   // Validación de sesión
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const user = await Auth.currentAuthenticatedUser();
-        console.log("🟢 Sesión activa:", user);
-        setEmail(user.attributes.email);
-        setIsAuthenticated(true);
-      } catch (err) {
-        console.log("❌ No hay sesión. No redirigiendo aún...");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+useEffect(() => {
+  const checkUser = async () => {
+    try {
+      // 1. Si ya hay sesión activa
+      const user = await Auth.currentAuthenticatedUser();
+      console.log("🟢 Sesión activa:", user);
+      setEmail(user.attributes.email);
+      setIsAuthenticated(true);
+    } catch {
+      // 2. Si NO hay sesión, pero viene el código `?code=...`
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasCode = urlParams.has('code');
 
-    checkUser();
-  }, []);
+      if (hasCode) {
+        try {
+          const user = await Auth.currentAuthenticatedUser(); // Amplify intercambia automáticamente
+          console.log("✅ Usuario autenticado con código:", user);
+          setEmail(user.attributes.email);
+          setIsAuthenticated(true);
+        } catch (err) {
+          console.error("❌ Error al intercambiar código:", err);
+        }
+      } else {
+        console.log("🔁 Redirigiendo al login...");
+        window.location.href = loginUrl;
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  checkUser();
+}, []);
 
   // Redirección controlada al login (prevención de loops)
   useEffect(() => {
