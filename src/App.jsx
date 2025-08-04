@@ -31,6 +31,23 @@ function App() {
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
+  
+useEffect(() => {
+  Auth.currentAuthenticatedUser()
+    .then(user => {
+      console.log("🟢 Sesión activa:", user);
+    })
+    .catch(async err => {
+      // Aquí Amplify detectará el code en la URL y lo intercambiará por tokens
+      try {
+        const user = await Auth.federatedSignIn(); // << esta llamada ya maneja el "code"
+        console.log("✅ Usuario autenticado por código:", user);
+      } catch (error) {
+        console.log("❌ Error al autenticar:", error);
+      }
+    });
+}, []);
+
   useEffect(() => {
     Auth.currentSession()
       .then(session => console.log("✅ Sesión activa:", session))
