@@ -5,6 +5,14 @@ export default function AvatarModal({ isOpen, onClose }) {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [error, setError] = useState("");
 
+  
+  // ✅ Verifica si hay sesión activa cuando el componente carga
+  useEffect(() => {
+    Auth.currentAuthenticatedUser()
+      .then(user => console.log("🟢 Usuario activo:", user))
+      .catch(err => console.log("🔴 No hay sesión activa:", err));
+  }, []);
+
  const handleSave = async () => {
   try {
     await Auth.currentSession();
