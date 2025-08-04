@@ -22,7 +22,7 @@ function ExamenesPage() {
       Python: 'AVDJ3M69B7',
       AWS: 'WKNJIRXQUT',
       Azure: 'ZOWS9MQ9GG',
-      IA: 'ZOWS9MQ9GG'
+      
     };
 
     const knowledgeBaseId = knowledgeBaseMap[curso] || '';
@@ -36,7 +36,10 @@ function ExamenesPage() {
 
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      setExamen(data);
+
+      // ✅ Corrige el parseo anidado del JSON
+      const examenData = JSON.parse(data.texto);
+      setExamen(examenData);
     } catch (err) {
       setError('Error al generar el examen: ' + err.message);
     } finally {
@@ -58,7 +61,7 @@ function ExamenesPage() {
 
         <input
           type="text"
-          placeholder="Tópico (ej: IAM, Lambda...)"
+          placeholder="Modulo )"
           value={topico}
           onChange={(e) => setTopico(e.target.value)}
         />
@@ -87,7 +90,7 @@ function ExamenesPage() {
                   <li key={letra}><strong>{letra}:</strong> {texto}</li>
                 ))}
               </ul>
-              <p><strong>✅ Correcta:</strong> {Array.isArray(p.respuestasCorrectas) ? p.respuestasCorrectas.join(', ') : p.respuestasCorrectas}</p>
+              <p><strong>✅ Correcta(s):</strong> {p.respuestasCorrectas.join(', ')}</p>
               <p><em>🧠 Justificación:</em> {p.justificacion}</p>
             </div>
           ))}
@@ -98,4 +101,5 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
+
 
