@@ -79,7 +79,7 @@ function ExamenesPage() {
                   <li key={letra}><strong>{letra}:</strong> {texto}</li>
                 ))}
               </ul>
-              <p><strong>✅ Correcta:</strong> {p.respuestaCorrecta}</p>
+              <p><strong>✅ Correctas:</strong> {p.respuestasCorrectas?.join(', ')}</p>
               <p><em>🧠 Justificación:</em> {p.justificacion}</p>
             </div>
           ))}
