@@ -1,17 +1,36 @@
 import { useState, useEffect } from "react";
-import { Auth } from "aws-amplify";
+import { Auth, Hub } from "aws-amplify";
 import { avatarOptions } from "../assets/avatars";
 export default function AvatarModal({ isOpen, onClose }) {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [error, setError] = useState("");
 
   
-  // ✅ Verifica si hay sesión activa cuando el componente carga
   useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(user => console.log("🟢 Usuario activo:", user))
-      .catch(err => console.log("🔴 No hay sesión activa:", err));
-  }, []);
+  const checkUser = async () => {
+    try {
+      const session = await Auth.currentSession();
+      console.log("🟢 Sesión válida (checkUser):", session);
+    } catch (error) {
+      console.log("🔴 No hay sesión activa (checkUser):", error);
+    }
+  };
+
+  checkUser();
+
+  const listener = (data) => {
+    if (data.payload.event === "signIn") {
+      console.log("✅ Usuario logueado (Hub)");
+    }
+    if (data.payload.event === "signOut") {
+      console.log("👋 Usuario salió (Hub)");
+    }
+  };
+
+  Hub.listen("auth", listener);
+  return () => Hub.remove("auth", listener);
+}, []);
+
 
  const handleSave = async () => {
   try {
