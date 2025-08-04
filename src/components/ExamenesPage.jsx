@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './ExamenesPage.css'; 
+import './ExamenesPage.css';
 
 function ExamenesPage() {
   const [curso, setCurso] = useState('Python');
@@ -18,11 +18,20 @@ function ExamenesPage() {
     setError('');
     setExamen(null);
 
+    const knowledgeBaseMap = {
+      Python: 'AVDJ3M69B7',
+      AWS: 'WKNJIRXQUT',
+      Azure: 'ZOWS9MQ9GG',
+      IA: 'ZOWS9MQ9GG'
+    };
+
+    const knowledgeBaseId = knowledgeBaseMap[curso] || '';
+
     try {
       const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ curso, topico })
+        body: JSON.stringify({ knowledgeBaseId, topico })
       });
 
       const data = await response.json();
@@ -72,14 +81,14 @@ function ExamenesPage() {
           </ul>
 
           {examen.preguntas?.map((p, idx) => (
-            <div key={idx}>
+            <div key={idx} className="pregunta">
               <h3>{idx + 1}. {p.enunciado}</h3>
               <ul>
                 {Object.entries(p.opciones).map(([letra, texto]) => (
                   <li key={letra}><strong>{letra}:</strong> {texto}</li>
                 ))}
               </ul>
-              <p><strong>✅ Correctas:</strong> {p.respuestasCorrectas?.join(', ')}</p>
+              <p><strong>✅ Correcta:</strong> {Array.isArray(p.respuestasCorrectas) ? p.respuestasCorrectas.join(', ') : p.respuestasCorrectas}</p>
               <p><em>🧠 Justificación:</em> {p.justificacion}</p>
             </div>
           ))}
