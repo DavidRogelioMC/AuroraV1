@@ -1,6 +1,6 @@
 .contenedor-examenes {
   padding: 2rem;
-  padding-left: 420px; /* Ajusta según ancho real de tu sidebar */
+  padding-left: 420px; /* Ajusta si tu sidebar tiene otro ancho */
   text-align: center;
 }
 
@@ -59,4 +59,5 @@ button:hover {
   padding-bottom: 1rem;
   border-bottom: 1px solid #ddd;
 }
+
 
