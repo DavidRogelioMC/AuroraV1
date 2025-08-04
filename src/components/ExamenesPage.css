@@ -1,7 +1,7 @@
 .contenedor-examenes {
   padding: 2rem;
+  padding-left: 420px; /* Ajusta según ancho real de tu sidebar */
   text-align: center;
-  margin-left: 250px; 
 }
 
 .titulo {
@@ -47,9 +47,6 @@ button:hover {
   background: #f0f8ff;
   padding: 1rem;
   border-radius: 6px;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .mensaje-error {
@@ -57,3 +54,8 @@ button:hover {
   margin-top: 1rem;
 }
 
+.pregunta {
+  margin-top: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #ddd;
+}
