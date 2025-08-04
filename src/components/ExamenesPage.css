@@ -1,92 +1,55 @@
-.pagina-examenes {
-  padding: 2rem 3rem;
+.contenedor-examenes {
+  padding: 2rem;
   text-align: center;
-  background-color: #f5fafd;
-  min-height: 100vh;
 }
 
-.pagina-examenes h1 {
-  font-size: 2.4rem;
+.titulo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
   color: #1b5784;
-  margin-bottom: 0.5rem;
 }
 
-.pagina-examenes p {
-  font-size: 1.1rem;
-  color: #444;
-  margin-bottom: 2rem;
-}
-
-.formulario-examenes {
+.formulario {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1rem;
-  max-width: 500px;
-  margin: 0 auto 2rem;
+  max-width: 400px;
+  margin: auto;
 }
 
-.formulario-examenes select,
-.formulario-examenes input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+select,
+input {
+  padding: 0.6rem;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 1rem;
 }
 
-.formulario-examenes button {
+button {
   background-color: #035b6e;
   color: white;
+  padding: 0.6rem;
   border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  font-weight: bold;
 }
 
-.formulario-examenes button:hover {
-  background-color: #197fa6;
+button:hover {
+  background-color: #023a4a;
 }
 
-.error-examenes {
-  color: #c0392b;
-  font-weight: 500;
+.resultado {
+  margin-top: 2rem;
+  text-align: left;
+  white-space: pre-wrap;
+  background: #f0f8ff;
+  padding: 1rem;
+  border-radius: 6px;
+}
+
+.mensaje-error {
+  color: red;
   margin-top: 1rem;
 }
 
-.resultado-examen {
-  background: #ffffff;
-  border: 1px solid #dfe6e9;
-  border-radius: 16px;
-  padding: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
-  text-align: left;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-}
-
-.resultado-examen h2 {
-  font-size: 1.8rem;
-  color: #035b6e;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid #197fa6;
-  padding-bottom: 0.5rem;
-}
-
-.pregunta {
-  margin-bottom: 1.5rem;
-}
-
-.pregunta ul {
-  list-style-type: disc;
-  padding-left: 1.5rem;
-}
-
-.pregunta li {
-  margin: 0.4rem 0;
-  color: #333;
-  font-size: 1rem;
-}
