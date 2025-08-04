@@ -6,15 +6,15 @@ export default function AvatarModal({ isOpen, onClose }) {
   const [error, setError] = useState("");
 
   
-  useEffect(() => {
-  const checkUser = async () => {
-    try {
-      const session = await Auth.currentSession();
-      console.log("🟢 Sesión válida (checkUser):", session);
-    } catch (error) {
-      console.log("🔴 No hay sesión activa (checkUser):", error);
-    }
-  };
+useEffect(() => {
+  const timer = setTimeout(() => {
+    Auth.currentSession()
+      .then(session => console.log("🟢 Sesión válida (revisada tarde):", session))
+      .catch(err => console.log("🔴 No hay sesión (revisada tarde):", err));
+  }, 500); // espera medio segundo
+
+  return () => clearTimeout(timer);
+}, []);
 
   checkUser();
 
