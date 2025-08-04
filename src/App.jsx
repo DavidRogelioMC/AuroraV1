@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
+import { jwtDecode } from "jwt-decode";
 
 // Componentes
 import Sidebar from './components/Sidebar';
@@ -9,7 +10,7 @@ import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
-import ExamenesPage from './components/ExamenesPage';
+import ExamenesPage from './components/ExamenesPage'; // ✅ IMPORTACIÓN CORRECTA
 
 // Estilos y assets
 import './index.css';
@@ -22,81 +23,67 @@ import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
 function App() {
-  const [email, setEmail] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem("id_token"));
+  const [email, setEmail] = useState("");
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI;
-  const loginUrl = `${domain}/login?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
+  const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-  const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
-
-  // Validación de sesión
+  
 useEffect(() => {
-  const checkUser = async () => {
-    try {
-      // 1. Si ya hay sesión activa
-      const user = await Auth.currentAuthenticatedUser();
+  Auth.currentAuthenticatedUser()
+    .then(user => {
       console.log("🟢 Sesión activa:", user);
-      setEmail(user.attributes.email);
-      setIsAuthenticated(true);
-    } catch {
-      // 2. Si NO hay sesión, pero viene el código `?code=...`
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasCode = urlParams.has('code');
-
-      if (hasCode) {
-        try {
-          const user = await Auth.currentAuthenticatedUser(); // Amplify intercambia automáticamente
-          console.log("✅ Usuario autenticado con código:", user);
-          setEmail(user.attributes.email);
-          setIsAuthenticated(true);
-        } catch (err) {
-          console.error("❌ Error al intercambiar código:", err);
-        }
-      } else {
-        console.log("🔁 Redirigiendo al login...");
-        window.location.href = loginUrl;
+    })
+    .catch(async err => {
+      // Aquí Amplify detectará el code en la URL y lo intercambiará por tokens
+      try {
+        const user = await Auth.federatedSignIn(); // << esta llamada ya maneja el "code"
+        console.log("✅ Usuario autenticado por código:", user);
+      } catch (error) {
+        console.log("❌ Error al autenticar:", error);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  checkUser();
+    });
 }, []);
 
-  // Redirección controlada al login (prevención de loops)
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && localStorage.getItem("login_attempted")) {
-      localStorage.removeItem("login_attempted");
-      window.location.href = loginUrl;
+    Auth.currentSession()
+      .then(session => console.log("✅ Sesión activa:", session))
+      .catch(() => Auth.signOut());
+  }, []);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("id_token")) {
+      const newToken = hash.split("id_token=")[1].split("&")[0];
+      localStorage.setItem("id_token", newToken);
+      setToken(newToken);
+      window.history.pushState("", document.title, window.location.pathname + window.location.search);
     }
-  }, [isLoading, isAuthenticated]);
+  }, []);
 
-  const handleLogin = () => {
-    localStorage.setItem("login_attempted", "true");
-    window.location.href = loginUrl;
-  };
-
-  const handleLogout = async () => {
-    try {
-      await Auth.signOut({ global: true });
-      window.location.href = logoutUrl;
-    } catch (err) {
-      console.error("❌ Error al cerrar sesión:", err);
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setEmail(decoded.email);
+      } catch (err) {
+        console.error("❌ Error al decodificar el token:", err);
+      }
     }
-  };
+  }, [token]);
 
-  if (isLoading) {
-    return <p style={{ textAlign: 'center', marginTop: '20%' }}>🔄 Cargando sesión...</p>;
-  }
+  const handleLogout = () => {
+    localStorage.removeItem("id_token");
+    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = logoutUrl;
+  };
 
   return (
     <>
-      {!isAuthenticated ? (
+      {!token ? (
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -106,7 +93,7 @@ useEffect(() => {
               <div className="illustration-centered">
                 <img src={previewImg} alt="Ilustración" className="preview-image" />
               </div>
-              <button className="login-button" onClick={handleLogin}>
+              <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
                 🚀 Comenzar Ahora
               </button>
               <div className="country-flags">
@@ -142,15 +129,15 @@ useEffect(() => {
               <strong>📧 Correo: {email}</strong>
             </div>
 
-            <ProfileModal />
-            <ChatModal />
+            <ProfileModal token={token} />
+            <ChatModal token={token} />
 
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/actividades" element={<ActividadesPage />} />
+                <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<ExamenesPage />} />
+                <Route path="/examenes" element={<ExamenesPage />} /> {/* ✅ Ruta agregada */}
               </Routes>
             </main>
 
