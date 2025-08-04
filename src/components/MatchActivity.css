@@ -106,3 +106,71 @@
 .btn-reiniciar:hover {
   background-color: #5a6268;
 }
+
+/* --- INICIO DE LOS NUEVOS ESTILOS AÑADIDOS --- */
+
+/* Contenedor para los botones que aparecen después de revisar */
+.footer-botones-resultado {
+  display: flex;
+  justify-content: center; /* Centra los botones */
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+}
+
+/* Botón específico para la justificación */
+.btn-justificacion {
+  border: 1px solid #1b5784; /* Borde con tu color principal */
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1b5784; /* Texto con tu color principal */
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-justificacion:hover {
+  background-color: #eef5fa; /* Un azul muy claro al pasar el ratón */
+}
+
+/* --- Estilos para la retroalimentación visual --- */
+
+/* Para el área droppable cuando la respuesta es CORRECTA */
+.droppable-area.match-correcto {
+  border-style: solid;
+  border-color: #28a745; /* Verde de éxito */
+  background-color: #d4edda;
+}
+.droppable-area.match-correcto .concepto-texto {
+  color: #155724;
+}
+
+/* Para el área droppable cuando la respuesta es INCORRECTA */
+.droppable-area.match-incorrecto {
+  border-style: solid;
+  border-color: #dc3545; /* Rojo de error */
+  background-color: #f8d7da;
+}
+.droppable-area.match-incorrecto .concepto-texto {
+  color: #721c24;
+}
+
+/* Contenedor donde se muestra el texto de la justificación */
+.justificacion-container-match {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  font-style: normal; /* Sobrescribe el italic si es necesario */
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  color: #333;
+  animation: fadeIn 0.5s ease;
+}
+
+/* Animación de aparición */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -1,27 +1,52 @@
-// src/components/Sidebar.jsx (CÓDIGO FINAL Y COMPLETO)
-//x
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
+import { useEffect, useState } from 'react';
+import { Auth } from 'aws-amplify';
+import AvatarModal from './AvatarModal';
 
-function Sidebar() {
+function Sidebar({ email, nombre, grupo }) {
+  const [avatar, setAvatar] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    Auth.currentAuthenticatedUser()
+      .then((user) => setAvatar(user.attributes.picture))
+      .catch(() => setAvatar(null));
+  }, []);
+
   return (
-    // Añadimos la clase 'sidebar' para que los estilos de index.css se apliquen
-    <div id="barraLateral" className="sidebar"> 
-      <div id="perfilSidebar">
-        <img id="fotoPerfilSidebar" src={defaultFoto} alt="Foto perfil" />
-        <div className="nombre" id="nombreSidebar">Usuario</div>
-        <div className="email" id="emailSidebar">usuario@ejemplo.com</div>
+    <div id="barraLateral" className="sidebar">
+      <div id="perfilSidebar" style={{ textAlign: 'center', padding: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <img
+            src={avatar || defaultFoto}
+            alt="Foto perfil"
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              cursor: 'pointer',
+            }}
+            onClick={() => setIsModalOpen(true)}
+          />
+        </div>
+        <div className="nombre" id="nombreSidebar">{nombre || 'Usuario conectado'}</div>
+        <div className="email" id="emailSidebar">{email}</div>
+        <div className="grupo" id="grupoSidebar">🎖️ Rol: {grupo || 'Sin grupo'}</div>
       </div>
 
-      <div id="caminito">
-        {/* Módulos (se mantiene sin cambios) */}
-        <div className="step">
-          <div className="circle">🧠</div>
-          <span>Módulos</span>
-        </div>
+      <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-        {/* ACTIVIDADES: Ahora es un Link de navegación */}
+      <div id="caminito">
+        <Link to="/resumenes" className="nav-link">
+          <div className="step" style={{ cursor: 'pointer' }}>
+            <div className="circle">🧠</div>
+            <span>Resúmenes</span>
+          </div>
+        </Link>
+
         <Link to="/actividades" className="nav-link">
           <div className="step" style={{ cursor: 'pointer' }}>
             <div className="circle">📘</div>
@@ -29,14 +54,16 @@ function Sidebar() {
           </div>
         </Link>
 
-        {/* Examen (se mantiene sin cambios) */}
-        <div className="step">
-          <div className="circle">🔬</div>
-          <span>Examen</span>
-        </div>
+        <Link to="/examenes" className="nav-link">
+          <div className="step" style={{ cursor: 'pointer' }}>
+            <div className="circle">🔬</div>
+            <span>Examen</span>
+          </div>
+        </Link>
       </div>
     </div>
   );
 }
 
 export default Sidebar;
+

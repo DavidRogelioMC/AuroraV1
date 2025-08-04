@@ -1,79 +1,41 @@
-/* Forzar modo claro */
-html {
-  color-scheme: light;
-}
+/* Sección para ExamenesPage o Examen.jsx */
 
-body {
-  background-color: white !important;
-  color: black !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: white !important;
-    color: black !important;
-  }
-}
-
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
+.examen-container {
+  background-color: #ffffff;
   padding: 2rem;
-  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-top: 1rem;
+  text-align: left;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.examen-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-#logout {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background-color: #a73200;
-  color: white;
-  border: none;
+.pregunta-bloque {
+  border-left: 4px solid #035b6e;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: #f9f9f9;
   border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
 }
 
-#logout:hover {
-  background-color: #930d04;
-
+.pregunta-enunciado {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
 }
+
+.opciones {
+  margin-left: 1rem;
+  line-height: 1.6;
+}
+
+.justificacion {
+  margin-top: 0.5rem;
+  font-style: italic;
+  color: #444;
+}
+
