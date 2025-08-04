@@ -6,7 +6,7 @@ export default function AvatarModal({ isOpen, onClose }) {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [error, setError] = useState("");
 
-  // Primer useEffect: Revisión de sesión con retardo
+  // Verificar sesión activa con retardo
   useEffect(() => {
     const timer = setTimeout(() => {
       Auth.currentSession()
@@ -17,7 +17,7 @@ export default function AvatarModal({ isOpen, onClose }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Segundo useEffect: Escucha de eventos y verificación inmediata
+  // Verificación inmediata + listener de sesión
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -43,28 +43,33 @@ export default function AvatarModal({ isOpen, onClose }) {
     return () => Hub.remove("auth", listener);
   }, []);
 
+  // ✅ Este es el que corrige el error
   const handleSave = async () => {
     try {
-      const session = await Auth.currentSession().catch(() => null);
-      if (!session) {
-        setError("⚠️ La sesión expiró. Cierra sesión e inicia nuevamente.");
+      if (!selectedAvatar) {
+        setError("⚠️ Selecciona un avatar primero.");
         return;
       }
 
-      const user = await Auth.currentAuthenticatedUser({ bypassCache: false });
+      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+
       console.log("✅ Usuario autenticado:", user);
       console.log("🔎 Avatar seleccionado:", selectedAvatar);
 
       await Auth.updateUserAttributes(user, {
-        picture: selectedAvatar
+        picture: selectedAvatar,
       });
 
       setError("");
       alert("✅ Avatar actualizado correctamente");
+
+      // ✅ Esto fuerza al Sidebar a actualizarse sin cerrar sesión
+      window.location.reload(); // opcional: reemplazable con context si prefieres
+
       onClose();
     } catch (err) {
       console.error("❌ Error al actualizar avatar:", err);
-      setError("Error al actualizar avatar");
+      setError("⚠️ La sesión expiró. Cierra sesión e inicia nuevamente.");
     }
   };
 
