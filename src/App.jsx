@@ -9,7 +9,7 @@ import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
-import ExamenesPage from './components/ExamenesPage'; // ✅ IMPORTACIÓN CORRECTA
+import ExamenesPage from './components/ExamenesPage';
 
 // Estilos y assets
 import './index.css';
@@ -28,43 +28,51 @@ function App() {
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI;
   const loginUrl = `${domain}/login?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
+  const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
+
+  // Validación de sesión
   useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(user => {
+    const checkUser = async () => {
+      try {
+        const user = await Auth.currentAuthenticatedUser();
         console.log("🟢 Sesión activa:", user);
         setEmail(user.attributes.email);
         setIsAuthenticated(true);
-      })
-      .catch(async () => {
-        try {
-          const user = await Auth.federatedSignIn(); // Amplify maneja el ?code
-          console.log("✅ Usuario autenticado por código:", user);
-          setEmail(user.attributes.email);
-          setIsAuthenticated(true);
-        } catch {
-          console.log("❌ No se pudo autenticar");
-          setIsAuthenticated(false);
-        }
-      })
-      .finally(() => {
+      } catch (err) {
+        console.log("❌ No hay sesión. No redirigiendo aún...");
+      } finally {
         setIsLoading(false);
-      });
+      }
+    };
+
+    checkUser();
   }, []);
+
+  // Redirección controlada al login (prevención de loops)
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && localStorage.getItem("login_attempted")) {
+      localStorage.removeItem("login_attempted");
+      window.location.href = loginUrl;
+    }
+  }, [isLoading, isAuthenticated]);
+
+  const handleLogin = () => {
+    localStorage.setItem("login_attempted", "true");
+    window.location.href = loginUrl;
+  };
 
   const handleLogout = async () => {
     try {
       await Auth.signOut({ global: true });
-      const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
       window.location.href = logoutUrl;
     } catch (err) {
       console.error("❌ Error al cerrar sesión:", err);
     }
   };
 
-  // Mostrar pantalla de carga
   if (isLoading) {
     return <p style={{ textAlign: 'center', marginTop: '20%' }}>🔄 Cargando sesión...</p>;
   }
@@ -81,7 +89,7 @@ function App() {
               <div className="illustration-centered">
                 <img src={previewImg} alt="Ilustración" className="preview-image" />
               </div>
-              <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
+              <button className="login-button" onClick={handleLogin}>
                 🚀 Comenzar Ahora
               </button>
               <div className="country-flags">
@@ -125,7 +133,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<ExamenesPage />} /> {/* ✅ Ruta agregada */}
+                <Route path="/examenes" element={<ExamenesPage />} />
               </Routes>
             </main>
 
