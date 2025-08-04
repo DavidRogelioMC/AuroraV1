@@ -10,7 +10,7 @@ export default function AvatarModal({ isOpen, onClose }) {
     // Forzar autenticación válida
     const user = await Auth.currentAuthenticatedUser({ bypassCache: false });
     console.log("✅ Usuario autenticado:", user);
-
+    console.log("🔎 Avatar seleccionado:", selectedAvatar);
     await Auth.updateUserAttributes(user, {
       picture: selectedAvatar
     });
