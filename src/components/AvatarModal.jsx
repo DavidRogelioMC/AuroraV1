@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Auth } from "aws-amplify";
 import { avatarOptions } from "../assets/avatars";
 export default function AvatarModal({ isOpen, onClose }) {
