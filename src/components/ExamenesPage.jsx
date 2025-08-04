@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import './ExamenesPage.css';
+import './ExamenesPage.css'; 
 
-const ExamenesPage = () => {
+function ExamenesPage() {
   const [curso, setCurso] = useState('Python');
-  const [modulo, setModulo] = useState('');
-  const [error, setError] = useState('');
+  const [topico, setTopico] = useState('');
   const [examen, setExamen] = useState(null);
-  const [cargando, setCargando] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const generarExamen = async () => {
-    setCargando(true);
+  const handleGenerarExamen = async () => {
+    if (!topico.trim()) {
+      setError('Por favor ingresa un tópico válido.');
+      return;
+    }
+
+    setLoading(true);
     setError('');
     setExamen(null);
 
@@ -17,70 +22,71 @@ const ExamenesPage = () => {
       const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ curso, topico: modulo })
+        body: JSON.stringify({ curso, topico })
       });
 
-      if (!response.ok) throw new Error('Error en la respuesta del servidor');
       const data = await response.json();
-
-      if (!data || !data.preguntas || data.preguntas.length === 0) {
-        setExamen({ preguntas: [] });
-      } else {
-        setExamen(data);
-      }
+      if (data.error) throw new Error(data.error);
+      setExamen(data);
     } catch (err) {
       setError('Error al generar el examen: ' + err.message);
     } finally {
-      setCargando(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="pagina-examenes">
-      <h1>🧪 Generador de Exámenes</h1>
+    <div className="contenedor-examenes">
+      <h1 className="titulo">🧪 Generador de Exámenes</h1>
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
 
-      <div className="formulario-examenes">
+      <div className="formulario">
         <select value={curso} onChange={(e) => setCurso(e.target.value)}>
           <option value="Python">Python</option>
           <option value="AWS">AWS</option>
           <option value="Azure">Azure</option>
+          <option value="IA">IA</option>
         </select>
+
         <input
           type="text"
-          placeholder="Ej. módulo de tu examen"
-          value={modulo}
-          onChange={(e) => setModulo(e.target.value)}
+          placeholder="Tópico (ej: IAM, Lambda...)"
+          value={topico}
+          onChange={(e) => setTopico(e.target.value)}
         />
-        <button onClick={generarExamen} disabled={cargando}>
-          {cargando ? 'Generando...' : 'Generar examen'}
+
+        <button onClick={handleGenerarExamen} disabled={loading}>
+          {loading ? 'Generando...' : 'Generar examen'}
         </button>
       </div>
 
-      {error && <div className="error-examenes">{error}</div>}
+      {error && <p className="mensaje-error">{error}</p>}
 
       {examen && (
-        <div className="resultado-examen">
-          <h2>📄 Examen Generado</h2>
-          {examen.preguntas.length === 0 ? (
-            <p>No se recibió contenido</p>
-          ) : (
-            examen.preguntas.map((pregunta, index) => (
-              <div className="pregunta" key={index}>
-                <strong>{index + 1}. {pregunta.pregunta}</strong>
-                <ul>
-                  {pregunta.opciones.map((opcion, i) => (
-                    <li key={i}>{opcion}</li>
-                  ))}
-                </ul>
-              </div>
-            ))
-          )}
+        <div className="resultado">
+          <h2>📝 {examen.tema}</h2>
+          <h4>📌 Tipos de pregunta</h4>
+          <ul>
+            <li>✔️ Opción múltiple: una correcta y tres distractores</li>
+            <li>✔️ Respuesta múltiple: dos o más correctas</li>
+          </ul>
+
+          {examen.preguntas?.map((p, idx) => (
+            <div key={idx}>
+              <h3>{idx + 1}. {p.enunciado}</h3>
+              <ul>
+                {Object.entries(p.opciones).map(([letra, texto]) => (
+                  <li key={letra}><strong>{letra}:</strong> {texto}</li>
+                ))}
+              </ul>
+              <p><strong>✅ Correcta:</strong> {p.respuestaCorrecta}</p>
+              <p><em>🧠 Justificación:</em> {p.justificacion}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
-};
+}
 
 export default ExamenesPage;
-
