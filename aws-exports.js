@@ -2,7 +2,7 @@ const awsExports = {
   Auth: {
     region: 'us-east-1',
     userPoolId: 'us-east-1_B7QVYyDGp',
-    userPoolWebClientId: '51g99km7557n98v3c763nk529o',
+    userPoolWebClientId: '67qhvmopav8qp6blthh7vmql82',
     mandatorySignIn: true,
     authenticationFlowType: 'USER_SRP_AUTH',
     storage: window.localStorage,
