@@ -1,6 +1,7 @@
 .contenedor-examenes {
   padding: 2rem;
   text-align: center;
+  margin-left: 250px; 
 }
 
 .titulo {
@@ -46,6 +47,9 @@ button:hover {
   background: #f0f8ff;
   padding: 1rem;
   border-radius: 6px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .mensaje-error {
