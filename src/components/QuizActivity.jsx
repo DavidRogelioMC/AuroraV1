@@ -1,77 +1,121 @@
-// src/components/QuizActivity.jsx
+// src/components/QuizActivity.jsx (CÓDIGO COMPLETO Y CORREGIDO)
 
-import React, { useState } from 'react';
-import './QuizActivity.css';
-
-function QuizQuestion({ pregunta, opciones, seleccion, onSeleccion, mostrarResultado, respuestaCorrecta }) {
-  const getOpcionClassName = (opcion) => {
-    if (!mostrarResultado) return seleccion === opcion ? 'opcion-seleccionada' : '';
-    if (opcion === respuestaCorrecta) return 'opcion-correcta';
-    if (seleccion === opcion && opcion !== respuestaCorrecta) return 'opcion-incorrecta';
-    return '';
-  };
-  return (
-    <div className="pregunta-quiz">
-      <h3>{pregunta}</h3>
-      <div className="opciones-quiz">
-        {opciones.map((opcion, index) => (
-          <div key={index} className={`opcion-quiz ${getOpcionClassName(opcion)}`} onClick={() => !mostrarResultado && onSeleccion(opcion)}>
-            <span className="letra-opcion">{String.fromCharCode(97 + index)})</span>
-            {opcion}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import { useState } from 'react';
+import './QuizActivity.css'; // Asegúrate de que este archivo CSS exista
 
 function QuizActivity({ data }) {
-  const [respuestasUsuario, setRespuestasUsuario] = useState({});
-  const [mostrarResultados, setMostrarResultados] = useState(false);
+  const [preguntaActualIndex, setPreguntaActualIndex] = useState(0);
+  const [seleccionUsuario, setSeleccionUsuario] = useState(null);
+  const [haRespondido, setHaRespondido] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
+  
+  const [mostrarJustificacion, setMostrarJustificacion] = useState(false);
+  const [mostrarResultadosFinales, setMostrarResultadosFinales] = useState(false);
 
-  const handleSeleccion = (preguntaIndex, opcionSeleccionada) => {
-    setRespuestasUsuario(prev => ({ ...prev, [preguntaIndex]: opcionSeleccionada }));
+  const preguntaActual = data[preguntaActualIndex];
+
+  const handleSeleccion = (opcion) => {
+    if (haRespondido) return;
+    setSeleccionUsuario(opcion);
   };
 
-  const calificarQuiz = () => {
-    let correctas = 0;
-    data.forEach((preguntaData, index) => {
-      if (respuestasUsuario[index] === preguntaData.respuesta) correctas++;
-    });
-    setPuntuacion(correctas);
-    setMostrarResultados(true);
+  const revisarRespuesta = () => {
+    if (!seleccionUsuario) return;
+    setHaRespondido(true);
+    if (seleccionUsuario === preguntaActual.respuesta) {
+      setPuntuacion(p => p + 1);
+    }
   };
 
-  const reiniciarQuiz = () => {
-    setRespuestasUsuario({});
-    setMostrarResultados(false);
+  const siguientePregunta = () => {
+    if (preguntaActualIndex < data.length - 1) {
+      setPreguntaActualIndex(i => i + 1);
+      setHaRespondido(false);
+      setSeleccionUsuario(null);
+      setMostrarJustificacion(false);
+    } else {
+      setMostrarResultadosFinales(true);
+    }
+  };
+  
+  const reiniciarActividad = () => {
+    setPreguntaActualIndex(0);
+    setSeleccionUsuario(null);
+    setHaRespondido(false);
     setPuntuacion(0);
+    setMostrarJustificacion(false);
+    setMostrarResultadosFinales(false);
+  }
+
+  const getButtonClass = (opcion) => {
+    if (!haRespondido) {
+      return seleccionUsuario === opcion ? 'opcion-seleccionada' : 'opcion';
+    }
+    if (opcion === preguntaActual.respuesta) return 'opcion-correcta';
+    if (opcion === seleccionUsuario) return 'opcion-incorrecta';
+    return 'opcion';
   };
+
+  if (mostrarResultadosFinales) {
+    return (
+      <div className="interactive-activity final-results">
+        <h2>Actividad Completada</h2>
+        <p className="puntuacion-final">Tu puntuación final es: {puntuacion} de {data.length}</p>
+        <button onClick={reiniciarActividad} className="btn-reinicio">
+          Volver a Intentar
+        </button>
+      </div>
+    )
+  }
 
   return (
-    <div className="quiz-activity">
-      {data.map((preguntaData, index) => (
-        <QuizQuestion
-          key={index}
-          pregunta={preguntaData.pregunta}
-          opciones={preguntaData.opciones}
-          seleccion={respuestasUsuario[index]}
-          onSeleccion={(opcion) => handleSeleccion(index, opcion)}
-          mostrarResultado={mostrarResultados}
-          respuestaCorrecta={preguntaData.respuesta}
-        />
-      ))}
-      <div className="quiz-footer">
-        {!mostrarResultados ? (
-          <button onClick={calificarQuiz} disabled={Object.keys(respuestasUsuario).length !== data.length} className="btn-revisar">Calificar Quiz</button>
+    <div className="interactive-activity">
+      <div className="activity-header">
+        <h3>Pregunta {preguntaActualIndex + 1} de {data.length}</h3>
+        <div className="puntuacion-actual">Puntuación: {puntuacion}</div>
+      </div>
+      <p className="pregunta-texto">{preguntaActual.pregunta}</p>
+
+      <div className="opciones-container">
+        {preguntaActual.opciones.map((opcion, index) => (
+          <button
+            key={index}
+            className={getButtonClass(opcion)}
+            onClick={() => handleSeleccion(opcion)}
+            disabled={haRespondido}
+          >
+            {opcion}
+          </button>
+        ))}
+      </div>
+
+      <div className="activity-footer">
+        {!haRespondido ? (
+          <button onClick={revisarRespuesta} disabled={!seleccionUsuario} className="btn-revisar">Revisar</button>
         ) : (
-          <div className="resultado-y-reinicio">
-            <div className="resultado-final">Tu puntuación: {puntuacion} de {data.length}</div>
-            <button onClick={reiniciarQuiz} className="btn-reiniciar">🔄 Intentar de nuevo</button>
+          <div className="footer-botones-resultado">
+            <button onClick={siguientePregunta} className="btn-siguiente">
+              {preguntaActualIndex < data.length - 1 ? 'Siguiente Pregunta' : 'Finalizar'}
+            </button>
+            <div className="grupo-botones-secundarios">
+              <button onClick={() => setMostrarJustificacion(true)} className="btn-secundario btn-justificacion">
+                Ver Justificación
+              </button>
+              <button onClick={reiniciarActividad} className="btn-secundario">
+                Reiniciar
+              </button>
+            </div>
           </div>
         )}
       </div>
+
+      {mostrarJustificacion && haRespondido && (
+        <div className="justificacion-container">
+          <h4>Justificación</h4>
+          <p>{preguntaActual.justificacion}</p>
+          <button onClick={() => setMostrarJustificacion(false)} className="btn-ocultar-justificacion">Ocultar</button>
+        </div>
+      )}
     </div>
   );
 }

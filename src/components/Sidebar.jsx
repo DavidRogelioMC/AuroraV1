@@ -7,7 +7,7 @@ import AvatarModal from './AvatarModal';
 
 function Sidebar({ email, nombre, grupo }) {
   const [avatar, setAvatar] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para abrir/cerrar modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     Auth.currentAuthenticatedUser()
@@ -40,13 +40,13 @@ function Sidebar({ email, nombre, grupo }) {
       <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       <div id="caminito">
-        {/* Módulos */}
-        <div className="step">
-          <div className="circle">🧠</div>
-          <span>Módulos</span>
-        </div>
+        <Link to="/resumenes" className="nav-link">
+          <div className="step" style={{ cursor: 'pointer' }}>
+            <div className="circle">🧠</div>
+            <span>Resúmenes</span>
+          </div>
+        </Link>
 
-        {/* Actividades */}
         <Link to="/actividades" className="nav-link">
           <div className="step" style={{ cursor: 'pointer' }}>
             <div className="circle">📘</div>
@@ -54,14 +54,16 @@ function Sidebar({ email, nombre, grupo }) {
           </div>
         </Link>
 
-        {/* Examen */}
-        <div className="step">
-          <div className="circle">🔬</div>
-          <span>Examen</span>
-        </div>
+        <Link to="/examenes" className="nav-link">
+          <div className="step" style={{ cursor: 'pointer' }}>
+            <div className="circle">🔬</div>
+            <span>Examen</span>
+          </div>
+        </Link>
       </div>
     </div>
   );
 }
 
 export default Sidebar;
+

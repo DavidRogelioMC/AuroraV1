@@ -1,135 +1,142 @@
-/* src/components/QuizActivity.css (CÓDIGO COMPLETO CON ESTILOS DE REINICIO) */
+/* src/components/QuizActivity.css (CÓDIGO COMPLETO Y CORREGIDO) */
 
-.quiz-activity {
-  margin-top: 1.5rem;
+.interactive-activity {
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-.pregunta-quiz {
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.pregunta-quiz:last-of-type {
-  border-bottom: none;
-}
-
-.pregunta-quiz h3 {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  text-align: left;
-}
-
-.opciones-quiz {
+.activity-header {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.opcion-quiz {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  padding: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-  display: flex;
-  align-items: center;
-}
+.activity-header h3 { margin: 0; color: #1b5784; }
+.puntuacion-actual { font-size: 0.9rem; font-weight: 500; color: #6c757d; background-color: #f8f9fa; padding: 5px 10px; border-radius: 15px; }
+.pregunta-texto { font-size: 1.25rem; font-weight: 500; color: #212529; margin-bottom: 2rem; line-height: 1.6; text-align: left; }
+.opciones-container { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.opcion { padding: 1rem; font-size: 1rem; text-align: left; background-color: #f8f9fa; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; }
+.opcion:hover:not(:disabled) { border-color: #1b5784; background-color: #eef5fa; }
+.opcion-seleccionada { padding: 1rem; font-size: 1rem; text-align: left; border-radius: 8px; cursor: pointer; border: 2px solid #1b5784; background-color: #cfe7fc; font-weight: bold; }
+.opcion-correcta { padding: 1rem; font-size: 1rem; text-align: left; border-radius: 8px; background-color: #d1e7dd; border-color: #a3cfbb; color: #0f5132; font-weight: bold; }
+.opcion-incorrecta { padding: 1rem; font-size: 1rem; text-align: left; border-radius: 8px; background-color: #f8d7da; border-color: #f1aeb5; color: #842029; font-weight: bold; opacity: 0.7; }
 
-.opcion-quiz:hover:not(.opcion-correcta):not(.opcion-incorrecta) {
-  border-color: #1b5784;
-  background-color: #f0f8ff;
-}
-
-.letra-opcion {
-  font-weight: bold;
-  margin-right: 0.75rem;
-  color: #1b5784;
-}
-
-.opcion-seleccionada {
-  border-color: #1b5784;
-  background-color: #e3f2fd;
-  font-weight: bold;
-  box-shadow: 0 0 0 2px #1b5784;
-}
-
-.opcion-correcta {
-  background-color: #d4edda;
-  border-color: #c3e6cb;
-  color: #155724;
-  font-weight: bold;
-}
-
-.opcion-incorrecta {
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
-  color: #721c24;
-  font-weight: bold;
-}
-
-
-/* --- SECCIÓN MODIFICADA Y AÑADIDA PARA EL FOOTER --- */
-
-.quiz-footer {
+.activity-footer {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #eee;
-  display: flex; /* Cambiamos a flex para alinear */
-  justify-content: flex-end; /* Alineamos el contenido a la derecha */
-}
-
-/* Nuevo contenedor para el resultado y el botón de reinicio */
-.resultado-y-reinicio {
+  border-top: 1px solid #e9ecef;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  justify-content: center;
 }
 
-.btn-revisar {
-  padding: 10px 20px;
+.btn-revisar, .btn-siguiente {
+  padding: 12px 28px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
   background-color: #1b5784;
   color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 
 .btn-revisar:disabled {
-  background-color: #ccc;
+  background-color: #adb5bd;
   cursor: not-allowed;
 }
 
-.btn-revisar:hover:not(:disabled) {
-  background-color: #154360;
+.footer-botones-resultado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
-/* Se han eliminado los estilos de fondo y borde para que sea solo texto */
-.resultado-final {
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: #333;
+.grupo-botones-secundarios {
+  display: flex;
+  gap: 0.75rem;
 }
 
-/* Nuevo estilo para el botón de reinicio */
-.btn-reiniciar {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
+.btn-secundario {
+  padding: 10px 20px;
+  border: 1px solid #6c757d;
+  background-color: transparent;
+  color: #6c757d;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
   font-weight: 500;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.btn-reiniciar:hover {
-  background-color: #5a6268;
+.btn-secundario:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-justificacion {
+  border-color: #1b5784;
+  color: #1b5784;
+}
+
+.btn-justificacion:hover {
+  background-color: #eef5fa;
+}
+
+.justificacion-container {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-left: 4px solid #1b5784;
+  border-radius: 4px;
+  text-align: left;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.justificacion-container h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #1b5784;
+}
+
+.justificacion-container p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.btn-ocultar-justificacion {
+  background: none;
+  border: none;
+  color: #1b5784;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+.final-results {
+  text-align: center;
+}
+
+.puntuacion-final {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 2rem 0;
+}
+
+.btn-reinicio {
+  /* Ahora hereda de .btn-secundario, no necesita estilo propio */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
