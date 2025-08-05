@@ -1,47 +1,48 @@
-.examenes-container {
+.contenedor-examen {
   max-width: 600px;
-  margin: auto;
-  padding: 2rem;
-  background-color: #f5f9ff;
-  border-radius: 1rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin: 50px auto;
+  background: #f9f9f9;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
-.examenes-container select,
-.examenes-container input {
-  display: block;
-  width: 100%;
-  margin: 1rem 0;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid #ccc;
+.contenedor-examen h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 
-.examenes-container button {
+.contenedor-examen p {
+  margin-bottom: 20px;
+}
+
+.contenedor-examen select,
+.contenedor-examen input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.contenedor-examen button {
+  padding: 12px 25px;
   background-color: #035b6e;
   color: white;
-  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   cursor: pointer;
+  font-weight: bold;
 }
 
-.examenes-container button:hover {
-  background-color: #197fa6;
+.contenedor-examen button:hover {
+  background-color: #027a91;
 }
 
 .error {
   color: red;
-  margin-top: 1rem;
-}
-
-.resultado {
-  text-align: left;
-  margin-top: 2rem;
-  background: #fff;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  margin-top: 20px;
 }
 
 
