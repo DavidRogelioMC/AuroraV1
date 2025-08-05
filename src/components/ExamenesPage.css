@@ -1,48 +1,70 @@
 .contenedor-examen {
-  max-width: 600px;
-  margin: 50px auto;
-  background: #f9f9f9;
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  background: #f9f9fc;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 700px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
 .contenedor-examen h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
 }
 
 .contenedor-examen p {
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
-.contenedor-examen select,
-.contenedor-examen input {
+select,
+input {
+  padding: 0.6rem;
+  font-size: 1rem;
   width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
+  margin: 0.5rem 0;
   border: 1px solid #ccc;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
-.contenedor-examen button {
-  padding: 12px 25px;
+button {
   background-color: #035b6e;
   color: white;
   border: none;
-  border-radius: 12px;
+  padding: 0.8rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
+  transition: background 0.3s ease;
+  margin-top: 1rem;
 }
 
-.contenedor-examen button:hover {
-  background-color: #027a91;
+button:hover {
+  background-color: #197fa6;
+}
+
+button:disabled {
+  background-color: #999;
+  cursor: not-allowed;
 }
 
 .error {
   color: red;
-  margin-top: 20px;
+  margin-top: 1rem;
+  white-space: pre-wrap;
+}
+
+.resultado {
+  margin-top: 2rem;
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: left;
+  max-height: 500px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 0.9rem;
 }
 
 
