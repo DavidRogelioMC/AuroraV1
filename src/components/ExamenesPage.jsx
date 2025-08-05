@@ -44,7 +44,7 @@ function ExamenesPage() {
       return;
     }
 
-    const token = localStorage.getItem("idToken"); // 👈 asegúrate de usar este nombre en App.jsx también
+    const token = localStorage.getItem("id_token");
     if (!token) {
       setError("Token no disponible. Inicia sesión nuevamente.");
       return;
