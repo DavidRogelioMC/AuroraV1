@@ -29,13 +29,22 @@ function ExamenesPage() {
 
   const generarExamen = async () => {
     setError(null);
-    const base = basesConocimiento.find((b) => b.nombreVisual === cursoSeleccionado);
+
+    const base = basesConocimiento.find(
+      (b) => b.nombreVisual === cursoSeleccionado
+    );
+
     if (!base) {
       setError("Base de conocimiento no encontrada.");
       return;
     }
 
-    const token = localStorage.getItem("idToken");
+    if (!topico.trim()) {
+      setError("Debes ingresar un tema o módulo.");
+      return;
+    }
+
+    const token = localStorage.getItem("idToken"); // 👈 asegúrate de usar este nombre en App.jsx también
     if (!token) {
       setError("Token no disponible. Inicia sesión nuevamente.");
       return;
@@ -59,12 +68,17 @@ function ExamenesPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Error ${response.status}: ${JSON.stringify(errorData)}`);
+        throw new Error(
+          `Error ${response.status}: ${JSON.stringify(errorData)}`
+        );
       }
 
       const data = await response.json();
-      console.log("Examen generado:", data);
+      console.log("✅ Examen generado:", data);
+
+      // Aquí puedes redirigir, guardar en estado o mostrar al usuario
     } catch (err) {
+      console.error(err);
       setError(`Error al generar el examen: ${err.message}`);
     }
   };
@@ -80,7 +94,7 @@ function ExamenesPage() {
       >
         {basesConocimiento.map((b) => (
           <option key={b.id} value={b.nombreVisual}>
-            {b.nombreVisual}
+            {b.icono} {b.nombreVisual}
           </option>
         ))}
       </select>
@@ -100,4 +114,5 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
+
 
