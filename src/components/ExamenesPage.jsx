@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './ExamenesPage.css';
+import { Auth } from 'aws-amplify';
 
 function ExamenesPage() {
   const [curso, setCurso] = useState('Python');
@@ -28,16 +29,23 @@ function ExamenesPage() {
     const knowledgeBaseId = knowledgeBaseMap[curso] || '';
 
     try {
+      // ✅ Obtener token desde Cognito
+      const session = await Auth.currentSession();
+      const token = session.getIdToken().getJwtToken();
+
       const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token // ✅ Incluye el token de autenticación
+        },
         body: JSON.stringify({ knowledgeBaseId, topico })
       });
 
       const data = await response.json();
       if (data.error) throw new Error(data.error);
 
-      const parsed = JSON.parse(data.texto);
+      const parsed = JSON.parse(data.texto); // ✅ Parsear JSON del backend
       setExamen(parsed);
     } catch (err) {
       setError('Error al generar el examen: ' + err.message);
