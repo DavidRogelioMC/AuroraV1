@@ -19,8 +19,8 @@ function ExamenesPage() {
     setExamen(null);
 
     const knowledgeBaseId = knowledgeBaseMap[curso];
-    if (!knowledgeBaseId) {
-      setError("No se encontró la base de conocimiento para el curso seleccionado.");
+    if (!knowledgeBaseId || !topico.trim()) {
+      setError("Faltan parámetros: knowledgeBaseId o topico");
       return;
     }
 
@@ -31,14 +31,17 @@ function ExamenesPage() {
     }
 
     try {
-      const response = await fetch("https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": token,
-        },
-        body: JSON.stringify({ knowledgeBaseId, topico }),
-      });
+      const response = await fetch(
+        "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token
+          },
+          body: JSON.stringify({ knowledgeBaseId, topico })
+        }
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -58,21 +61,18 @@ function ExamenesPage() {
     <div className="examenes-container">
       <h2>🧪 Generador de Exámenes</h2>
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
-
       <select value={curso} onChange={(e) => setCurso(e.target.value)}>
         <option value="AWS">AWS</option>
         <option value="Azure">Azure</option>
         <option value="Python">Python</option>
         <option value="IA">IA</option>
       </select>
-
       <input
         type="text"
         value={topico}
         onChange={(e) => setTopico(e.target.value)}
         placeholder="Ingresa el módulo o tema"
       />
-
       <button onClick={handleGenerarExamen}>Generar examen</button>
 
       {error && <p className="error">{error}</p>}
