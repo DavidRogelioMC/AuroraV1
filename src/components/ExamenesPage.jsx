@@ -2,14 +2,27 @@ import React, { useState } from "react";
 import "./ExamenesPage.css";
 
 function ExamenesPage() {
-  const [knowledgeBaseId, setKnowledgeBaseId] = useState("REEMPLAZA_CON_ID_AWS");
+  const [curso, setCurso] = useState("AWS");
   const [topico, setTopico] = useState("modulo 1");
   const [examen, setExamen] = useState(null);
   const [error, setError] = useState("");
 
+  const knowledgeBaseMap = {
+    AWS: "WKNJIRXQUT",
+    Azure: "ZOWS9MQ9GG",
+    Python: "AVDJ3M69B7",
+    IA: "ZOWS9MQ9GG"
+  };
+
   const handleGenerarExamen = async () => {
     setError("");
     setExamen(null);
+
+    const knowledgeBaseId = knowledgeBaseMap[curso];
+    if (!knowledgeBaseId) {
+      setError("No se encontró la base de conocimiento para el curso seleccionado.");
+      return;
+    }
 
     const token = localStorage.getItem("id_token");
     if (!token) {
@@ -46,9 +59,11 @@ function ExamenesPage() {
       <h2>🧪 Generador de Exámenes</h2>
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
 
-      <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
-        <option value="REEMPLAZA_CON_ID_AWS">AWS</option>
-        <option value="REEMPLAZA_CON_ID_AZURE">Azure</option>
+      <select value={curso} onChange={(e) => setCurso(e.target.value)}>
+        <option value="AWS">AWS</option>
+        <option value="Azure">Azure</option>
+        <option value="Python">Python</option>
+        <option value="IA">IA</option>
       </select>
 
       <input
