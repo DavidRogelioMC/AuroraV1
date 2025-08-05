@@ -37,7 +37,6 @@ function ExamenesPage() {
       const data = await response.json();
       if (data.error) throw new Error(data.error);
 
-      // Decodifica el JSON anidado (viene como string dentro de "texto")
       const parsed = JSON.parse(data.texto);
       setExamen(parsed);
     } catch (err) {
@@ -57,6 +56,7 @@ function ExamenesPage() {
           <option value="Python">Python</option>
           <option value="AWS">AWS</option>
           <option value="Azure">Azure</option>
+          <option value="IA">IA</option>
         </select>
 
         <input
@@ -85,13 +85,12 @@ function ExamenesPage() {
           {examen.preguntas?.map((p, idx) => (
             <div key={idx} className="pregunta">
               <h3>{idx + 1}. {p.enunciado}</h3>
-              <p><strong>Tipo:</strong> {p.tipo === "opcion_múltiple" ? "Opción múltiple" : "Respuesta múltiple"}</p>
               <ul>
                 {Object.entries(p.opciones).map(([letra, texto]) => (
                   <li key={letra}><strong>{letra}:</strong> {texto}</li>
                 ))}
               </ul>
-              <p><strong>✅ Correcta(s):</strong> {p.respuestasCorrectas.join(', ')}</p>
+              <p><strong>✅ Correcta:</strong> {Array.isArray(p.respuestasCorrectas) ? p.respuestasCorrectas.join(', ') : p.respuestasCorrectas}</p>
               <p><em>🧠 Justificación:</em> {p.justificacion}</p>
             </div>
           ))}
@@ -102,6 +101,3 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
-
-
-
