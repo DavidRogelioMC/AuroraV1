@@ -4,7 +4,7 @@ import './ResumenesPage.css';
 const basesDeConocimiento = [
   { id: 'AVDJ3M69B7', nombre: 'Python' },
   { id: 'WKNJIRXQUT', nombre: 'AWS' },
-  { id: 'SX4C4WD4GV', nombre: 'AZ-104' }
+  { id: 'KWG4PHNXSD', nombre: 'AZ-104' }
 ];
 
 function ResumenesPage() {
