@@ -1,33 +1,32 @@
 import React, { useState } from "react";
 import "./ExamenesPage.css";
 
-const knowledgeBaseMap = {
-  AWS: "WKNJIRXQUT",
-  "AZ-104": "4NJ2F8N19H",
-  Python: "ZETC83ZYZ7"
-};
-
 function ExamenesPage() {
-  const [curso, setCurso] = useState("AWS");
+  const [cursoSeleccionado, setCursoSeleccionado] = useState("AWS");
   const [topico, setTopico] = useState("modulo 1");
   const [examen, setExamen] = useState(null);
   const [error, setError] = useState("");
+
+  const cursos = {
+    AWS: "KB-AWS-001",
+    Azure: "KB-AZ-104-002",
+    Python: "KB-PY-003",
+  };
 
   const handleGenerarExamen = async () => {
     setError("");
     setExamen(null);
 
-    const knowledgeBaseId = knowledgeBaseMap[curso]?.trim();
-    const topicoLimpio = topico.trim();
-
-    if (!knowledgeBaseId || !topicoLimpio) {
-      setError("Faltan parámetros: knowledgeBaseId o topico");
-      return;
-    }
-
     const token = localStorage.getItem("id_token");
     if (!token) {
       setError("No se encontró el token de autenticación.");
+      return;
+    }
+
+    const knowledgeBaseId = cursos[cursoSeleccionado];
+
+    if (!knowledgeBaseId || !topico.trim()) {
+      setError("Por favor selecciona un curso válido e ingresa un tópico.");
       return;
     }
 
@@ -38,7 +37,7 @@ function ExamenesPage() {
           "Content-Type": "application/json",
           Authorization: token,
         },
-        body: JSON.stringify({ knowledgeBaseId, topico: topicoLimpio }),
+        body: JSON.stringify({ knowledgeBaseId, topico }),
       });
 
       if (!response.ok) {
@@ -59,9 +58,10 @@ function ExamenesPage() {
     <div className="examenes-container">
       <h2>🧪 Generador de Exámenes</h2>
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
-      <select value={curso} onChange={(e) => setCurso(e.target.value)}>
+
+      <select value={cursoSeleccionado} onChange={(e) => setCursoSeleccionado(e.target.value)}>
         <option value="AWS">AWS</option>
-        <option value="AZ-104">AZ-104</option>
+        <option value="Azure">Azure</option>
         <option value="Python">Python</option>
       </select>
 
@@ -99,4 +99,3 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
-
