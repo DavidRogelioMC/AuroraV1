@@ -1,6 +1,6 @@
 .contenedor-examenes {
   padding: 2rem;
-  padding-left: 420px; /* Ajusta si tu sidebar tiene otro ancho */
+  padding-left: 420px; /* Ajusta según ancho real de tu sidebar */
   text-align: center;
 }
 
