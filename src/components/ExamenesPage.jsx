@@ -26,29 +26,30 @@ function ExamenesPage() {
   const [cursoSeleccionado, setCursoSeleccionado] = useState("Python");
   const [topico, setTopico] = useState("módulo 1");
   const [error, setError] = useState(null);
+  const [respuesta, setRespuesta] = useState(null);
 
   const generarExamen = async () => {
     setError(null);
+    setRespuesta(null);
 
-    const base = basesConocimiento.find(
-      (b) => b.nombreVisual === cursoSeleccionado
-    );
-
+    const base = basesConocimiento.find(b => b.nombreVisual === cursoSeleccionado);
     if (!base) {
-      setError("Base de conocimiento no encontrada.");
+      setError("❌ Base de conocimiento no encontrada.");
       return;
     }
 
-    if (!topico.trim()) {
-      setError("Debes ingresar un tema o módulo.");
-      return;
-    }
-
-    const token = localStorage.getItem("id_token");
+    const token = localStorage.getItem("id_token"); // ✅ Nombre correcto
     if (!token) {
-      setError("Token no disponible. Inicia sesión nuevamente.");
+      setError("❌ Token no disponible. Inicia sesión nuevamente.");
       return;
     }
+
+    const payload = {
+      knowledgeBaseId: base.id,
+      topico: topico,
+    };
+
+    console.log("🧪 Enviando a Lambda:", payload);
 
     try {
       const response = await fetch(
@@ -59,26 +60,20 @@ function ExamenesPage() {
             "Content-Type": "application/json",
             Authorization: token,
           },
-          body: JSON.stringify({
-            knowledgeBaseId: base.id,
-            topico: topico,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          `Error ${response.status}: ${JSON.stringify(errorData)}`
-        );
+        throw new Error(`Error ${response.status}: ${JSON.stringify(errorData)}`);
       }
 
       const data = await response.json();
       console.log("✅ Examen generado:", data);
-
-      // Aquí puedes redirigir, guardar en estado o mostrar al usuario
+      setRespuesta(data);
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error al generar el examen:", err.message);
       setError(`Error al generar el examen: ${err.message}`);
     }
   };
@@ -88,11 +83,8 @@ function ExamenesPage() {
       <h2>🧪 Generador de Exámenes</h2>
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
 
-      <select
-        value={cursoSeleccionado}
-        onChange={(e) => setCursoSeleccionado(e.target.value)}
-      >
-        {basesConocimiento.map((b) => (
+      <select value={cursoSeleccionado} onChange={e => setCursoSeleccionado(e.target.value)}>
+        {basesConocimiento.map(b => (
           <option key={b.id} value={b.nombreVisual}>
             {b.icono} {b.nombreVisual}
           </option>
@@ -102,13 +94,14 @@ function ExamenesPage() {
       <input
         type="text"
         value={topico}
-        onChange={(e) => setTopico(e.target.value)}
+        onChange={e => setTopico(e.target.value)}
         placeholder="Ingresa el tema o módulo"
       />
 
-      <button onClick={generarExamen}>Generar examen</button>
+      <button onClick={generarExamen}>🎯 Generar examen</button>
 
       {error && <p className="error">{error}</p>}
+      {respuesta && <pre>{JSON.stringify(respuesta, null, 2)}</pre>}
     </div>
   );
 }
