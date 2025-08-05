@@ -1,25 +1,26 @@
 import React, { useState } from "react";
 import "./ExamenesPage.css";
 
+const knowledgeBaseMap = {
+  AWS: "WKNJIRXQUT",
+  "AZ-104": "4NJ2F8N19H",
+  Python: "ZETC83ZYZ7"
+};
+
 function ExamenesPage() {
   const [curso, setCurso] = useState("AWS");
   const [topico, setTopico] = useState("modulo 1");
   const [examen, setExamen] = useState(null);
   const [error, setError] = useState("");
 
-  const knowledgeBaseMap = {
-    AWS: "WKNJIRXQUT",
-    Azure: "ZOWS9MQ9GG",
-    Python: "AVDJ3M69B7",
-    IA: "ZOWS9MQ9GG"
-  };
-
   const handleGenerarExamen = async () => {
     setError("");
     setExamen(null);
 
-    const knowledgeBaseId = knowledgeBaseMap[curso];
-    if (!knowledgeBaseId || !topico.trim()) {
+    const knowledgeBaseId = knowledgeBaseMap[curso]?.trim();
+    const topicoLimpio = topico.trim();
+
+    if (!knowledgeBaseId || !topicoLimpio) {
       setError("Faltan parámetros: knowledgeBaseId o topico");
       return;
     }
@@ -31,17 +32,14 @@ function ExamenesPage() {
     }
 
     try {
-      const response = await fetch(
-        "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token
-          },
-          body: JSON.stringify({ knowledgeBaseId, topico })
-        }
-      );
+      const response = await fetch("https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ knowledgeBaseId, topico: topicoLimpio }),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -63,16 +61,17 @@ function ExamenesPage() {
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
       <select value={curso} onChange={(e) => setCurso(e.target.value)}>
         <option value="AWS">AWS</option>
-        <option value="Azure">Azure</option>
+        <option value="AZ-104">AZ-104</option>
         <option value="Python">Python</option>
-        <option value="IA">IA</option>
       </select>
+
       <input
         type="text"
         value={topico}
         onChange={(e) => setTopico(e.target.value)}
         placeholder="Ingresa el módulo o tema"
       />
+
       <button onClick={handleGenerarExamen}>Generar examen</button>
 
       {error && <p className="error">{error}</p>}
