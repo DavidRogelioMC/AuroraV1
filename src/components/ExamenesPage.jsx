@@ -1,105 +1,78 @@
-import React, { useState } from 'react';
-import './ExamenesPage.css';
-import { Auth } from 'aws-amplify';
+import React, { useState } from "react";
+import "./ExamenesPage.css";
 
 function ExamenesPage() {
-  const [curso, setCurso] = useState('Python');
-  const [topico, setTopico] = useState('');
+  const [knowledgeBaseId, setKnowledgeBaseId] = useState("AWS");
+  const [topico, setTopico] = useState("modulo 1");
   const [examen, setExamen] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleGenerarExamen = async () => {
-    if (!topico.trim()) {
-      setError('Por favor ingresa un tópico válido.');
+    setError("");
+    setExamen(null);
+
+    const token = localStorage.getItem("id_token");
+    if (!token) {
+      setError("No se encontró el token de autenticación.");
       return;
     }
 
-    setLoading(true);
-    setError('');
-    setExamen(null);
-
-    const knowledgeBaseMap = {
-      Python: 'AVDJ3M69B7',
-      AWS: 'WKNJIRXQUT',
-      Azure: 'ZOWS9MQ9GG',
-      IA: 'ZOWS9MQ9GG'
-    };
-
-    const knowledgeBaseId = knowledgeBaseMap[curso] || '';
-
     try {
-      // ✅ Obtener token desde Cognito
-      const session = await Auth.currentSession();
-      const token = session.getIdToken().getJwtToken();
-
-      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen', {
-        method: 'POST',
+      const response = await fetch("https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: token // ✅ Incluye el token de autenticación
+          "Content-Type": "application/json",
+          "Authorization": token,
         },
-        body: JSON.stringify({ knowledgeBaseId, topico })
+        body: JSON.stringify({ knowledgeBaseId, topico }),
       });
 
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText}`);
+      }
 
-      const parsed = JSON.parse(data.texto); // ✅ Parsear JSON del backend
+      const data = await response.json();
+      const parsed = JSON.parse(data.body);
       setExamen(parsed);
     } catch (err) {
-      setError('Error al generar el examen: ' + err.message);
-    } finally {
-      setLoading(false);
+      console.error("Error al generar el examen:", err);
+      setError("Error al generar el examen: " + err.message);
     }
   };
 
   return (
-    <div className="contenedor-examenes">
-      <h1 className="titulo">🧪 Generador de Exámenes</h1>
+    <div className="examenes-container">
+      <h2>🧪 Generador de Exámenes</h2>
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
+      <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
+        <option value="AWS">AWS</option>
+        <option value="Azure">Azure</option>
+      </select>
+      <input
+        type="text"
+        value={topico}
+        onChange={(e) => setTopico(e.target.value)}
+        placeholder="Ingresa el módulo o tema"
+      />
+      <button onClick={handleGenerarExamen}>Generar examen</button>
 
-      <div className="formulario">
-        <select value={curso} onChange={(e) => setCurso(e.target.value)}>
-          <option value="Python">Python</option>
-          <option value="AWS">AWS</option>
-          <option value="Azure">Azure</option>
-          <option value="IA">IA</option>
-        </select>
-
-        <input
-          type="text"
-          placeholder="Tópico (ej: IAM, Lambda...)"
-          value={topico}
-          onChange={(e) => setTopico(e.target.value)}
-        />
-
-        <button onClick={handleGenerarExamen} disabled={loading}>
-          {loading ? 'Generando...' : 'Generar examen'}
-        </button>
-      </div>
-
-      {error && <p className="mensaje-error">{error}</p>}
+      {error && <p className="error">{error}</p>}
 
       {examen && (
         <div className="resultado">
-          <h2>📝 {examen.tema}</h2>
-          <h4>📌 Tipos de pregunta</h4>
-          <ul>
-            <li>✔️ Opción múltiple: una correcta y tres distractores</li>
-            <li>✔️ Respuesta múltiple: dos o más correctas</li>
-          </ul>
-
-          {examen.preguntas?.map((p, idx) => (
-            <div key={idx} className="pregunta">
-              <h3>{idx + 1}. {p.enunciado}</h3>
+          <h3>Tema: {examen.tema}</h3>
+          {examen.preguntas.map((pregunta, index) => (
+            <div key={index}>
+              <p><strong>{pregunta.enunciado}</strong></p>
               <ul>
-                {Object.entries(p.opciones).map(([letra, texto]) => (
-                  <li key={letra}><strong>{letra}:</strong> {texto}</li>
+                {Object.entries(pregunta.opciones).map(([key, value]) => (
+                  <li key={key}><strong>{key}:</strong> {value}</li>
                 ))}
               </ul>
-              <p><strong>✅ Correcta:</strong> {Array.isArray(p.respuestasCorrectas) ? p.respuestasCorrectas.join(', ') : p.respuestasCorrectas}</p>
-              <p><em>🧠 Justificación:</em> {p.justificacion}</p>
+              <p><strong>Respuestas correctas:</strong> {pregunta.respuestasCorrectas.join(", ")}</p>
+              <p><strong>Justificación:</strong> {pregunta.justificacion}</p>
+              <hr />
             </div>
           ))}
         </div>
@@ -109,3 +82,4 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
+
