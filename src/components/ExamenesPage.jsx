@@ -18,7 +18,7 @@ const basesConocimiento = [
     id: "KWG4PHNXSD",
     nombreVisual: "AZ-104",
     nombreTemaPrompt: "Microsoft Azure Administrator AZ-104",
-    icono: "🔧",
+    icono: "🔬",
   },
 ];
 
@@ -49,18 +49,19 @@ function ExamenesPage() {
         },
         body: JSON.stringify({
           knowledgeBaseId: base.id,
-          topico,
+          topico: topico,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error desconocido");
+        throw new Error(data.error || `Error ${response.status}: ${JSON.stringify(data)}`);
       }
 
       setRespuesta(data.texto);
     } catch (err) {
+      console.error("❌ Error completo:", err);
       setError(`Error al generar el examen: ${err.message}`);
     } finally {
       setCargando(false);
@@ -88,14 +89,13 @@ function ExamenesPage() {
       />
 
       <button onClick={generarExamen} disabled={cargando}>
-        {cargando ? "⏳ Generando..." : "🎯 Generar examen"}
+        {cargando ? "Generando..." : "🎯 Generar examen"}
       </button>
 
       {error && <p className="error">{error}</p>}
-
       {respuesta && (
         <div className="resultado">
-          <h3>📋 Examen Generado</h3>
+          <h3>📋 Resultado:</h3>
           <pre>{respuesta}</pre>
         </div>
       )}
@@ -104,4 +104,3 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
-
