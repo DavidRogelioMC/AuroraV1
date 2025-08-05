@@ -22,7 +22,7 @@ function ExamenesPage() {
       Python: 'AVDJ3M69B7',
       AWS: 'WKNJIRXQUT',
       Azure: 'ZOWS9MQ9GG',
-      
+      IA: 'ZOWS9MQ9GG'
     };
 
     const knowledgeBaseId = knowledgeBaseMap[curso] || '';
@@ -37,9 +37,9 @@ function ExamenesPage() {
       const data = await response.json();
       if (data.error) throw new Error(data.error);
 
-      // ✅ Corrige el parseo anidado del JSON
-      const examenData = JSON.parse(data.texto);
-      setExamen(examenData);
+      // Decodifica el JSON anidado (viene como string dentro de "texto")
+      const parsed = JSON.parse(data.texto);
+      setExamen(parsed);
     } catch (err) {
       setError('Error al generar el examen: ' + err.message);
     } finally {
@@ -61,7 +61,7 @@ function ExamenesPage() {
 
         <input
           type="text"
-          placeholder="Modulo )"
+          placeholder="Tópico (ej: IAM, Lambda...)"
           value={topico}
           onChange={(e) => setTopico(e.target.value)}
         />
@@ -85,6 +85,7 @@ function ExamenesPage() {
           {examen.preguntas?.map((p, idx) => (
             <div key={idx} className="pregunta">
               <h3>{idx + 1}. {p.enunciado}</h3>
+              <p><strong>Tipo:</strong> {p.tipo === "opcion_múltiple" ? "Opción múltiple" : "Respuesta múltiple"}</p>
               <ul>
                 {Object.entries(p.opciones).map(([letra, texto]) => (
                   <li key={letra}><strong>{letra}:</strong> {texto}</li>
@@ -101,5 +102,6 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
+
 
 
