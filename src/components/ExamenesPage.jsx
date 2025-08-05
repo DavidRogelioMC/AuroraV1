@@ -6,7 +6,7 @@ const basesConocimiento = [
     id: "AVDJ3M69B7",
     nombreVisual: "Python",
     nombreTemaPrompt: "Bases de programación en Python",
-    icono: "🧠",
+    icono: "🐍",
   },
   {
     id: "WKNJIRXQUT",
@@ -18,7 +18,7 @@ const basesConocimiento = [
     id: "KWG4PHNXSD",
     nombreVisual: "AZ-104",
     nombreTemaPrompt: "Microsoft Azure Administrator AZ-104",
-    icono: "🔬",
+    icono: "🔧",
   },
 ];
 
@@ -27,56 +27,43 @@ function ExamenesPage() {
   const [topico, setTopico] = useState("módulo 1");
   const [error, setError] = useState(null);
   const [respuesta, setRespuesta] = useState(null);
+  const [cargando, setCargando] = useState(false);
 
   const generarExamen = async () => {
     setError(null);
     setRespuesta(null);
+    setCargando(true);
 
-    const base = basesConocimiento.find((b) => b.nombreVisual === cursoSeleccionado);
+    const base = basesConocimiento.find(b => b.nombreVisual === cursoSeleccionado);
     if (!base) {
       setError("❌ Base de conocimiento no encontrada.");
+      setCargando(false);
       return;
     }
-
-    const token = localStorage.getItem("id_token"); // 👈 Asegúrate de que sea exactamente "id_token"
-    if (!token) {
-      setError("❌ Token no disponible. Inicia sesión nuevamente.");
-      return;
-    }
-
-    if (!base.id || !topico) {
-      setError("❌ knowledgeBaseId o topico vacío.");
-      return;
-    }
-
-    const payload = {
-      knowledgeBaseId: base.id,
-      topico: topico.trim(),
-    };
-
-    console.log("📤 Payload enviado:", payload);
 
     try {
       const response = await fetch("https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          knowledgeBaseId: base.id,
+          topico,
+        }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Error ${response.status}: ${JSON.stringify(errorData)}`);
+        throw new Error(data.error || "Error desconocido");
       }
 
-      const data = await response.json();
-      console.log("✅ Examen generado:", data);
-      setRespuesta(data);
+      setRespuesta(data.texto);
     } catch (err) {
-      console.error("❌ Error al generar el examen:", err.message);
       setError(`Error al generar el examen: ${err.message}`);
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -100,43 +87,16 @@ function ExamenesPage() {
         placeholder="Ingresa el tema o módulo"
       />
 
-      <button onClick={generarExamen}>🎯 Generar examen</button>
+      <button onClick={generarExamen} disabled={cargando}>
+        {cargando ? "⏳ Generando..." : "🎯 Generar examen"}
+      </button>
 
       {error && <p className="error">{error}</p>}
 
       {respuesta && (
-        <div className="examen-renderizado">
-          <h3>📄 Preguntas generadas:</h3>
-          {respuesta.preguntas?.map((pregunta, index) => (
-            <div key={index} className="pregunta">
-              <p><strong>{index + 1}. {pregunta.texto}</strong></p>
-
-              {pregunta.tipo === "opcion_multiple" && (
-                <ul>
-                  {pregunta.opciones.map((opcion, i) => (
-                    <li key={i}>{opcion}</li>
-                  ))}
-                </ul>
-              )}
-
-              {pregunta.tipo === "verdadero_falso" && <p>Opción: Verdadero o Falso</p>}
-              {pregunta.tipo === "llenar_espacios" && <p><em>(Respuesta esperada: {pregunta.respuesta})</em></p>}
-              {pregunta.tipo === "emparejar" && (
-                <div style={{ display: "flex", gap: "2rem" }}>
-                  <ul>
-                    {pregunta.pares.map((par, i) => (
-                      <li key={i}>{par.izquierda}</li>
-                    ))}
-                  </ul>
-                  <ul>
-                    {pregunta.pares.map((par, i) => (
-                      <li key={i}>{par.derecha}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="resultado">
+          <h3>📋 Examen Generado</h3>
+          <pre>{respuesta}</pre>
         </div>
       )}
     </div>
@@ -144,3 +104,4 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
+
