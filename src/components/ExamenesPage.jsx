@@ -24,10 +24,18 @@ function ExamenesPage() {
     }
 
     const knowledgeBaseId = BASES_CONOCIMIENTO[cursoSeleccionado];
-    if (!knowledgeBaseId || !topico) {
-      setError("Faltan parámetros: knowledgeBaseId o topico");
+
+    if (!knowledgeBaseId || !topico.trim()) {
+      setError("Faltan parámetros: knowledgeBaseId o topico.");
       return;
     }
+
+    const payload = {
+      knowledgeBaseId,
+      topico,
+    };
+
+    console.log("📤 Enviando payload:", payload);
 
     try {
       const response = await fetch("https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen", {
@@ -36,7 +44,7 @@ function ExamenesPage() {
           "Content-Type": "application/json",
           Authorization: token,
         },
-        body: JSON.stringify({ knowledgeBaseId, topico }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -97,3 +105,4 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
+
