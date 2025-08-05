@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import "./ExamenesPage.css";
 
+const BASES_CONOCIMIENTO = {
+  Python: "AVDJ3M69B7",
+  AWS: "WKNJIRXQUT",
+  "AZ-104": "KWG4PHNXSD",
+};
+
 function ExamenesPage() {
   const [cursoSeleccionado, setCursoSeleccionado] = useState("AWS");
   const [topico, setTopico] = useState("modulo 1");
   const [examen, setExamen] = useState(null);
   const [error, setError] = useState("");
-
-  const cursos = {
-    AWS: "KB-AWS-001",
-    Azure: "KB-AZ-104-002",
-    Python: "KB-PY-003",
-  };
 
   const handleGenerarExamen = async () => {
     setError("");
@@ -23,10 +23,9 @@ function ExamenesPage() {
       return;
     }
 
-    const knowledgeBaseId = cursos[cursoSeleccionado];
-
-    if (!knowledgeBaseId || !topico.trim()) {
-      setError("Por favor selecciona un curso válido e ingresa un tópico.");
+    const knowledgeBaseId = BASES_CONOCIMIENTO[cursoSeleccionado];
+    if (!knowledgeBaseId || !topico) {
+      setError("Faltan parámetros: knowledgeBaseId o topico");
       return;
     }
 
@@ -61,7 +60,7 @@ function ExamenesPage() {
 
       <select value={cursoSeleccionado} onChange={(e) => setCursoSeleccionado(e.target.value)}>
         <option value="AWS">AWS</option>
-        <option value="Azure">Azure</option>
+        <option value="AZ-104">AZ-104</option>
         <option value="Python">Python</option>
       </select>
 
@@ -71,7 +70,6 @@ function ExamenesPage() {
         onChange={(e) => setTopico(e.target.value)}
         placeholder="Ingresa el módulo o tema"
       />
-
       <button onClick={handleGenerarExamen}>Generar examen</button>
 
       {error && <p className="error">{error}</p>}
