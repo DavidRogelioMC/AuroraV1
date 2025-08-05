@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./ExamenesPage.css";
 
 function ExamenesPage() {
-  const [knowledgeBaseId, setKnowledgeBaseId] = useState("AWS");
+  const [knowledgeBaseId, setKnowledgeBaseId] = useState("REEMPLAZA_CON_ID_AWS");
   const [topico, setTopico] = useState("modulo 1");
   const [examen, setExamen] = useState(null);
   const [error, setError] = useState("");
@@ -45,16 +45,19 @@ function ExamenesPage() {
     <div className="examenes-container">
       <h2>🧪 Generador de Exámenes</h2>
       <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
+
       <select value={knowledgeBaseId} onChange={(e) => setKnowledgeBaseId(e.target.value)}>
-        <option value="AWS">AWS</option>
-        <option value="Azure">Azure</option>
+        <option value="REEMPLAZA_CON_ID_AWS">AWS</option>
+        <option value="REEMPLAZA_CON_ID_AZURE">Azure</option>
       </select>
+
       <input
         type="text"
         value={topico}
         onChange={(e) => setTopico(e.target.value)}
         placeholder="Ingresa el módulo o tema"
       />
+
       <button onClick={handleGenerarExamen}>Generar examen</button>
 
       {error && <p className="error">{error}</p>}
@@ -82,4 +85,3 @@ function ExamenesPage() {
 }
 
 export default ExamenesPage;
-
