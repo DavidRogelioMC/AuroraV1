@@ -15,6 +15,12 @@ function Sidebar({ email, nombre, grupo }) {
       .catch(() => setAvatar(null));
   }, []);
 
+  const grupoFormateado = grupo === 'admin'
+    ? 'Administrador'
+    : grupo === 'participant'
+    ? 'Participante'
+    : 'Sin grupo';
+
   return (
     <div id="barraLateral" className="sidebar">
       <div id="perfilSidebar" style={{ textAlign: 'center', padding: '10px' }}>
@@ -34,36 +40,37 @@ function Sidebar({ email, nombre, grupo }) {
         </div>
         <div className="nombre" id="nombreSidebar">{nombre || 'Usuario conectado'}</div>
         <div className="email" id="emailSidebar">{email}</div>
-        <div className="grupo" id="grupoSidebar">🎖️ Rol: {grupo || 'Sin grupo'}</div>
+        <div className="grupo" id="grupoSidebar">🎖️ Rol: {grupoFormateado}</div>
       </div>
 
       <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       <div id="caminito">
         <Link to="/resumenes" className="nav-link">
-          <div className="step" style={{ cursor: 'pointer' }}>
-            <div className="circle">🧠</div>
-            <span>Resúmenes</span>
-          </div>
+          <div className="step"><div className="circle">🧠</div><span>Resúmenes</span></div>
         </Link>
 
         <Link to="/actividades" className="nav-link">
-          <div className="step" style={{ cursor: 'pointer' }}>
-            <div className="circle">📘</div>
-            <span>Actividades</span>
-          </div>
+          <div className="step"><div className="circle">📘</div><span>Actividades</span></div>
         </Link>
 
         <Link to="/examenes" className="nav-link">
-          <div className="step" style={{ cursor: 'pointer' }}>
-            <div className="circle">🔬</div>
-            <span>Examen</span>
-          </div>
+          <div className="step"><div className="circle">🔬</div><span>Examen</span></div>
         </Link>
+
+        {grupo === 'admin' && (
+          <>
+            <Link to="/admin-dashboard" className="nav-link">
+              <div className="step"><div className="circle">⚙️</div><span>Admin</span></div>
+            </Link>
+            <Link to="/usuarios" className="nav-link">
+              <div className="step"><div className="circle">👥</div><span>Usuarios</span></div>
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
 export default Sidebar;
-
