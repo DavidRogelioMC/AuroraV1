@@ -1,3 +1,5 @@
+/* src/components/ExamenesPage.css (CÓDIGO COMPLETO Y CORREGIDO) */
+
 .examenes-container {
   max-width: 700px;
   margin: 40px auto;
@@ -22,6 +24,7 @@
   font-size: 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
+  box-sizing: border-box; /* Añadido para consistencia */
 }
 
 .examenes-container button {
@@ -33,9 +36,19 @@
   border-radius: 8px;
   cursor: pointer;
   margin-top: 10px;
+  display: inline-flex; /* Para alinear el icono y el texto */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Espacio entre icono y texto */
+  transition: background-color 0.2s; /* Añadido para suavidad */
 }
 
-.examenes-container button:hover {
+.examenes-container button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.examenes-container button:hover:not(:disabled) {
   background-color: #197fa6;
 }
 
@@ -55,3 +68,72 @@
 }
 
 
+/* --- INICIO DE LOS NUEVOS ESTILOS AÑADIDOS --- */
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #035b6e; /* Usa el color principal de tu tema */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 2rem auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.examen-resultado {
+  margin-top: 2rem;
+  text-align: left;
+  border-top: 1px solid #ddd;
+  padding-top: 1rem;
+}
+
+.examen-resultado h3 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.pregunta-container {
+  background-color: #fff;
+  padding: 1.5rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.enunciado {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-top: 0;
+}
+
+.opciones-container {
+  margin: 1rem 0;
+  padding-left: 1rem;
+  font-family: monospace; /* Buena fuente para opciones de código */
+}
+
+.opcion-item {
+  margin-bottom: 0.5rem;
+}
+
+.respuesta-correcta {
+  font-weight: bold;
+  color: #28a745;
+  margin-top: 1rem;
+}
+
+.justificacion {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #555;
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-left: 3px solid #ccc;
+}
