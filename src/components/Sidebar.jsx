@@ -15,6 +15,12 @@ function Sidebar({ email, nombre, grupo }) {
       .catch(() => setAvatar(null));
   }, []);
 
+  const grupoFormateado = grupo === 'admin'
+    ? 'Administrador'
+    : grupo === 'participant'
+    ? 'Participante'
+    : 'Sin grupo';
+
   return (
     <div id="barraLateral" className="sidebar">
       <div id="perfilSidebar" style={{ textAlign: 'center', padding: '10px' }}>
@@ -34,7 +40,7 @@ function Sidebar({ email, nombre, grupo }) {
         </div>
         <div className="nombre" id="nombreSidebar">{nombre || 'Usuario conectado'}</div>
         <div className="email" id="emailSidebar">{email}</div>
-        <div className="grupo" id="grupoSidebar">🎖️ Rol: {grupo || 'Sin grupo'}</div>
+        <div className="grupo" id="grupoSidebar">🎖️ Rol: {grupoFormateado}</div>
       </div>
 
       <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
@@ -68,4 +74,3 @@ function Sidebar({ email, nombre, grupo }) {
 }
 
 export default Sidebar;
-
