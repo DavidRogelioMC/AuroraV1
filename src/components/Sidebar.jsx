@@ -1,65 +1,99 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/components/Sidebar.jsx
+
+import { Link } from 'react-router-dom';
 import './Sidebar.css';
+import defaultFoto from '../assets/default.jpg';
+import { useEffect, useState } from 'react';
 import { Auth } from 'aws-amplify';
-import { Brain, BookOpen, Microscope, Settings } from 'lucide-react'; // íconos opcionales
+import AvatarModal from './AvatarModal';
 
-function Sidebar({ user, rol }) {
-  const navigate = useNavigate();
+function Sidebar({ email, nombre }) {
+  const [avatar, setAvatar] = useState(null);
+  const [rol, setRol] = useState('Sin grupo');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await Auth.signOut();
-      localStorage.clear();
-      navigate('/');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  };
+  useEffect(() => {
+    Auth.currentAuthenticatedUser()
+      .then((user) => {
+        setAvatar(user.attributes.picture);
+        const rolUsuario = user.attributes['custom:rol'];
+        if (rolUsuario) {
+          setRol(rolUsuario.toLowerCase());
+        }
+      })
+      .catch(() => {
+        setAvatar(null);
+        setRol('sin grupo');
+      });
+  }, []);
 
   return (
-    <div className="sidebar">
-      <div className="user-info">
-        <div className="avatar" />
-        <p className="username">Usuario conectado</p>
-        <p className="email">{user?.attributes?.email || 'Sin correo'}</p>
-        <p className="rol">🧪 Rol: {rol || 'sin rol'}</p>
+    <div id="barraLateral" className="sidebar">
+      <div id="perfilSidebar" style={{ textAlign: 'center', padding: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <img
+            src={avatar || defaultFoto}
+            alt="Foto perfil"
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              cursor: 'pointer',
+            }}
+            onClick={() => setIsModalOpen(true)}
+          />
+        </div>
+        <div className="nombre" id="nombreSidebar">{nombre || 'Usuario conectado'}</div>
+        <div className="email" id="emailSidebar">{email}</div>
+        <div className="grupo" id="grupoSidebar">🎖️ Rol: {rol}</div>
       </div>
 
-      <div className="menu">
-        <button onClick={() => navigate('/resumenes')}>
-          <Brain size={24} style={{ marginRight: 8 }} />
-          Resúmenes
-        </button>
+      <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-        <button onClick={() => navigate('/actividades')}>
-          <BookOpen size={24} style={{ marginRight: 8 }} />
-          Actividades
-        </button>
+      <div id="caminito">
+        <Link to="/resumenes" className="nav-link">
+          <div className="step" style={{ cursor: 'pointer' }}>
+            <div className="circle">🧠</div>
+            <span>Resúmenes</span>
+          </div>
+        </Link>
 
-        <button onClick={() => navigate('/examen')}>
-          <Microscope size={24} style={{ marginRight: 8 }} />
-          Examen
-        </button>
+        <Link to="/actividades" className="nav-link">
+          <div className="step" style={{ cursor: 'pointer' }}>
+            <div className="circle">📘</div>
+            <span>Actividades</span>
+          </div>
+        </Link>
+
+        <Link to="/examenes" className="nav-link">
+          <div className="step" style={{ cursor: 'pointer' }}>
+            <div className="circle">🔬</div>
+            <span>Examen</span>
+          </div>
+        </Link>
 
         {rol === 'admin' && (
           <>
-            <button onClick={() => navigate('/reportes')}>
-              📊 Reportes
-            </button>
-            <button onClick={() => navigate('/admin')}>
-              <Settings size={24} style={{ marginRight: 8 }} />
-              Administración
-            </button>
+            <Link to="/reportes" className="nav-link">
+              <div className="step" style={{ cursor: 'pointer' }}>
+                <div className="circle">📊</div>
+                <span>Reportes</span>
+              </div>
+            </Link>
+
+            <Link to="/admin" className="nav-link">
+              <div className="step" style={{ cursor: 'pointer' }}>
+                <div className="circle">⚙️</div>
+                <span>Admin</span>
+              </div>
+            </Link>
           </>
         )}
       </div>
-
-      <button className="logout-button" onClick={handleLogout}>
-        Cerrar sesión
-      </button>
     </div>
   );
 }
 
 export default Sidebar;
+
