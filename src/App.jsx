@@ -10,7 +10,7 @@ import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
-import ExamenesPage from './components/ExamenesPage'; // ✅ IMPORTACIÓN CORRECTA
+import ExamenesPage from './components/ExamenesPage';
 
 // Estilos y assets
 import './index.css';
@@ -25,28 +25,27 @@ import espanaFlag from './assets/espana.png';
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
   const [email, setEmail] = useState("");
+  const [grupo, setGrupo] = useState("Sin grupo");
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-  
-useEffect(() => {
-  Auth.currentAuthenticatedUser()
-    .then(user => {
-      console.log("🟢 Sesión activa:", user);
-    })
-    .catch(async err => {
-      // Aquí Amplify detectará el code en la URL y lo intercambiará por tokens
-      try {
-        const user = await Auth.federatedSignIn(); // << esta llamada ya maneja el "code"
-        console.log("✅ Usuario autenticado por código:", user);
-      } catch (error) {
-        console.log("❌ Error al autenticar:", error);
-      }
-    });
-}, []);
+  useEffect(() => {
+    Auth.currentAuthenticatedUser()
+      .then(user => {
+        console.log("🟢 Sesión activa:", user);
+      })
+      .catch(async err => {
+        try {
+          const user = await Auth.federatedSignIn();
+          console.log("✅ Usuario autenticado por código:", user);
+        } catch (error) {
+          console.log("❌ Error al autenticar:", error);
+        }
+      });
+  }, []);
 
   useEffect(() => {
     Auth.currentSession()
@@ -73,6 +72,20 @@ useEffect(() => {
         console.error("❌ Error al decodificar el token:", err);
       }
     }
+  }, [token]);
+
+  // ✅ Extrae el grupo desde el token
+  useEffect(() => {
+    Auth.currentAuthenticatedUser()
+      .then(user => {
+        const grupos = user.signInUserSession.accessToken.payload["cognito:groups"];
+        if (grupos && grupos.length > 0) {
+          setGrupo(grupos[0]);
+        } else {
+          setGrupo("Sin grupo");
+        }
+      })
+      .catch(() => setGrupo("Sin grupo"));
   }, [token]);
 
   const handleLogout = () => {
@@ -124,9 +137,10 @@ useEffect(() => {
       ) : (
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar email={email} />
+            <Sidebar email={email} grupo={grupo} />
             <div style={{ padding: '1rem', background: '#f3f3f3', fontSize: '0.9rem' }}>
-              <strong>📧 Correo: {email}</strong>
+              <strong>📧 Correo: {email}</strong><br />
+              <strong>🎖️ Rol: {grupo}</strong>
             </div>
 
             <ProfileModal token={token} />
@@ -137,7 +151,7 @@ useEffect(() => {
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<ExamenesPage />} /> {/* ✅ Ruta agregada */}
+                <Route path="/examenes" element={<ExamenesPage />} />
               </Routes>
             </main>
 
@@ -150,3 +164,4 @@ useEffect(() => {
 }
 
 export default App;
+
