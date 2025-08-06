@@ -1,3 +1,5 @@
+// src/components/Sidebar.jsx
+
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
@@ -5,14 +7,24 @@ import { useEffect, useState } from 'react';
 import { Auth } from 'aws-amplify';
 import AvatarModal from './AvatarModal';
 
-function Sidebar({ email, nombre, grupo }) {
+function Sidebar({ email, nombre }) {
   const [avatar, setAvatar] = useState(null);
+  const [rol, setRol] = useState('Sin grupo');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     Auth.currentAuthenticatedUser()
-      .then((user) => setAvatar(user.attributes.picture))
-      .catch(() => setAvatar(null));
+      .then((user) => {
+        setAvatar(user.attributes.picture);
+        const rolUsuario = user.attributes['custom:rol'];
+        if (rolUsuario) {
+          setRol(rolUsuario.charAt(0).toUpperCase() + rolUsuario.slice(1)); // Capitaliza
+        }
+      })
+      .catch(() => {
+        setAvatar(null);
+        setRol('Sin grupo');
+      });
   }, []);
 
   return (
@@ -34,7 +46,7 @@ function Sidebar({ email, nombre, grupo }) {
         </div>
         <div className="nombre" id="nombreSidebar">{nombre || 'Usuario conectado'}</div>
         <div className="email" id="emailSidebar">{email}</div>
-        <div className="grupo" id="grupoSidebar">🎖️ Rol: {grupo || 'Sin grupo'}</div>
+        <div className="grupo" id="grupoSidebar">🎖️ Rol: {rol}</div>
       </div>
 
       <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
@@ -66,4 +78,3 @@ function Sidebar({ email, nombre, grupo }) {
 }
 
 export default Sidebar;
-
