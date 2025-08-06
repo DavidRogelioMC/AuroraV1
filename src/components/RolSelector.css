@@ -1,0 +1,23 @@
+.rol-selector-container {
+  text-align: center;
+  margin-top: 100px;
+  font-family: Arial, sans-serif;
+}
+
+.rol-selector-btn {
+  padding: 15px 30px;
+  font-size: 18px;
+  margin: 10px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.rol-selector-btn.admin {
+  background-color: #035b6e;
+}
+
+.rol-selector-btn.participant {
+  background-color: #45ab9f;
+}
