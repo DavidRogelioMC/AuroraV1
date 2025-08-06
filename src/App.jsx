@@ -13,11 +13,11 @@ function App() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const currentUser = await Auth.currentAuthenticatedUser({ bypassCache: true }); // <-- fuerza obtener datos frescos
+        const currentUser = await Auth.currentAuthenticatedUser({ bypassCache: true }); // fuerza token nuevo
         setUser(currentUser);
 
-        const rolAttr = currentUser.attributes['custom:rol'];
-        setRol(rolAttr || 'participant'); // fallback
+        const userRol = currentUser.attributes['custom:rol'] || 'participant';
+        setRol(userRol);
       } catch (error) {
         console.error("Error al obtener usuario:", error);
         setUser(null);
