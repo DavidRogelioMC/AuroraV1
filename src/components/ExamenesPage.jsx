@@ -1,58 +1,77 @@
-// src/components/ExamenesPage.jsx
+// src/components/ExamenesPage.jsx (CÓDIGO FINAL Y COMPLETO)
 
 import React, { useState } from "react";
-import "./ExamenesPage.css"; // Crearemos un CSS para esta página
+import "./ExamenesPage.css";
+import PreguntaExamen from "./PreguntaExamen";
 
-// Importamos el componente que muestra las preguntas
-import PreguntaExamen from "./PreguntaExamen"; 
-
-const ExamenesPage = () => {
+const ExamenesPage = ({ token }) => {
   const [curso, setCurso] = useState("Python");
   const [topico, setTopico] = useState("");
   const [examen, setExamen] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
   const [respuestasUsuario, setRespuestasUsuario] = useState({});
   const [mostrarResultados, setMostrarResultados] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
 
-  // Define aquí tus Knowledge Bases disponibles para los exámenes
   const cursos = {
     Python: "AVDJ3M69B7",
     AWS: "WKNJIRXQUT",
     "AZ-104": "KWG4PHNXSD"
   };
   
-  // URL de tu API Gateway para generar el examen
-  const apiUrl = import.meta.env.VITE_API_GENERAR_EXAMEN; // <-- ¡Usa la variable de entorno correcta!
+  const apiUrl = import.meta.env.VITE_API_GENERAR_EXAMEN;
 
   const generarExamen = async () => {
-    setError(""); setExamen(null); setIsLoading(true); setRespuestasUsuario({}); setMostrarResultados(false); setPuntuacion(0);
-    const knowledgeBaseId = cursos[curso];
-    const token = localStorage.getItem("id_token");
+    setError("");
+    setExamen(null);
+    setIsLoading(true);
+    setRespuestasUsuario({});
+    setMostrarResultados(false);
+    setPuntuacion(0);
+    
+    const authToken = token || localStorage.getItem("id_token");
 
-    if (!token || !topico.trim()) {
-      setError(!token ? "No autenticado." : "Por favor, escribe un tópico.");
+    if (!authToken || !topico.trim()) {
+      setError(!authToken ? "No autenticado." : "Por favor, escribe un tópico.");
       setIsLoading(false);
       return;
     }
 
     try {
+      const knowledgeBaseId = cursos[curso];
       const response = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: token },
+        headers: { "Content-Type": "application/json", Authorization: authToken },
         body: JSON.stringify({ knowledgeBaseId, topico })
       });
 
+      // --- LÓGICA DE MANEJO DE ERRORES MEJORADA ---
       const responseText = await response.text();
-      if (!response.ok) throw new Error(responseText);
+
+      if (!response.ok) {
+        let errorMessage = "Ocurrió un error inesperado.";
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorData.message || responseText;
+        } catch (e) {
+          errorMessage = responseText || `Error del servidor con código ${response.status}`;
+        }
+        throw new Error(errorMessage);
+      }
 
       const data = JSON.parse(responseText);
+      if (!data.texto) {
+        throw new Error("La respuesta del servidor no contenía el campo 'texto' esperado.");
+      }
+      
       const examenGenerado = JSON.parse(data.texto);
       setExamen(examenGenerado);
+
     } catch (err) {
-      console.error("Error al generar el examen:", err);
-      setError(`Error: ${err.message}`);
+      console.error("Error detallado al generar el examen:", err);
+      setError(`Error al generar el examen: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +89,7 @@ const ExamenesPage = () => {
       if (pregunta.tipo === 'respuesta_múltiple' && respUsuario) {
         if (JSON.stringify(respUsuario.sort()) === JSON.stringify(respCorrectas)) correctas++;
       } else {
-        if (JSON.stringify(respUsuario) === JSON.stringify(respCorrectas[0])) correctas++;
+        if (JSON.stringify([respUsuario]) === JSON.stringify(respCorrectas)) correctas++;
       }
     });
     setPuntuacion(correctas);
@@ -136,4 +155,5 @@ const ExamenesPage = () => {
     </div>
   );
 };
+
 export default ExamenesPage;
