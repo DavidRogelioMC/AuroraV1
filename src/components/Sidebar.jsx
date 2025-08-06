@@ -1,10 +1,20 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
+import { Auth } from 'aws-amplify';
+import { Brain, BookOpen, Microscope, Settings } from 'lucide-react'; // íconos opcionales
 
 function Sidebar({ user, rol }) {
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = '/';
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await Auth.signOut();
+      localStorage.clear();
+      navigate('/');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
   };
 
   return (
@@ -17,14 +27,30 @@ function Sidebar({ user, rol }) {
       </div>
 
       <div className="menu">
-        <button>🧠 Resúmenes</button>
-        <button>📘 Actividades</button>
-        <button>🔬 Examen</button>
+        <button onClick={() => navigate('/resumenes')}>
+          <Brain size={24} style={{ marginRight: 8 }} />
+          Resúmenes
+        </button>
+
+        <button onClick={() => navigate('/actividades')}>
+          <BookOpen size={24} style={{ marginRight: 8 }} />
+          Actividades
+        </button>
+
+        <button onClick={() => navigate('/examen')}>
+          <Microscope size={24} style={{ marginRight: 8 }} />
+          Examen
+        </button>
 
         {rol === 'admin' && (
           <>
-            <button>📊 Reportes</button>
-            <button>⚙️ Administración</button>
+            <button onClick={() => navigate('/reportes')}>
+              📊 Reportes
+            </button>
+            <button onClick={() => navigate('/admin')}>
+              <Settings size={24} style={{ marginRight: 8 }} />
+              Administración
+            </button>
           </>
         )}
       </div>
