@@ -2,6 +2,13 @@
   text-align: center;
   margin-top: 100px;
   font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.rol-selector-container h2 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #1b5784;
 }
 
 .rol-selector-btn {
@@ -9,9 +16,16 @@
   font-size: 18px;
   margin: 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   color: white;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 200px;
+}
+
+.rol-selector-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .rol-selector-btn.admin {
