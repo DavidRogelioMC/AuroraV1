@@ -1,4 +1,4 @@
-/* src/components/ExamenesPage.css (CÓDIGO COMPLETO Y CORREGIDO) */
+/* src/components/ExamenesPage.css (CÓDIGO FINAL Y COMPLETO) */
 
 .examenes-container {
   max-width: 700px;
@@ -24,9 +24,10 @@
   font-size: 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  box-sizing: border-box; /* Añadido para consistencia */
+  box-sizing: border-box;
 }
 
+/* Estilo para el botón principal de 'Generar Examen' */
 .examenes-container button {
   background-color: #035b6e;
   color: white;
@@ -36,11 +37,11 @@
   border-radius: 8px;
   cursor: pointer;
   margin-top: 10px;
-  display: inline-flex; /* Para alinear el icono y el texto */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px; /* Espacio entre icono y texto */
-  transition: background-color 0.2s; /* Añadido para suavidad */
+  gap: 8px;
+  transition: background-color 0.2s;
 }
 
 .examenes-container button:disabled {
@@ -52,38 +53,24 @@
   background-color: #197fa6;
 }
 
-.resultado {
-  text-align: left;
-  background: #eef6f8;
-  border: 1px solid #ccc;
-  padding: 16px;
-  margin-top: 20px;
-  border-radius: 8px;
-  white-space: pre-wrap;
-}
-
 .error {
   color: red;
   margin-top: 10px;
 }
 
-
-/* --- INICIO DE LOS NUEVOS ESTILOS AÑADIDOS --- */
-
+/* Spinner de carga */
 .spinner {
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #035b6e; /* Usa el color principal de tu tema */
+  border-top: 4px solid #035b6e;
   border-radius: 50%;
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
   margin: 2rem auto;
 }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+/* --- ESTILOS PARA EL EXAMEN GENERADO --- */
 
 .examen-resultado {
   margin-top: 2rem;
@@ -98,6 +85,7 @@
   margin-bottom: 1.5rem;
 }
 
+/* Contenedor para cada pregunta individual */
 .pregunta-container {
   background-color: #fff;
   padding: 1.5rem;
@@ -115,18 +103,52 @@
 
 .opciones-container {
   margin: 1rem 0;
-  padding-left: 1rem;
-  font-family: monospace; /* Buena fuente para opciones de código */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
+/* --- ESTILOS PARA LA INTERACTIVIDAD DE LAS OPCIONES --- */
+
 .opcion-item {
-  margin-bottom: 0.5rem;
+  border: 2px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  gap: 0.5rem;
 }
+.opcion-item:hover { background-color: #f9f9f9; }
+
+.opcion-seleccionada {
+  border-color: #035b6e;
+  background-color: #eef6f8;
+  font-weight: bold;
+}
+
+.opcion-correcta {
+  border-color: #28a745;
+  background-color: #d4edda;
+  color: #155724;
+  font-weight: bold;
+}
+
+.opcion-incorrecta {
+  border-color: #dc3545;
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* --- ESTILOS PARA RESPUESTA Y JUSTIFICACIÓN --- */
 
 .respuesta-correcta {
   font-weight: bold;
   color: #28a745;
   margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: #d4edda;
+  border-radius: 4px;
 }
 
 .justificacion {
@@ -136,4 +158,33 @@
   background-color: #f9f9f9;
   padding: 1rem;
   border-left: 3px solid #ccc;
+}
+
+/* --- ESTILOS PARA EL FOOTER DEL EXAMEN --- */
+.examen-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+  text-align: center;
+}
+
+.btn-calificar, .btn-reiniciar {
+  background-color: #035b6e;
+  color: white;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-reiniciar {
+  background-color: #6c757d;
+}
+
+.resultado-final-container p {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
 }
