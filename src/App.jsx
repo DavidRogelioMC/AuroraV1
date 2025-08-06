@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from 'jwt-decode';
 
-// Componentes
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
@@ -12,7 +11,6 @@ import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
 
-// Estilos y assets
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
@@ -25,33 +23,12 @@ import espanaFlag from './assets/espana.png';
 function App() {
   const [token, setToken] = useState(localStorage.getItem("id_token"));
   const [email, setEmail] = useState("");
-  const [grupo, setGrupo] = useState("Sin grupo");
+  const [rol, setRol] = useState("");
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-  useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(user => {
-        console.log("🟢 Sesión activa:", user);
-      })
-      .catch(async err => {
-        try {
-          const user = await Auth.federatedSignIn();
-          console.log("✅ Usuario autenticado por código:", user);
-        } catch (error) {
-          console.log("❌ Error al autenticar:", error);
-        }
-      });
-  }, []);
-
-  useEffect(() => {
-    Auth.currentSession()
-      .then(session => console.log("✅ Sesión activa:", session))
-      .catch(() => Auth.signOut());
-  }, []);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -67,25 +44,12 @@ function App() {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        setEmail(decoded.email);
+        setEmail(decoded.email || "");
+        setRol(decoded["custom:rol"] || "");
       } catch (err) {
         console.error("❌ Error al decodificar el token:", err);
       }
     }
-  }, [token]);
-
-  // ✅ Extrae el grupo desde el token
-  useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(user => {
-        const grupos = user.signInUserSession.accessToken.payload["cognito:groups"];
-        if (grupos && grupos.length > 0) {
-          setGrupo(grupos[0]);
-        } else {
-          setGrupo("Sin grupo");
-        }
-      })
-      .catch(() => setGrupo("Sin grupo"));
   }, [token]);
 
   const handleLogout = () => {
@@ -110,26 +74,17 @@ function App() {
                 🚀 Comenzar Ahora
               </button>
               <div className="country-flags">
-                <a href="https://www.netec.com/cursos-ti-chile" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={chileFlag} alt="Chile" className="flag-image" />
-                  <div className="flag-label">Chile</div>
-                </a>
-                <a href="https://www.netec.com/cursos-ti-peru" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={peruFlag} alt="Perú" className="flag-image" />
-                  <div className="flag-label">Perú</div>
-                </a>
-                <a href="https://www.netec.com/cursos-ti-colombia" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={colombiaFlag} alt="Colombia" className="flag-image" />
-                  <div className="flag-label">Colombia</div>
-                </a>
-                <a href="https://www.netec.com/cursos-ti-mexico" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={mexicoFlag} alt="México" className="flag-image" />
-                  <div className="flag-label">México</div>
-                </a>
-                <a href="https://www.netec.es/" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={espanaFlag} alt="España" className="flag-image" />
-                  <div className="flag-label">España</div>
-                </a>
+                {[{ flag: chileFlag, label: "Chile", url: "https://www.netec.com/cursos-ti-chile" },
+                  { flag: peruFlag, label: "Perú", url: "https://www.netec.com/cursos-ti-peru" },
+                  { flag: colombiaFlag, label: "Colombia", url: "https://www.netec.com/cursos-ti-colombia" },
+                  { flag: mexicoFlag, label: "México", url: "https://www.netec.com/cursos-ti-mexico" },
+                  { flag: espanaFlag, label: "España", url: "https://www.netec.es/" }]
+                  .map(({ flag, label, url }) => (
+                    <a key={label} href={url} target="_blank" rel="noopener noreferrer" className="flag-item">
+                      <img src={flag} alt={label} className="flag-image" />
+                      <div className="flag-label">{label}</div>
+                    </a>
+                  ))}
               </div>
             </div>
           </div>
@@ -137,10 +92,9 @@ function App() {
       ) : (
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar email={email} grupo={grupo} />
+            <Sidebar email={email} grupo={rol} />
             <div style={{ padding: '1rem', background: '#f3f3f3', fontSize: '0.9rem' }}>
-              <strong>📧 Correo: {email}</strong><br />
-              <strong>🎖️ Rol: {grupo}</strong>
+              <strong>📧 Correo: {email}</strong>
             </div>
 
             <ProfileModal token={token} />
@@ -164,4 +118,3 @@ function App() {
 }
 
 export default App;
-
