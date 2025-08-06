@@ -18,7 +18,7 @@ const ExamenesPage = ({ token }) => {
   const cursos = {
     Python: "AVDJ3M69B7",
     AWS: "WKNJIRXQUT",
-    AZ-104: "KWG4PHNXSD"
+    AZ-104: "KWG4PHNXSD",
   };
   
   const apiUrl = import.meta.env.VITE_API_GENERAR_EXAMEN;
