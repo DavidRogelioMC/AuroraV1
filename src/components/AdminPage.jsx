@@ -1,103 +1,97 @@
 // src/components/AdminPage.jsx
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import './AdminPage.css';
 
-function AdminPage({ token, email }) {
+function AdminPage() {
   const [solicitudes, setSolicitudes] = useState([]);
-  const [mensaje, setMensaje] = useState("");
+  const [emailUsuario, setEmailUsuario] = useState("");
+
+  const idToken = localStorage.getItem("id_token");
 
   useEffect(() => {
-    if (!token) return;
-
-    const fetchSolicitudes = async () => {
+    if (idToken) {
       try {
-        const response = await axios.get(
-          'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
-          {
-            headers: {
-              Authorization: token
-            }
-          }
-        );
-        setSolicitudes(response.data);
+        const payload = JSON.parse(atob(idToken.split('.')[1]));
+        setEmailUsuario(payload.email || "");
       } catch (error) {
-        console.error("❌ Error al obtener solicitudes:", error);
-        setMensaje("No se pudieron cargar las solicitudes.");
+        console.error("Error al decodificar el token:", error);
+      }
+    }
+  }, [idToken]);
+
+  useEffect(() => {
+    const obtenerSolicitudes = async () => {
+      try {
+        const response = await fetch("https://3d0051a6-795c-4b88-aaa1-bbd2a8f4ab75.dev2.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol", {
+          headers: {
+            Authorization: idToken,
+          },
+        });
+        const data = await response.json();
+        setSolicitudes(data.solicitudes || []);
+      } catch (error) {
+        console.error("Error al obtener solicitudes:", error);
       }
     };
 
-    fetchSolicitudes();
-  }, [token]);
+    if (emailUsuario === "anette.flores@netec.com.mx") {
+      obtenerSolicitudes();
+    }
+  }, [emailUsuario, idToken]);
 
   const manejarAccion = async (correo, accion) => {
     try {
-      const endpoint =
-        accion === "aprobar"
-          ? 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol-creador'
-          : 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/rechazar-rol-creador';
+      const response = await fetch("https://3d0051a6-795c-4b88-aaa1-bbd2a8f4ab75.dev2.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: idToken,
+        },
+        body: JSON.stringify({ correo, accion }),
+      });
 
-      const response = await axios.post(
-        endpoint,
-        { correo },
-        {
-          headers: {
-            Authorization: token
-          }
-        }
-      );
-
-      setMensaje(`✅ Solicitud ${accion}ada correctamente.`);
-      // Actualizar la lista eliminando la solicitud procesada
-      setSolicitudes(prev => prev.filter(s => s.correo !== correo));
+      const data = await response.json();
+      alert(data.message || "Operación completada.");
+      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
     } catch (error) {
-      console.error(`❌ Error al ${accion} solicitud:`, error);
-      setMensaje(`Error al ${accion} solicitud.`);
+      console.error("Error al realizar la acción:", error);
+      alert("Error al procesar la solicitud.");
     }
   };
 
   return (
     <div className="pagina-admin">
       <h1>Panel de Administración</h1>
-      <p>Desde aquí puedes ver y gestionar solicitudes de rol creador.</p>
+      <p>Aquí puedes ver y gestionar solicitudes de rol creador.</p>
 
-      {mensaje && <p className="mensaje">{mensaje}</p>}
+      <h2>Solicitudes Pendientes</h2>
 
-      <div className="seccion-solicitudes">
-        <h2>Solicitudes Pendientes</h2>
-        {solicitudes.length === 0 ? (
+      {emailUsuario === "anette.flores@netec.com.mx" ? (
+        solicitudes.length === 0 ? (
           <p>No hay solicitudes en este momento.</p>
         ) : (
-          <ul>
-            {solicitudes.map((solicitud, index) => (
-              <li key={index} className="solicitud-item">
-                <span>📧 {solicitud.correo}</span>
-
-                {email === "anette.flores@netec.com.mx" && (
-                  <div className="acciones">
-                    <button
-                      className="btn-aprobar"
-                      onClick={() => manejarAccion(solicitud.correo, "aprobar")}
-                    >
-                      ✅ Aprobar
-                    </button>
-                    <button
-                      className="btn-rechazar"
-                      onClick={() => manejarAccion(solicitud.correo, "rechazar")}
-                    >
-                      ❌ Rechazar
-                    </button>
-                  </div>
-                )}
+          <ul className="lista-solicitudes">
+            {solicitudes.map((s) => (
+              <li key={s.correo} className="item-solicitud">
+                {s.correo}
+                <div className="botones">
+                  <button onClick={() => manejarAccion(s.correo, "aprobar")} className="btn-aprobar">
+                    ✅ Aprobar
+                  </button>
+                  <button onClick={() => manejarAccion(s.correo, "rechazar")} className="btn-rechazar">
+                    ❌ Rechazar
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        )
+      ) : (
+        <p>No tienes permiso para ver esta sección.</p>
+      )}
     </div>
   );
 }
 
 export default AdminPage;
-
 
