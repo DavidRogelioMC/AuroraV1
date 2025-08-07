@@ -9,6 +9,23 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+}
+
+#barraLateral.colapsado {
+  width: 80px;
+  align-items: flex-start;
+}
+
+#toggleSidebar {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  margin: 10px;
+  cursor: pointer;
+  color: white;
 }
 
 #perfilSidebar {
@@ -48,6 +65,11 @@
   opacity: 0.8;
 }
 
+#perfilSidebar .grupo {
+  font-size: 14px;
+  margin-top: 5px;
+}
+
 #caminito {
   display: flex;
   flex-direction: column;
@@ -56,24 +78,26 @@
   flex: 1;
   justify-content: flex-start;
   padding-top: 20px;
+  width: 100%;
 }
 
 .step {
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: all 0.3s ease;
 }
 
 .circle {
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
   background-color: #ffffff;
   border: 4px solid #1b5784;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 32px;
+  font-size: 28px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
   cursor: pointer;
@@ -86,9 +110,13 @@
 }
 
 .step span {
-  margin-top: 12px;
-  font-size: 16px;
+  margin-top: 10px;
+  font-size: 14px;
   color: white;
   font-weight: 500;
   text-align: center;
+}
+
+#barraLateral.colapsado .step span {
+  display: none;
 }
