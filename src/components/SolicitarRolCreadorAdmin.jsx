@@ -1,76 +1,66 @@
-import React, { useState, useEffect } from 'react';
-
-function obtenerRolDesdeToken() {
-  const token = localStorage.getItem("id_token");
-  if (!token) return null;
-
-  const payloadBase64 = token.split('.')[1];
-  const decodedPayload = JSON.parse(atob(payloadBase64));
-  return decodedPayload["custom:rol"]; // Ej: "admin", "admin,creador"
-}
+// src/components/SolicitarRolCreadorAdmin.jsx
+import React, { useState } from 'react';
 
 function SolicitarRolCreadorAdmin() {
-  const [rol, setRol] = useState('');
   const [correo, setCorreo] = useState('');
   const [mensaje, setMensaje] = useState('');
-  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const rolActual = obtenerRolDesdeToken();
-    setRol(rolActual);
-  }, []);
+  const dominiosPermitidos = [
+    "netec.com",
+    "netec.com.mx",
+    "netec.com.co",
+    "netec.com.pe",
+    "netec.com.cl",
+    "netec.com.es"
+  ];
 
-  const handleEnviar = async () => {
-    if (!correo) {
-      setMensaje("⚠️ Ingresa un correo válido.");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMensaje('');
+    setError('');
+
+    const dominio = correo.split('@')[1];
+    if (!dominiosPermitidos.includes(dominio)) {
+      setError("❌ Dominio no autorizado.");
       return;
     }
 
-    setEnviando(true);
-    const token = localStorage.getItem("id_token");
-
     try {
-      const res = await fetch("https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/solicitar-rol", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token
-        },
+      const response = await fetch('https://TU_API_ENDPOINT.amazonaws.com/dev2/solicitar-rol', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo })
       });
 
-      const data = await res.json();
-      setMensaje(data.message || "✅ Solicitud enviada.");
-    } catch (error) {
-      console.error("❌ Error al enviar solicitud:", error);
-      setMensaje("❌ Error al enviar solicitud.");
-    } finally {
-      setEnviando(false);
+      const data = await response.json();
+      if (response.ok) {
+        setMensaje("✅ Solicitud enviada correctamente.");
+        setCorreo('');
+      } else {
+        setError(`❌ Error: ${data.error || 'No se pudo enviar la solicitud.'}`);
+      }
+    } catch (err) {
+      setError("❌ Error de red al enviar la solicitud.");
     }
   };
 
-  if (!rol?.includes("admin")) return null;
-
   return (
-    <div className="p-4 border rounded-xl shadow-lg max-w-md mx-auto my-4 bg-white">
-      <h2 className="text-lg font-bold mb-2">Solicitar rol de creador para un usuario</h2>
+    <form onSubmit={handleSubmit} className="formulario-resumenes">
       <input
         type="email"
-        placeholder="Correo del usuario"
+        placeholder="Correo del usuario autorizado"
         value={correo}
         onChange={(e) => setCorreo(e.target.value)}
-        className="w-full px-3 py-2 border rounded mb-2"
+        required
       />
-      <button
-        onClick={handleEnviar}
-        disabled={enviando}
-        className="bg-[#035b6e] text-white px-4 py-2 rounded hover:bg-[#023846] transition w-full"
-      >
-        {enviando ? "Enviando..." : "Solicitar rol de creador"}
-      </button>
-      {mensaje && <p className="mt-2 text-green-700">{mensaje}</p>}
-    </div>
+      <button type="submit">📩 Solicitar Rol de Creador</button>
+
+      {mensaje && <div style={{ color: "green", fontWeight: "bold" }}>{mensaje}</div>}
+      {error && <div className="error-resumenes">{error}</div>}
+    </form>
   );
 }
 
 export default SolicitarRolCreadorAdmin;
+
