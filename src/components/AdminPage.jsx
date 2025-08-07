@@ -7,7 +7,7 @@ function AdminPage() {
   const [email, setEmail] = useState('');
   const token = localStorage.getItem('id_token');
 
-  const correoAdmin = 'anette.flores@netec.com.mx';
+  const correoAdmin = 'moises.torres@netec.com.mx';
 
   useEffect(() => {
     const tokenData = JSON.parse(atob(token.split('.')[1]));
