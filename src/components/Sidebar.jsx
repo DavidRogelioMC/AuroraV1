@@ -1,97 +1,185 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './Sidebar.css';
-import SolicitarRolCreadorAdmin from './SolicitarRolCreadorAdmin';
+import defaultFoto from '../assets/default.jpg';
+import { useEffect, useState } from 'react';
+import { Auth } from 'aws-amplify';
+import AvatarModal from './AvatarModal';
 
-function Sidebar() {
-  const [sidebarAbierto, setSidebarAbierto] = useState(true);
-  const [email, setEmail] = useState('');
-  const [rol, setRol] = useState('');
-  const navigate = useNavigate();
+const DOMINIOS_NETEC = [
+  'netec.com',
+  'netec.com.mx',
+  'netec.com.co',
+  'netec.com.pe',
+  'netec.com.cl',
+  'netec.com.es',
+];
+
+function Sidebar({ email, nombre, grupo }) {
+  const [avatar, setAvatar] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  // estado solicitud creador
+  const [solicitando, setSolicitando] = useState(false);
+  const [estadoSolicitud, setEstadoSolicitud] = useState(null); // 'pendiente' | 'aprobado' | 'rechazado' | null
+  const [mensajeSolicitud, setMensajeSolicitud] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('id_token');
-    if (!token) return;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setEmail(payload.email || '');
-      setRol((payload['custom:rol'] || '').toLowerCase()); // "admin" | "participant" | ...
-    } catch (e) {
-      console.error('No se pudo decodificar el token:', e);
-    }
+    Auth.currentAuthenticatedUser()
+      .then((user) => setAvatar(user.attributes?.picture || null))
+      .catch(() => setAvatar(null));
   }, []);
 
-  const toggleSidebar = () => setSidebarAbierto((s) => !s);
-  const cerrarSesion = () => {
-    localStorage.removeItem('id_token');
-    navigate('/');
+  useEffect(() => {
+    // Si el backend ya guarda estado, aquí podrías hacer GET para leerlo
+    // y pintar el estado si existe. Lo dejamos opcional.
+  }, [email]);
+
+  const grupoFormateado =
+    grupo === 'admin' ? 'Administrador' :
+    grupo === 'participant' ? 'Participante' : 'Sin grupo';
+
+  const dominioUsuario = (email || '').split('@')[1] || '';
+
+  const puedeSolicitarCreador =
+    grupo === 'admin' && DOMINIOS_NETEC.includes(dominioUsuario);
+
+  const solicitarCreador = async () => {
+    if (!email) return;
+
+    try {
+      setSolicitando(true);
+      setMensajeSolicitud('');
+      // usa tu endpoint productivo:
+      const resp = await fetch(
+        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/solicitar-rol',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo: email }),
+        }
+      );
+      const data = await resp.json();
+      if (resp.ok) {
+        // asumimos que queda "pendiente" hasta que alguien apruebe
+        setEstadoSolicitud('pendiente');
+        setMensajeSolicitud('✅ Solicitud enviada. Estado: Pendiente.');
+      } else {
+        setMensajeSolicitud(`❌ Error: ${data.error || 'No se pudo enviar la solicitud.'}`);
+      }
+    } catch (e) {
+      setMensajeSolicitud('❌ Error de red al enviar la solicitud.');
+    } finally {
+      setSolicitando(false);
+    }
   };
 
-  // Ítems del menú (con emojis como en tu UI)
-  const items = [
-    { icono: '🧠', texto: 'Resúmenes', ruta: '/resumenes' },
-    { icono: '📘', texto: 'Actividades', ruta: '/actividades' },
-    { icono: '🔬', texto: 'Examen', ruta: '/examenes' },
-    { icono: '⚙️', texto: 'Admin', ruta: '/admin', soloAdmin: true },
-    { icono: '👥', texto: 'Usuarios', ruta: '/usuarios', soloAdmin: true },
-  ];
-
-  const esAdmin = rol === 'admin';
-
   return (
-    <div id="barraLateral" className={sidebarAbierto ? 'abierto' : 'cerrado'}>
-      {/* Botón de contraer/expandir con separación */}
-      <div className="toggle-container">
-        <button className="toggle-btn" onClick={toggleSidebar} aria-label="Contraer/Expandir">▸</button>
-      </div>
+    <aside id="barraLateral" className={`sidebar ${collapsed ? 'is-collapsed' : ''}`}>
+      {/* Botón contraer/expandir con separación superior */}
+      <button
+        className="toggle-btn"
+        aria-label={collapsed ? 'Expandir sidebar' : 'Contraer sidebar'}
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        {collapsed ? '▶' : '◀'}
+      </button>
 
       {/* Perfil */}
-      <div id="perfilSidebar">
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
-          alt="Foto perfil"
-        />
+      <div id="perfilSidebar" className="perfil">
+        <div className="avatar-wrapper" onClick={() => setIsModalOpen(true)}>
+          <img
+            src={avatar || defaultFoto}
+            alt="Foto perfil"
+            className="avatar"
+          />
+        </div>
 
-        {/* Mostrar textos solo cuando está abierto */}
-        {sidebarAbierto && (
-          <>
-            <div className="nombre">{email || 'Usuario'}</div>
-            {/* QUITAMOS el duplicado del correo */}
-            {/* <div className="email">{email}</div> */}
-            <div className="rol">🎖️ Rol: {esAdmin ? 'Administrador' : 'Participante'}</div>
+        <div className="nombre" id="nombreSidebar">
+          {collapsed ? '' : (nombre || 'Usuario conectado')}
+        </div>
+        <div className="email" id="emailSidebar">
+          {collapsed ? '' : email}
+        </div>
+        <div className="grupo" id="grupoSidebar">
+          {collapsed ? '' : `🎖️ Rol: ${grupoFormateado}`}
+        </div>
 
-            {/* Botón de solicitar rol de creador (debajo del rol), usando email autenticado */}
-            {esAdmin && (
-              <div className="solicitud-creador-admin">
-                <SolicitarRolCreadorAdmin correoAutenticado={email} />
-              </div>
+        {/* Bloque Solicitar Creador – debajo del Rol */}
+        {!collapsed && puedeSolicitarCreador && (
+          <div className="solicitar-creador">
+            <button
+              type="button"
+              className="btn-solicitar-creador"
+              onClick={solicitarCreador}
+              disabled={solicitando}
+            >
+              {solicitando ? 'Enviando…' : '📩 Solicitar rol de Creador'}
+            </button>
+
+            {estadoSolicitud === 'pendiente' && (
+              <div className="estado estado-pendiente">Pendiente de aprobación</div>
             )}
-          </>
+            {estadoSolicitud === 'aprobado' && (
+              <div className="estado estado-aprobado">Aprobado ✔</div>
+            )}
+            {estadoSolicitud === 'rechazado' && (
+              <div className="estado estado-rechazado">Rechazado ✖</div>
+            )}
+            {mensajeSolicitud && (
+              <div className="mensaje-solicitud">{mensajeSolicitud}</div>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Navegación */}
-      <div id="caminito">
-        {items.map((it, idx) => {
-          if (it.soloAdmin && !esAdmin) return null;
-          return (
-            <div key={idx} className="step" onClick={() => navigate(it.ruta)}>
-              <div className="circle">{it.icono}</div>
-              {sidebarAbierto && <span>{it.texto}</span>}
-            </div>
-          );
-        })}
-      </div>
+      <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-      {/* Cerrar sesión */}
-      <div className="cerrar-sesion-container">
-        <button className="cerrar-sesion-btn" onClick={cerrarSesion}>
-          Cerrar sesión
-        </button>
-      </div>
-    </div>
+      {/* Navegación */}
+      <nav id="caminito" className="nav">
+        <Link to="/resumenes" className="nav-link">
+          <div className="step">
+            <div className="circle">🧠</div>
+            {!collapsed && <span>Resúmenes</span>}
+          </div>
+        </Link>
+
+        <Link to="/actividades" className="nav-link">
+          <div className="step">
+            <div className="circle">📘</div>
+            {!collapsed && <span>Actividades</span>}
+          </div>
+        </Link>
+
+        <Link to="/examenes" className="nav-link">
+          <div className="step">
+            <div className="circle">🔬</div>
+            {!collapsed && <span>Examen</span>}
+          </div>
+        </Link>
+
+        {/* Solo visible para admin */}
+        {grupo === 'admin' && (
+          <>
+            <Link to="/admin" className="nav-link">
+              <div className="step">
+                <div className="circle">⚙️</div>
+                {!collapsed && <span>Admin</span>}
+              </div>
+            </Link>
+            <Link to="/usuarios" className="nav-link">
+              <div className="step">
+                <div className="circle">👥</div>
+                {!collapsed && <span>Usuarios</span>}
+              </div>
+            </Link>
+          </>
+        )}
+      </nav>
+    </aside>
   );
 }
 
 export default Sidebar;
+
 
