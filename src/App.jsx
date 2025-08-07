@@ -10,7 +10,6 @@ import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
 import AdminPage from './components/AdminPage';
-import SolicitarRolCreadorAdmin from './components/SolicitarRolCreadorAdmin'; // ✅ NUEVO
 
 import './index.css';
 import logo from './assets/Netec.png';
@@ -79,44 +78,35 @@ function App() {
                   { flag: peruFlag, label: "Perú", url: "https://www.netec.com/cursos-ti-peru" },
                   { flag: colombiaFlag, label: "Colombia", url: "https://www.netec.com/cursos-ti-colombia" },
                   { flag: mexicoFlag, label: "México", url: "https://www.netec.com/cursos-ti-mexico" },
-                  { flag: espanaFlag, label: "España", url: "https://www.netec.es/" }]
-                  .map(({ flag, label, url }) => (
+                  { flag: espanaFlag, label: "España", url: "https://www.netec.es/" }].map(({ flag, label, url }) => (
                     <a key={label} href={url} target="_blank" rel="noopener noreferrer" className="flag-item">
                       <img src={flag} alt={label} className="flag-image" />
                       <div className="flag-label">{label}</div>
                     </a>
-                  ))}
+                ))}
               </div>
             </div>
           </div>
         </div>
       ) : (
         <Router>
-          <div id="contenidoPrincipal" style={{ display: 'flex', height: '100vh' }}>
-            <Sidebar email={email} nombre={email} grupo={rol} />
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ padding: '1rem', background: '#f3f3f3', fontSize: '0.9rem' }}>
-                <strong>📧 Correo: {email}</strong>
-              </div>
+          <div id="contenidoPrincipal">
+            <Sidebar email={email} grupo={rol} />
 
-              <ProfileModal token={token} />
-              <ChatModal token={token} />
+            <ProfileModal token={token} />
+            <ChatModal token={token} />
 
-              <main className="main-content-area" style={{ padding: '1rem' }}>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/actividades" element={<ActividadesPage token={token} />} />
-                  <Route path="/resumenes" element={<ResumenesPage />} />
-                  <Route path="/examenes" element={<ExamenesPage />} />
-                  <Route path="/admin" element={rol === "admin" ? <AdminPage /> : <Home />} />
-                  <Route path="/solicitar-rol" element={<SolicitarRolCreadorAdmin />} />
-                </Routes>
-              </main>
+            <main className="main-content-area">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/actividades" element={<ActividadesPage token={token} />} />
+                <Route path="/resumenes" element={<ResumenesPage />} />
+                <Route path="/examenes" element={<ExamenesPage />} />
+                <Route path="/admin" element={rol === "admin" ? <AdminPage /> : <Home />} />
+              </Routes>
+            </main>
 
-              <button id="logout" onClick={handleLogout} style={{ margin: '1rem' }}>
-                Cerrar sesión
-              </button>
-            </div>
+            <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </Router>
       )}
