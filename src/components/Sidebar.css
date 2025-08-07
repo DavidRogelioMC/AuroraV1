@@ -1,3 +1,4 @@
+/* src/components/Sidebar.css */
 #barraLateral {
   position: fixed;
   top: 0;
@@ -5,38 +6,33 @@
   width: 10cm;
   height: 100vh;
   background-color: #1b5784;
-  z-index: 1;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
-  align-items: center;
   overflow-y: auto;
   transition: width 0.3s ease;
 }
 
-#barraLateral.colapsado {
-  width: 80px;
-  align-items: flex-start;
+.sidebar.collapsed {
+  width: 60px;
 }
 
-#toggleSidebar {
-  align-self: flex-end;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  margin: 10px;
-  cursor: pointer;
+.toggle-btn {
+  background-color: #134466;
   color: white;
+  border: none;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 16px;
+  align-self: flex-end;
+  margin: 5px;
 }
 
 #perfilSidebar {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
   padding: 30px 20px;
   color: white;
   border-bottom: 2px solid rgba(255,255,255,0.2);
-  margin-bottom: 20px;
 }
 
 #perfilSidebar img {
@@ -45,7 +41,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid white;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   cursor: pointer;
   transition: transform 0.3s ease;
 }
@@ -67,6 +63,7 @@
 
 #perfilSidebar .grupo {
   font-size: 14px;
+  font-style: italic;
   margin-top: 5px;
 }
 
@@ -75,48 +72,41 @@
   flex-direction: column;
   align-items: center;
   gap: 30px;
-  flex: 1;
-  justify-content: flex-start;
-  padding-top: 20px;
-  width: 100%;
+  padding: 20px 0;
+  flex-grow: 1;
 }
 
 .step {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: all 0.3s ease;
 }
 
 .circle {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   background-color: #ffffff;
   border: 4px solid #1b5784;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 28px;
+  font-size: 32px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .circle:hover {
   transform: translateY(-5px) scale(1.1);
   background-color: #d0e7f5;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
 .step span {
-  margin-top: 10px;
-  font-size: 14px;
+  margin-top: 12px;
+  font-size: 16px;
   color: white;
   font-weight: 500;
   text-align: center;
 }
 
-#barraLateral.colapsado .step span {
-  display: none;
-}
