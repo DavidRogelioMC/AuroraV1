@@ -10,6 +10,7 @@ import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
+import AdminPage from './components/AdminPage'; // ✅ Importa el nuevo componente
 
 import './index.css';
 import logo from './assets/Netec.png';
@@ -70,52 +71,5 @@ function App() {
               <div className="illustration-centered">
                 <img src={previewImg} alt="Ilustración" className="preview-image" />
               </div>
-              <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
-                🚀 Comenzar Ahora
-              </button>
-              <div className="country-flags">
-                {[{ flag: chileFlag, label: "Chile", url: "https://www.netec.com/cursos-ti-chile" },
-                  { flag: peruFlag, label: "Perú", url: "https://www.netec.com/cursos-ti-peru" },
-                  { flag: colombiaFlag, label: "Colombia", url: "https://www.netec.com/cursos-ti-colombia" },
-                  { flag: mexicoFlag, label: "México", url: "https://www.netec.com/cursos-ti-mexico" },
-                  { flag: espanaFlag, label: "España", url: "https://www.netec.es/" }]
-                  .map(({ flag, label, url }) => (
-                    <a key={label} href={url} target="_blank" rel="noopener noreferrer" className="flag-item">
-                      <img src={flag} alt={label} className="flag-image" />
-                      <div className="flag-label">{label}</div>
-                    </a>
-                  ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <Router>
-          <div id="contenidoPrincipal">
-            <Sidebar email={email} grupo={rol} />
-            <div style={{ padding: '1rem', background: '#f3f3f3', fontSize: '0.9rem' }}>
-              <strong>📧 Correo: {email}</strong>
-            </div>
-
-            <ProfileModal token={token} />
-            <ChatModal token={token} />
-
-            <main className="main-content-area">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/actividades" element={<ActividadesPage token={token} />} />
-                <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<ExamenesPage />} />
-              </Routes>
-            </main>
-
-            <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
-          </div>
-        </Router>
-      )}
-    </>
-  );
-}
-
-export default App;
+              <button className="log
 
