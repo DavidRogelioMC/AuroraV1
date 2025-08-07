@@ -34,7 +34,7 @@ function AdminPage() {
       }
     };
 
-    if (emailUsuario === "anette.flores@netec.com.mx") {
+    if (emailUsuario === "anetteliz1842000@icloud.com") {
       obtenerSolicitudes();
     }
   }, [emailUsuario, idToken]);
