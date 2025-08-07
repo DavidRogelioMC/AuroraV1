@@ -11,47 +11,43 @@ function AdminPage() {
 
   const token = localStorage.getItem('id_token');
 
-  // 👉 Solo esta persona puede aprobar/rechazar:
+  // 👉 Solo ESTA persona puede aprobar/rechazar:
   const correoAutorizado = 'anette.flores@netec.com.mx';
 
   // Decodificar token de forma segura
   useEffect(() => {
     if (!token) return;
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setEmail(payload.email || '');
+      const payload = JSON.parse(atob(token.split('.')[1] || ''));
+      setEmail(payload?.email || '');
     } catch (e) {
       console.error('Error al decodificar token', e);
     }
   }, [token]);
 
-  // Cargar solicitudes
-  useEffect(() => {
-    const cargar = async () => {
-      setCargando(true);
-      setError('');
-      try {
-        const res = await fetch(
-          'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
-          { headers: { Authorization: token } }
-        );
-        const data = await res.json();
-        // esperados: { solicitudes: [{ correo, estado? }] }
-        setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
-      } catch (e) {
-        setError('No se pudieron cargar las solicitudes.');
-      } finally {
-        setCargando(false);
-      }
-    };
-    cargar();
-  }, [token]);
-
-  const actualizarFila = (correo, nuevoEstado) => {
-    setSolicitudes((prev) =>
-      prev.map((s) => (s.correo === correo ? { ...s, estado: nuevoEstado } : s))
-    );
+  const cargarSolicitudes = async () => {
+    setCargando(true);
+    setError('');
+    try {
+      const res = await fetch(
+        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
+      {
+        method: 'GET',
+        headers: token ? { Authorization: token } : {},
+      });
+      const data = await res.json();
+      setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
+    } catch (e) {
+      setError('No se pudieron cargar las solicitudes.');
+    } finally {
+      setCargando(false);
+    }
   };
+
+  useEffect(() => {
+    cargarSolicitudes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const aprobarSolicitud = async (correo) => {
     setEnviando(correo);
@@ -61,16 +57,17 @@ function AdminPage() {
         'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: token },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: token } : {}),
+          },
           body: JSON.stringify({ correo }),
         }
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Error al aprobar');
-      // quítala de la lista si tu flujo es solo pendientes:
+      // Remover de la lista (si la lista es de pendientes)
       setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
-      // o marca estado:
-      // actualizarFila(correo, 'aceptado');
       alert(`✅ Usuario ${correo} aprobado como creador.`);
     } catch (e) {
       setError('No se pudo aprobar la solicitud.');
@@ -87,15 +84,16 @@ function AdminPage() {
         'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/rechazar-rol',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: token },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: token } : {}),
+          },
           body: JSON.stringify({ correo }),
         }
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Error al rechazar');
       setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
-      // o marca estado:
-      // actualizarFila(correo, 'rechazado');
       alert(`❌ Usuario ${correo} rechazado.`);
     } catch (e) {
       setError('No se pudo rechazar la solicitud.');
@@ -117,6 +115,12 @@ function AdminPage() {
         </p>
       )}
 
+      <div className="acciones-encabezado">
+        <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
+          {cargando ? 'Actualizando…' : '↻ Actualizar'}
+        </button>
+      </div>
+
       {cargando ? (
         <div className="spinner">Cargando solicitudes…</div>
       ) : error ? (
@@ -134,39 +138,39 @@ function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {solicitudes.map((s) => (
-                <tr key={s.correo}>
-                  <td>{s.correo}</td>
-                  <td>
-                    <span
-                      className={`badge-estado ${
-                        (s.estado || 'pendiente').toLowerCase()
-                      }`}
-                    >
-                      {(s.estado || 'pendiente')
-                        .replace(/^./, (c) => c.toUpperCase())}
-                    </span>
-                  </td>
-                  {puedeGestionar && (
-                    <td className="col-acciones">
-                      <button
-                        className="btn-aprobar"
-                        onClick={() => aprobarSolicitud(s.correo)}
-                        disabled={enviando === s.correo}
-                      >
-                        {enviando === s.correo ? 'Aplicando…' : '✅ Aprobar'}
-                      </button>
-                      <button
-                        className="btn-rechazar"
-                        onClick={() => rechazarSolicitud(s.correo)}
-                        disabled={enviando === s.correo}
-                      >
-                        {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
-                      </button>
+              {solicitudes.map((s) => {
+                const estado = (s.estado || 'pendiente').toLowerCase();
+                return (
+                  <tr key={s.correo}>
+                    <td>{s.correo}</td>
+                    <td>
+                      <span className={`badge-estado ${estado}`}>
+                        {estado.replace(/^./, (c) => c.toUpperCase())}
+                      </span>
                     </td>
-                  )}
-                </tr>
-              ))}
+                    {puedeGestionar && (
+                      <td className="col-acciones">
+                        <button
+                          className="btn-aprobar"
+                          onClick={() => aprobarSolicitud(s.correo)}
+                          disabled={enviando === s.correo}
+                          title="Aprobar solicitud"
+                        >
+                          {enviando === s.correo ? 'Aplicando…' : '✅ Aprobar'}
+                        </button>
+                        <button
+                          className="btn-rechazar"
+                          onClick={() => rechazarSolicitud(s.correo)}
+                          disabled={enviando === s.correo}
+                          title="Rechazar solicitud"
+                        >
+                          {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -176,5 +180,6 @@ function AdminPage() {
 }
 
 export default AdminPage;
+
 
 
