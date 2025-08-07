@@ -1,22 +1,43 @@
-// src/components/AdminPage.jsx
-import React from 'react';
-import SolicitarRolCreadorAdmin from './SolicitarRolCreadorAdmin';
 import './AdminPage.css';
+import { useState } from 'react';
+import axios from 'axios';
 
 function AdminPage() {
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/solicitar-rol-creador', {
+        email,
+      });
+      alert(response.data.message || 'Solicitud enviada con éxito');
+      setEmail('');
+    } catch (error) {
+      console.error('Error al solicitar rol de creador', error);
+      alert('Hubo un error al enviar la solicitud');
+    }
+  };
+
   return (
-    <div className="pagina-admin">
-      <h1>Panel de Administración</h1>
-      <p>Desde aquí puedes solicitar el rol de creador para un usuario autorizado.</p>
+    <div className="admin-container">
+      <h1>👑 Panel de Administración</h1>
+      <p>Aquí puedes solicitar el rol de creador para un usuario autorizado.</p>
 
-      <div className="formulario-admin">
-        <SolicitarRolCreadorAdmin />
-      </div>
+      <input
+        type="email"
+        placeholder="Correo del usuario autorizado"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="admin-input"
+      />
+      <button onClick={handleSubmit} className="admin-button">
+        📩 Solicitar Rol de Creador
+      </button>
 
-      <div className="seccion-solicitudes">
-        <h2>Solicitudes Recientes</h2>
-        <p>Próximamente verás aquí las solicitudes pendientes para aprobar o rechazar.</p>
-      </div>
+      <hr />
+
+      <h2>📋 Solicitudes Recientes</h2>
+      <p>Próximamente verás aquí las solicitudes pendientes para aprobar o rechazar.</p>
     </div>
   );
 }
