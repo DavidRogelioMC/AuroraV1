@@ -9,7 +9,8 @@ import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
-import AdminPage from './components/AdminPage'; // ✅ AÑADIDO
+import AdminPage from './components/AdminPage';
+import SolicitarRolCreadorAdmin from './components/SolicitarRolCreadorAdmin'; // ✅ NUEVO
 
 import './index.css';
 import logo from './assets/Netec.png';
@@ -91,27 +92,31 @@ function App() {
         </div>
       ) : (
         <Router>
-          <div id="contenidoPrincipal">
-            <Sidebar email={email} grupo={rol} />
-            <div style={{ padding: '1rem', background: '#f3f3f3', fontSize: '0.9rem' }}>
-              <strong>📧 Correo: {email}</strong>
+          <div id="contenidoPrincipal" style={{ display: 'flex', height: '100vh' }}>
+            <Sidebar email={email} nombre={email} grupo={rol} />
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '1rem', background: '#f3f3f3', fontSize: '0.9rem' }}>
+                <strong>📧 Correo: {email}</strong>
+              </div>
+
+              <ProfileModal token={token} />
+              <ChatModal token={token} />
+
+              <main className="main-content-area" style={{ padding: '1rem' }}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/actividades" element={<ActividadesPage token={token} />} />
+                  <Route path="/resumenes" element={<ResumenesPage />} />
+                  <Route path="/examenes" element={<ExamenesPage />} />
+                  <Route path="/admin" element={rol === "admin" ? <AdminPage /> : <Home />} />
+                  <Route path="/solicitar-rol" element={<SolicitarRolCreadorAdmin />} />
+                </Routes>
+              </main>
+
+              <button id="logout" onClick={handleLogout} style={{ margin: '1rem' }}>
+                Cerrar sesión
+              </button>
             </div>
-
-            <ProfileModal token={token} />
-            <ChatModal token={token} />
-
-            <main className="main-content-area">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/actividades" element={<ActividadesPage token={token} />} />
-                <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<ExamenesPage />} />
-                {/* ✅ Solo visible para rol admin */}
-                <Route path="/admin" element={rol === "admin" ? <AdminPage /> : <Home />} />
-              </Routes>
-            </main>
-
-            <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </Router>
       )}
