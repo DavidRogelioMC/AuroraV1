@@ -1,89 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import './SolicitarRolCreadorAdmin.css';
+// src/components/SolicitarRolCreadorAdmin.jsx
+import React, { useState } from 'react';
 
-function SolicitarRolCreadorAdmin() {
-  const [correo, setCorreo] = useState('');
-  const [estadoSolicitud, setEstadoSolicitud] = useState('');
+function SolicitarRolCreadorAdmin({ correo }) {
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
-  const token = localStorage.getItem("id_token");
+  const [estado, setEstado] = useState('');
 
-  useEffect(() => {
-    if (!token) return;
+  const dominiosPermitidos = [
+    "netec.com", "netec.com.mx", "netec.com.co",
+    "netec.com.pe", "netec.com.cl", "netec.com.es"
+  ];
 
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const email = payload.email;
-    setCorreo(email);
-
-    fetch(`https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol?correo=${email}`, {
-      method: 'GET',
-      headers: { Authorization: token }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.estado) setEstadoSolicitud(data.estado);
-      });
-  }, [token]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setMensaje('');
     setError('');
+    const dominio = correo.split('@')[1];
+
+    if (!dominiosPermitidos.includes(dominio)) {
+      setError("❌ Dominio no autorizado.");
+      return;
+    }
 
     try {
       const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/solicitar-rol', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo })
       });
 
       const data = await response.json();
       if (response.ok) {
+        setEstado('enviado');
         setMensaje("✅ Solicitud enviada correctamente.");
-        setEstadoSolicitud("pendiente");
       } else {
+        setEstado('fallo');
         setError(`❌ Error: ${data.error || 'No se pudo enviar la solicitud.'}`);
       }
-    } catch (err) {
+    } catch {
+      setEstado('fallo');
       setError("❌ Error de red al enviar la solicitud.");
     }
   };
 
   return (
-    <div className="formulario-solicitud-rol">
-      <h2>Solicitud de Rol de Creador</h2>
-
-      <div>
-        <strong>Correo autenticado:</strong><br />
-        {correo}
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        {(estadoSolicitud === '' || estadoSolicitud === 'rechazado') && (
-          <button type="submit">📩 Solicitar Acceso como Creador</button>
-        )}
-
-        {estadoSolicitud === 'pendiente' && (
-          <div className="estado-solicitud pendiente">⏳ Solicitud en revisión</div>
-        )}
-
-        {estadoSolicitud === 'aceptado' && (
-          <div className="estado-solicitud aceptado">✅ Ya eres creador</div>
-        )}
-
-        {estadoSolicitud === 'rechazado' && (
-          <div className="estado-solicitud rechazado">❌ Solicitud rechazada, puedes volver a intentar</div>
-        )}
-
-        {mensaje && <div className="estado-solicitud aceptado">{mensaje}</div>}
-        {error && <div className="estado-solicitud rechazado">{error}</div>}
-      </form>
+    <div>
+      <button
+        style={{
+          width: '100%',
+          padding: '8px',
+          backgroundColor: '#035b6e',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          marginTop: '4px',
+        }}
+        onClick={handleSubmit}
+        disabled={estado === 'enviado'}
+      >
+        👑 Solicitar Rol de Creador
+      </button>
+      {mensaje && <div style={{ color: "lightgreen", fontSize: '13px' }}>{mensaje}</div>}
+      {error && <div style={{ color: "salmon", fontSize: '13px' }}>{error}</div>}
     </div>
   );
 }
 
 export default SolicitarRolCreadorAdmin;
-
