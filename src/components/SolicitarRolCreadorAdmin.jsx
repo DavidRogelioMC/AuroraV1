@@ -1,78 +1,76 @@
 // src/components/SolicitarRolCreadorAdmin.jsx
 import React, { useEffect, useState } from 'react';
-import { jwtDecode } from 'jwt-decode';
 
-function SolicitarRolCreadorAdmin() {
-  const [correo, setCorreo] = useState('');
+function SolicitarRolCreadorAdmin({ email }) {
+  const [estado, setEstado] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
-  const [esAdmin, setEsAdmin] = useState(false);
-  const [token, setToken] = useState('');
+
+  const dominiosPermitidos = [
+    "netec.com", "netec.com.mx", "netec.com.co",
+    "netec.com.pe", "netec.com.cl", "netec.com.es"
+  ];
+
+  const dominio = email.split('@')[1];
+  const puedeSolicitar = dominiosPermitidos.includes(dominio);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('id_token');
-    if (storedToken) {
-      setToken(storedToken);
-      const decoded = jwtDecode(storedToken);
-      const rol = decoded['custom:rol'];
-      setEsAdmin(rol === 'admin');
-    }
-  }, []);
+    if (!email || !puedeSolicitar) return;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    fetch(`https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/estado-solicitud?correo=${email}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.estado) setEstado(data.estado);
+      })
+      .catch(() => {
+        setError('❌ Error al verificar el estado de la solicitud.');
+      });
+  }, [email]);
+
+  const handleSolicitud = async () => {
     setMensaje('');
     setError('');
 
-    const dominio = correo.split('@')[1];
-    const dominiosPermitidos = [
-      "netec.com", "netec.com.mx", "netec.com.co",
-      "netec.com.pe", "netec.com.cl", "netec.com.es"
-    ];
-
-    if (!dominiosPermitidos.includes(dominio)) {
-      setError("❌ El dominio no está autorizado.");
-      return;
-    }
-
     try {
-      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/solicitar-rol', {
+      const res = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/solicitar-rol', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token
-        },
-        body: JSON.stringify({ correo })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email })
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        setMensaje("✅ Solicitud enviada correctamente.");
-        setCorreo('');
+      const data = await res.json();
+      if (res.ok) {
+        setMensaje('✅ Solicitud enviada correctamente.');
+        setEstado('pendiente');
       } else {
         setError(`❌ Error: ${data.error || 'No se pudo enviar la solicitud.'}`);
       }
-    } catch (err) {
-      setError("❌ Error de red al enviar la solicitud.");
+    } catch {
+      setError('❌ Error de red al enviar la solicitud.');
     }
   };
 
-  if (!esAdmin) return null;
+  if (!puedeSolicitar) return null;
 
   return (
-    <form onSubmit={handleSubmit} className="formulario-resumenes">
-      <input
-        type="email"
-        placeholder="Correo del usuario que recibirá el rol"
-        value={correo}
-        onChange={(e) => setCorreo(e.target.value)}
-        required
-      />
-      <button type="submit">📩 Solicitar Rol de Creador</button>
+    <div className="formulario-resumenes" style={{ marginTop: '20px' }}>
+      <button onClick={handleSolicitud} disabled={estado === 'pendiente'}>
+        📩 Solicitar Rol de Creador
+      </button>
 
-      {mensaje && <div style={{ color: "green", fontWeight: "bold" }}>{mensaje}</div>}
+      {estado && <div style={{ marginTop: '10px' }}>
+        <strong>Estado de la solicitud:</strong> {estado === 'aceptada'
+          ? '✅ Aceptada'
+          : estado === 'pendiente'
+          ? '⏳ Pendiente'
+          : estado === 'rechazada'
+          ? '❌ Rechazada (puedes volver a intentar)'
+          : estado}
+      </div>}
+
+      {mensaje && <div style={{ color: 'green', fontWeight: 'bold' }}>{mensaje}</div>}
       {error && <div className="error-resumenes">{error}</div>}
-    </form>
+    </div>
   );
 }
 
