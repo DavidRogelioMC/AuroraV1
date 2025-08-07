@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
 import { jwtDecode } from 'jwt-decode';
 
 import Sidebar from './components/Sidebar';
@@ -10,7 +9,7 @@ import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
-import AdminPage from './components/AdminPage'; // ✅ Importa el nuevo componente
+import AdminPage from './components/AdminPage'; // ✅ AÑADIDO
 
 import './index.css';
 import logo from './assets/Netec.png';
@@ -107,16 +106,8 @@ function App() {
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
-                <Route
-                  path="/admin"
-                  element={
-                    rol.includes("admin") ? (
-                      <AdminPage />
-                    ) : (
-                      <h1 style={{ padding: '2rem', color: 'red' }}>⛔ Acceso denegado</h1>
-                    )
-                  }
-                />
+                {/* ✅ Solo visible para rol admin */}
+                <Route path="/admin" element={rol === "admin" ? <AdminPage /> : <Home />} />
               </Routes>
             </main>
 
