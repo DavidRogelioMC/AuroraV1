@@ -1,0 +1,24 @@
+// src/components/AdminPage.jsx
+import React from 'react';
+import SolicitarRolCreadorAdmin from './SolicitarRolCreadorAdmin';
+
+function AdminPage() {
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Panel de Administración</h1>
+
+      <section className="mb-6">
+        <h2 className="text-lg font-semibold mb-2">📤 Solicitar rol de creador para un usuario</h2>
+        <SolicitarRolCreadorAdmin />
+      </section>
+
+      {/* Aquí luego agregaremos la tabla de solicitudes y acciones */}
+      <section>
+        <h2 className="text-lg font-semibold mb-2">📋 Solicitudes recibidas</h2>
+        <p>🔧 Próximamente podrás aprobar/rechazar solicitudes desde aquí.</p>
+      </section>
+    </div>
+  );
+}
+
+export default AdminPage;
