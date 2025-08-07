@@ -1,45 +1,89 @@
-import './AdminPage.css';
-import { useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import "./AdminPage.css";
 
 function AdminPage() {
-  const [email, setEmail] = useState('');
+  const [correo, setCorreo] = useState("");
+  const [mensaje, setMensaje] = useState("");
+  const [solicitudes, setSolicitudes] = useState([]);
+  const token = localStorage.getItem("id_token");
 
-  const handleSubmit = async () => {
+  const API_URL = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2";
+
+  const solicitarRol = async () => {
     try {
-      const response = await axios.post('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/solicitar-rol-creador', {
-        email,
+      const response = await fetch(`${API_URL}/solicitar-rol-creador`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ correo }),
       });
-      alert(response.data.message || 'Solicitud enviada con éxito');
-      setEmail('');
+
+      const data = await response.json();
+      setMensaje(data.mensaje || "Solicitud enviada.");
+      setCorreo("");
     } catch (error) {
-      console.error('Error al solicitar rol de creador', error);
-      alert('Hubo un error al enviar la solicitud');
+      console.error("Error al solicitar rol:", error);
+      setMensaje("Error al enviar la solicitud.");
     }
   };
 
+  const obtenerSolicitudes = async () => {
+    try {
+      const response = await fetch(`${API_URL}/obtener-solicitudes-rol`, {
+        method: "GET",
+        headers: {
+          Authorization: token,
+        },
+      });
+
+      const data = await response.json();
+      setSolicitudes(data.solicitudes || []);
+    } catch (error) {
+      console.error("Error al obtener solicitudes:", error);
+    }
+  };
+
+  useEffect(() => {
+    obtenerSolicitudes();
+  }, []);
+
   return (
     <div className="admin-container">
-      <h1>👑 Panel de Administración</h1>
+      <h2>👑 Panel de Administración</h2>
       <p>Aquí puedes solicitar el rol de creador para un usuario autorizado.</p>
 
-      <input
-        type="email"
-        placeholder="Correo del usuario autorizado"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="admin-input"
-      />
-      <button onClick={handleSubmit} className="admin-button">
-        📩 Solicitar Rol de Creador
-      </button>
+      <div className="solicitar-rol">
+        <input
+          type="email"
+          placeholder="Correo del usuario autorizado"
+          value={correo}
+          onChange={(e) => setCorreo(e.target.value)}
+        />
+        <button onClick={solicitarRol}>📩 Solicitar Rol de Creador</button>
+      </div>
+
+      {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
 
       <hr />
 
-      <h2>📋 Solicitudes Recientes</h2>
-      <p>Próximamente verás aquí las solicitudes pendientes para aprobar o rechazar.</p>
+      <h3>📥 Solicitudes Recientes</h3>
+      {solicitudes.length === 0 ? (
+        <p>No hay solicitudes pendientes por ahora.</p>
+      ) : (
+        <ul className="solicitudes-lista">
+          {solicitudes.map((s, i) => (
+            <li key={i} className="solicitud-item">
+              <span>{s.correo}</span>
+              {/* Los botones de aprobar/rechazar los agregamos luego si quieres */}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 
 export default AdminPage;
+
