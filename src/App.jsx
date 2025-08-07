@@ -21,9 +21,9 @@ import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("id_token"));
-  const [email, setEmail] = useState("");
-  const [rol, setRol] = useState("");
+  const [token, setToken] = useState(localStorage.getItem('id_token'));
+  const [email, setEmail] = useState('');
+  const [rol, setRol] = useState('');
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
@@ -32,11 +32,11 @@ function App() {
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash.includes("id_token")) {
-      const newToken = hash.split("id_token=")[1].split("&")[0];
-      localStorage.setItem("id_token", newToken);
+    if (hash.includes('id_token')) {
+      const newToken = hash.split('id_token=')[1].split('&')[0];
+      localStorage.setItem('id_token', newToken);
       setToken(newToken);
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      window.history.pushState('', document.title, window.location.pathname + window.location.search);
     }
   }, []);
 
@@ -44,16 +44,16 @@ function App() {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        setEmail(decoded.email || "");
-        setRol(decoded["custom:rol"] || "");
+        setEmail(decoded.email || '');
+        setRol(decoded['custom:rol'] || '');
       } catch (err) {
-        console.error("❌ Error al decodificar el token:", err);
+        console.error('❌ Error al decodificar el token:', err);
       }
     }
   }, [token]);
 
   const handleLogout = () => {
-    localStorage.removeItem("id_token");
+    localStorage.removeItem('id_token');
     const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
     window.location.href = logoutUrl;
   };
@@ -74,15 +74,17 @@ function App() {
                 🚀 Comenzar Ahora
               </button>
               <div className="country-flags">
-                {[{ flag: chileFlag, label: "Chile", url: "https://www.netec.com/cursos-ti-chile" },
-                  { flag: peruFlag, label: "Perú", url: "https://www.netec.com/cursos-ti-peru" },
-                  { flag: colombiaFlag, label: "Colombia", url: "https://www.netec.com/cursos-ti-colombia" },
-                  { flag: mexicoFlag, label: "México", url: "https://www.netec.com/cursos-ti-mexico" },
-                  { flag: espanaFlag, label: "España", url: "https://www.netec.es/" }].map(({ flag, label, url }) => (
-                    <a key={label} href={url} target="_blank" rel="noopener noreferrer" className="flag-item">
-                      <img src={flag} alt={label} className="flag-image" />
-                      <div className="flag-label">{label}</div>
-                    </a>
+                {[
+                  { flag: chileFlag, label: 'Chile', url: 'https://www.netec.com/cursos-ti-chile' },
+                  { flag: peruFlag, label: 'Perú', url: 'https://www.netec.com/cursos-ti-peru' },
+                  { flag: colombiaFlag, label: 'Colombia', url: 'https://www.netec.com/cursos-ti-colombia' },
+                  { flag: mexicoFlag, label: 'México', url: 'https://www.netec.com/cursos-ti-mexico' },
+                  { flag: espanaFlag, label: 'España', url: 'https://www.netec.es/' }
+                ].map(({ flag, label, url }) => (
+                  <a key={label} href={url} target="_blank" rel="noopener noreferrer" className="flag-item">
+                    <img src={flag} alt={label} className="flag-image" />
+                    <div className="flag-label">{label}</div>
+                  </a>
                 ))}
               </div>
             </div>
@@ -91,7 +93,8 @@ function App() {
       ) : (
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar email={email} grupo={rol} />
+            <Sidebar email={email} grupo={rol} token={token} />
+            {/* ← Eliminé la franja gris del correo */}
 
             <ProfileModal token={token} />
             <ChatModal token={token} />
@@ -102,7 +105,7 @@ function App() {
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
-                <Route path="/admin" element={rol === "admin" ? <AdminPage /> : <Home />} />
+                <Route path="/admin" element={rol === 'admin' ? <AdminPage /> : <Home />} />
               </Routes>
             </main>
 
@@ -115,4 +118,3 @@ function App() {
 }
 
 export default App;
-
