@@ -1,7 +1,7 @@
 // src/components/AdminPage.jsx
 import React from 'react';
 import SolicitarRolCreadorAdmin from './SolicitarRolCreadorAdmin';
-import './AdminPage.css'; // Este archivo lo crearás abajo
+import './AdminPage.css';
 
 function AdminPage() {
   return (
