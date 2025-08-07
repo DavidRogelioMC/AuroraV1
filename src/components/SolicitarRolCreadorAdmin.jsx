@@ -23,7 +23,7 @@ function SolicitarRolCreadorAdmin() {
     }
 
     try {
-      const response = await fetch('https://TU_API_ENDPOINT.amazonaws.com/dev2/solicitar-rol', {
+      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/solicitar-rol', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo })
@@ -59,4 +59,5 @@ function SolicitarRolCreadorAdmin() {
 }
 
 export default SolicitarRolCreadorAdmin;
+
 
