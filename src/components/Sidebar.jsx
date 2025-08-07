@@ -58,9 +58,10 @@ function Sidebar({ email, nombre, grupo }) {
           <div className="step"><div className="circle">🔬</div><span>Examen</span></div>
         </Link>
 
+        {/* ✅ Solo visible para admin */}
         {grupo === 'admin' && (
           <>
-            <Link to="/admin-dashboard" className="nav-link">
+            <Link to="/admin" className="nav-link">
               <div className="step"><div className="circle">⚙️</div><span>Admin</span></div>
             </Link>
             <Link to="/usuarios" className="nav-link">
@@ -74,3 +75,4 @@ function Sidebar({ email, nombre, grupo }) {
 }
 
 export default Sidebar;
+
