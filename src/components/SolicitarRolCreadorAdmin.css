@@ -1,0 +1,40 @@
+/* Puedes poner esto en index.css o SolicitarRolCreadorAdmin.css */
+
+.formulario-resumenes {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.formulario-resumenes input[type="email"] {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.formulario-resumenes button {
+  padding: 10px;
+  font-size: 1rem;
+  background-color: #035b6e;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.formulario-resumenes button:hover {
+  background-color: #023f4e;
+}
+
+.error-resumenes {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+}
