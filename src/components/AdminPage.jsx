@@ -4,94 +4,99 @@ import './AdminPage.css';
 
 function AdminPage() {
   const [solicitudes, setSolicitudes] = useState([]);
-  const [emailUsuario, setEmailUsuario] = useState("");
+  const [email, setEmail] = useState('');
+  const token = localStorage.getItem('id_token');
 
-  const idToken = localStorage.getItem("id_token");
+  const correoAdmin = 'anetteliz1842000@icloud.com';
 
   useEffect(() => {
-    if (idToken) {
-      try {
-        const payload = JSON.parse(atob(idToken.split('.')[1]));
-        setEmailUsuario(payload.email || "");
-      } catch (error) {
-        console.error("Error al decodificar el token:", error);
+    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    setEmail(tokenData.email);
+  }, [token]);
+
+  useEffect(() => {
+    fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol', {
+      method: 'GET',
+      headers: {
+        Authorization: token,
       }
-    }
-  }, [idToken]);
-
-  useEffect(() => {
-    const obtenerSolicitudes = async () => {
-      try {
-        const response = await fetch("https://3d0051a6-795c-4b88-aaa1-bbd2a8f4ab75.dev2.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol", {
-          headers: {
-            Authorization: idToken,
-          },
-        });
-        const data = await response.json();
+    })
+      .then(res => res.json())
+      .then(data => {
         setSolicitudes(data.solicitudes || []);
-      } catch (error) {
-        console.error("Error al obtener solicitudes:", error);
-      }
-    };
-
-    if (emailUsuario === "anetteliz1842000@icloud.com") {
-      obtenerSolicitudes();
-    }
-  }, [emailUsuario, idToken]);
-
-  const manejarAccion = async (correo, accion) => {
-    try {
-      const response = await fetch("https://3d0051a6-795c-4b88-aaa1-bbd2a8f4ab75.dev2.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: idToken,
-        },
-        body: JSON.stringify({ correo, accion }),
       });
+  }, [token]);
 
-      const data = await response.json();
-      alert(data.message || "Operación completada.");
-      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
-    } catch (error) {
-      console.error("Error al realizar la acción:", error);
-      alert("Error al procesar la solicitud.");
-    }
+  const aprobarSolicitud = (correo) => {
+    fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token,
+      },
+      body: JSON.stringify({ correo }),
+    })
+      .then(res => res.json())
+      .then(() => {
+        alert(`✅ Usuario ${correo} aprobado como creador.`);
+        setSolicitudes(solicitudes.filter(s => s.correo !== correo));
+      });
+  };
+
+  const rechazarSolicitud = (correo) => {
+    fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/rechazar-rol', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token,
+      },
+      body: JSON.stringify({ correo }),
+    })
+      .then(res => res.json())
+      .then(() => {
+        alert(`❌ Usuario ${correo} rechazado.`);
+        setSolicitudes(solicitudes.filter(s => s.correo !== correo));
+      });
   };
 
   return (
     <div className="pagina-admin">
       <h1>Panel de Administración</h1>
-      <p>Aquí puedes ver y gestionar solicitudes de rol creador.</p>
+      <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
 
-      <h2>Solicitudes Pendientes</h2>
-
-      {emailUsuario === "anette.flores@netec.com.mx" ? (
-        solicitudes.length === 0 ? (
-          <p>No hay solicitudes en este momento.</p>
-        ) : (
-          <ul className="lista-solicitudes">
-            {solicitudes.map((s) => (
-              <li key={s.correo} className="item-solicitud">
-                {s.correo}
-                <div className="botones">
-                  <button onClick={() => manejarAccion(s.correo, "aprobar")} className="btn-aprobar">
-                    ✅ Aprobar
-                  </button>
-                  <button onClick={() => manejarAccion(s.correo, "rechazar")} className="btn-rechazar">
-                    ❌ Rechazar
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )
+      {email === correoAdmin ? (
+        <div className="tabla-solicitudes">
+          {solicitudes.length === 0 ? (
+            <p>No hay solicitudes pendientes.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Correo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {solicitudes.map((s) => (
+                  <tr key={s.correo}>
+                    <td>{s.correo}</td>
+                    <td>
+                      <button onClick={() => aprobarSolicitud(s.correo)}>✅ Aprobar</button>
+                      <button onClick={() => rechazarSolicitud(s.correo)}>❌ Rechazar</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       ) : (
-        <p>No tienes permiso para ver esta sección.</p>
+        <p style={{ color: 'red' }}>🚫 Solo el administrador autorizado puede gestionar estas solicitudes.</p>
       )}
     </div>
   );
 }
 
 export default AdminPage;
+
 
