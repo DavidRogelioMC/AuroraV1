@@ -1,74 +1,91 @@
-// src/components/Sidebar.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 import SolicitarRolCreadorAdmin from './SolicitarRolCreadorAdmin';
 
 function Sidebar() {
   const [sidebarAbierto, setSidebarAbierto] = useState(true);
-  const [correo, setCorreo] = useState('');
-  const [fotoPerfil, setFotoPerfil] = useState('');
+  const [email, setEmail] = useState('');
   const [rol, setRol] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('id_token');
-    if (token) {
+    if (!token) return;
+    try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const email = payload.email || '';
-      setCorreo(email);
-      setRol(payload['custom:rol'] || '');
-      setFotoPerfil(`https://perfil-fotos-any1804.s3.amazonaws.com/${payload.sub}`);
+      setEmail(payload.email || '');
+      setRol((payload['custom:rol'] || '').toLowerCase()); // "admin" | "participant" | ...
+    } catch (e) {
+      console.error('No se pudo decodificar el token:', e);
     }
   }, []);
 
-  const toggleSidebar = () => setSidebarAbierto(!sidebarAbierto);
-
-  const handleCerrarSesion = () => {
-    localStorage.clear();
+  const toggleSidebar = () => setSidebarAbierto((s) => !s);
+  const cerrarSesion = () => {
+    localStorage.removeItem('id_token');
     navigate('/');
   };
 
-  const pasos = [
+  // Ítems del menú (con emojis como en tu UI)
+  const items = [
     { icono: '🧠', texto: 'Resúmenes', ruta: '/resumenes' },
     { icono: '📘', texto: 'Actividades', ruta: '/actividades' },
-    { icono: '🔬', texto: 'Examen', ruta: '/examen' },
+    { icono: '🔬', texto: 'Examen', ruta: '/examenes' },
     { icono: '⚙️', texto: 'Admin', ruta: '/admin', soloAdmin: true },
     { icono: '👥', texto: 'Usuarios', ruta: '/usuarios', soloAdmin: true },
   ];
 
+  const esAdmin = rol === 'admin';
+
   return (
     <div id="barraLateral" className={sidebarAbierto ? 'abierto' : 'cerrado'}>
+      {/* Botón de contraer/expandir con separación */}
       <div className="toggle-container">
-        <button className="toggle-btn" onClick={toggleSidebar}>☰</button>
+        <button className="toggle-btn" onClick={toggleSidebar} aria-label="Contraer/Expandir">▸</button>
       </div>
 
+      {/* Perfil */}
       <div id="perfilSidebar">
-        <img src={fotoPerfil} alt="Foto" />
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+          alt="Foto perfil"
+        />
+
+        {/* Mostrar textos solo cuando está abierto */}
         {sidebarAbierto && (
           <>
-            <div className="nombre">{correo}</div>
-            <div className="email">{correo}</div>
-            {rol && <div className="rol">🎓 Rol: {rol.charAt(0).toUpperCase() + rol.slice(1)}</div>}
+            <div className="nombre">{email || 'Usuario'}</div>
+            {/* QUITAMOS el duplicado del correo */}
+            {/* <div className="email">{email}</div> */}
+            <div className="rol">🎖️ Rol: {esAdmin ? 'Administrador' : 'Participante'}</div>
+
+            {/* Botón de solicitar rol de creador (debajo del rol), usando email autenticado */}
+            {esAdmin && (
+              <div className="solicitud-creador-admin">
+                <SolicitarRolCreadorAdmin correoAutenticado={email} />
+              </div>
+            )}
           </>
         )}
-        {sidebarAbierto && <div className="solicitud-creador-admin"><SolicitarRolCreadorAdmin correo={correo} /></div>}
       </div>
 
+      {/* Navegación */}
       <div id="caminito">
-        {pasos.map((paso, i) => {
-          if (paso.soloAdmin && rol !== 'admin') return null;
+        {items.map((it, idx) => {
+          if (it.soloAdmin && !esAdmin) return null;
           return (
-            <div className="step" key={i} onClick={() => navigate(paso.ruta)}>
-              <div className="circle">{paso.icono}</div>
-              {sidebarAbierto && <span>{paso.texto}</span>}
+            <div key={idx} className="step" onClick={() => navigate(it.ruta)}>
+              <div className="circle">{it.icono}</div>
+              {sidebarAbierto && <span>{it.texto}</span>}
             </div>
           );
         })}
       </div>
 
+      {/* Cerrar sesión */}
       <div className="cerrar-sesion-container">
-        <button className="cerrar-sesion-btn" onClick={handleCerrarSesion}>
+        <button className="cerrar-sesion-btn" onClick={cerrarSesion}>
           Cerrar sesión
         </button>
       </div>
