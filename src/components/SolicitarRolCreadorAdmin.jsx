@@ -7,12 +7,8 @@ function SolicitarRolCreadorAdmin() {
   const [error, setError] = useState('');
 
   const dominiosPermitidos = [
-    "netec.com",
-    "netec.com.mx",
-    "netec.com.co",
-    "netec.com.pe",
-    "netec.com.cl",
-    "netec.com.es"
+    "netec.com", "netec.com.mx", "netec.com.co",
+    "netec.com.pe", "netec.com.cl", "netec.com.es"
   ];
 
   const handleSubmit = async (e) => {
