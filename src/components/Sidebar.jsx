@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
@@ -19,7 +20,17 @@ function Sidebar({ email, nombre, grupo }) {
     ? 'Administrador'
     : grupo === 'participant'
     ? 'Participante'
+    : grupo === 'creador'
+    ? 'Creador'
     : 'Sin grupo';
+
+  const dominiosPermitidos = [
+    "netec.com", "netec.com.mx", "netec.com.co",
+    "netec.com.pe", "netec.com.cl", "netec.com.es"
+  ];
+
+  const dominioUsuario = email?.split('@')[1] || "";
+  const puedeSolicitar = grupo === 'admin' && dominiosPermitidos.includes(dominioUsuario);
 
   return (
     <div id="barraLateral" className="sidebar">
@@ -69,10 +80,18 @@ function Sidebar({ email, nombre, grupo }) {
             </Link>
           </>
         )}
+
+        {/* ✅ Solo visible para admin con dominio de Netec */}
+        {puedeSolicitar && (
+          <Link to="/solicitar-rol" className="nav-link">
+            <div className="step"><div className="circle">📩</div><span>Solicitar ser creador</span></div>
+          </Link>
+        )}
       </div>
     </div>
   );
 }
 
 export default Sidebar;
+
 
