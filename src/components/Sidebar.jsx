@@ -1,19 +1,25 @@
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
 import AvatarModal from './AvatarModal';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
-function Sidebar({ email, nombre, grupo }) {
+const DOMINIOS_PERMITIDOS = new Set([
+  'netec.com', 'netec.com.mx', 'netec.com.co', 'netec.com.pe', 'netec.com.cl', 'netec.com.es'
+]);
+
+function Sidebar({ email, nombre, grupo, token }) {
   const [avatar, setAvatar] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [colapsado, setColapsado] = useState(false);
 
-  // estado para solicitud de rol de creador
-  const [reqStatus, setReqStatus] = useState({ state: 'idle', msg: '' }); 
-  // states: idle | sending | ok | error
+  // estados del botón solicitar creador
+  const [enviando, setEnviando] = useState(false);
+  const [ok, setOk] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     Auth.currentAuthenticatedUser()
@@ -23,110 +29,123 @@ function Sidebar({ email, nombre, grupo }) {
 
   const grupoFormateado =
     grupo === 'admin' ? 'Administrador' :
-    grupo === 'participant' ? 'Participante' :
-    grupo?.includes('creador') ? 'Creador' :
-    'Sin grupo';
+    grupo === 'participant' ? 'Participante' : 'Sin grupo';
 
-  const solicitarCreador = async () => {
-    setReqStatus({ state: 'sending', msg: '' });
+  const dominio = useMemo(() => (email?.split('@')[1] || '').toLowerCase(), [email]);
+  const esDominioNetec = DOMINIOS_PERMITIDOS.has(dominio);
+  const puedeSolicitarCreador = grupo === 'admin' && esDominioNetec;
 
+  const toggleColapso = () => setColapsado((v) => !v);
+
+  const enviarSolicitudCreador = async () => {
+    setEnviando(true);
+    setOk(false);
+    setError('');
     try {
-      const token = localStorage.getItem('id_token') || '';
-
       const res = await fetch(`${API_BASE}/solicitar-rol`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // Si tu API no requiere Auth, puedes quitar la siguiente línea:
           ...(token ? { Authorization: token } : {})
         },
         body: JSON.stringify({ correo: email })
       });
-
-      // intenta leer el cuerpo para dar un mensaje útil
-      let payloadText = '';
-      try { payloadText = await res.text(); } catch {}
-      let payload;
-      try { payload = payloadText ? JSON.parse(payloadText) : {}; } catch { payload = {}; }
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const msg = payload?.error || `HTTP ${res.status}${payloadText ? ` – ${payloadText}` : ''}`;
-        setReqStatus({ state: 'error', msg: `Error: ${msg}` });
-        return;
+        throw new Error(data?.error || 'Solicitud rechazada por el servidor');
       }
-
-      // OK
-      setReqStatus({
-        state: 'ok',
-        msg: '✅ Solicitud enviada. Estado: pendiente.'
-      });
+      setOk(true);
     } catch (e) {
-      setReqStatus({ state: 'error', msg: '❌ Error de red al enviar la solicitud.' });
+      console.error('❌ Error al enviar solicitud:', e);
+      setError('Error de red al enviar la solicitud.');
+    } finally {
+      setEnviando(false);
     }
   };
 
   return (
-    <div id="barraLateral" className="sidebar">
-      <div id="perfilSidebar" style={{ textAlign: 'center', padding: '10px' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
+      {/* Botón colapsar/expandir */}
+      <button
+        type="button"
+        className="collapse-btn"
+        aria-label={colapsado ? 'Expandir barra lateral' : 'Colapsar barra lateral'}
+        onClick={toggleColapso}
+      >
+        {colapsado ? '▸' : '◂'}
+      </button>
+
+      <div id="perfilSidebar" className="perfilSidebar">
+        <div className="avatar-wrap" onClick={() => setIsModalOpen(true)}>
           <img
             src={avatar || defaultFoto}
             alt="Foto perfil"
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              objectFit: 'cover',
-              cursor: 'pointer',
-            }}
-            onClick={() => setIsModalOpen(true)}
+            className="avatar-img"
           />
         </div>
 
-        <div className="nombre" id="nombreSidebar">{nombre || 'Usuario conectado'}</div>
-        <div className="email" id="emailSidebar">{email}</div>
-        <div className="grupo" id="grupoSidebar">🎖️ Rol: {grupoFormateado}</div>
+        {!colapsado && (
+          <>
+            <div className="nombre" id="nombreSidebar">{nombre || 'Usuario conectado'}</div>
+            <div className="email" id="emailSidebar">{email}</div>
+            <div className="grupo" id="grupoSidebar">🎖️ Rol: {grupoFormateado}</div>
 
-        {/* Botón para solicitar rol de Creador (usa el correo del login) */}
-        <button
-          className="btn-solicitar-creador"
-          onClick={solicitarCreador}
-          disabled={reqStatus.state === 'sending'}
-          style={{ marginTop: 10 }}
-        >
-          {reqStatus.state === 'sending' ? 'Enviando…' : '📩 Solicitar rol de Creador'}
-        </button>
-
-        {/* Mensaje de estado */}
-        {reqStatus.state === 'ok' && (
-          <div style={{ color: '#2e7d32', fontWeight: 600, marginTop: 6 }}>{reqStatus.msg}</div>
-        )}
-        {reqStatus.state === 'error' && (
-          <div className="error-resumenes" style={{ marginTop: 6 }}>{reqStatus.msg}</div>
+            {/* Botón Solicitar rol de Creador (debajo del rol) */}
+            {puedeSolicitarCreador && (
+              <div className="solicitar-creador-card">
+                <button
+                  className="solicitar-creador-btn"
+                  onClick={enviarSolicitudCreador}
+                  disabled={enviando || ok}
+                >
+                  {enviando ? 'Enviando…' : (ok ? '✅ Solicitud enviada' : '📩 Solicitar rol de Creador')}
+                </button>
+                {!!error && <div className="solicitar-creador-error">❌ {error}</div>}
+              </div>
+            )}
+          </>
         )}
       </div>
 
       <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-      <div id="caminito">
+      <div id="caminito" className="caminito">
         <Link to="/resumenes" className="nav-link">
-          <div className="step"><div className="circle">🧠</div><span>Resúmenes</span></div>
+          <div className="step">
+            <div className="circle">🧠</div>
+            {!colapsado && <span>Resúmenes</span>}
+          </div>
         </Link>
 
         <Link to="/actividades" className="nav-link">
-          <div className="step"><div className="circle">📘</div><span>Actividades</span></div>
+          <div className="step">
+            <div className="circle">📘</div>
+            {!colapsado && <span>Actividades</span>}
+          </div>
         </Link>
 
         <Link to="/examenes" className="nav-link">
-          <div className="step"><div className="circle">🔬</div><span>Examen</span></div>
+          <div className="step">
+            <div className="circle">🔬</div>
+            {!colapsado && <span>Examen</span>}
+          </div>
         </Link>
 
         {grupo === 'admin' && (
           <>
             <Link to="/admin" className="nav-link">
-              <div className="step"><div className="circle">⚙️</div><span>Admin</span></div>
+              <div className="step">
+                <div className="circle">⚙️</div>
+                {!colapsado && <span>Admin</span>}
+              </div>
             </Link>
             <Link to="/usuarios" className="nav-link">
-              <div className="step"><div className="circle">👥</div><span>Usuarios</span></div>
+              <div className="step">
+                <div className="circle">👥</div>
+                {!colapsado && <span>Usuarios</span>}
+              </div>
             </Link>
           </>
         )}
