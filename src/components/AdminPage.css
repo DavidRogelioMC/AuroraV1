@@ -1,41 +1,90 @@
 .pagina-admin {
-  margin-left: 260px; /* Ancho del sidebar */
+  margin-left: 260px; /* ancho del sidebar abierto */
   padding: 2rem;
   background-color: #f5f8fc;
   min-height: 100vh;
 }
 
-.lista-solicitudes {
-  list-style: none;
-  padding: 0;
-}
-
-.item-solicitud {
-  background: white;
-  padding: 1rem;
+.solo-autorizado {
+  color: #d23636;
+  font-weight: 600;
   margin-bottom: 1rem;
-  border-left: 4px solid #035b6e;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
-.botones button {
-  margin-left: 1rem;
-  padding: 0.5rem 1rem;
+.spinner {
+  color: #1b5784;
+  font-weight: 600;
+}
+
+.error-box {
+  background: #ffe7e7;
+  border: 1px solid #ffb4b4;
+  color: #b30000;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Tabla */
+.tabla-solicitudes table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.tabla-solicitudes thead tr {
+  background: #eaf4ff;
+  color: #1b5784;
+}
+
+.tabla-solicitudes th,
+.tabla-solicitudes td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.tabla-solicitudes tbody tr:hover {
+  background: #f8fbff;
+}
+
+/* Badge de estado */
+.badge-estado {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.badge-estado.pendiente { background: #fff3cd; color: #8a6d3b; }
+.badge-estado.aceptado  { background: #d1f7d6; color: #256028; }
+.badge-estado.rechazado { background: #ffd5d5; color: #8a1c1c; }
+
+.col-acciones {
+  white-space: nowrap;
+}
+
+/* Botones */
+.btn-aprobar,
+.btn-rechazar {
+  margin-right: 8px;
+  padding: 8px 12px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 700;
+  color: #fff;
+}
+.btn-aprobar { background-color: #2e7d32; }
+.btn-aprobar:hover { background-color: #276b2b; }
+.btn-rechazar { background-color: #c62828; }
+.btn-rechazar:hover { background-color: #ab1f1f; }
+.btn-aprobar:disabled,
+.btn-rechazar:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
-.btn-aprobar {
-  background-color: #2e7d32;
-  color: white;
-}
-
-.btn-rechazar {
-  background-color: #c62828;
-  color: white;
-}
