@@ -1,169 +1,171 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
-import AvatarModal from './AvatarModal';
-import defaultFoto from '../assets/default.jpg';
-import './Sidebar.css';
+/* Contenedor Principal */
+#barraLateral.sidebar {
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 92px;
 
-const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
-const DOMINIOS_PERMITIDOS = new Set([
-  'netec.com',
-  'netec.com.mx',
-  'netec.com.co',
-  'netec.com.pe',
-  'netec.com.cl',
-  'netec.com.es'
-]);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background-color: #1b5784;
+  z-index: 5;
 
-export default function Sidebar({ email, grupo, nombre, token }) {
-  const [avatar, setAvatar] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [colapsado, setColapsado] = useState(false);
+  display: flex;
+  flex-direction: column;
 
-  // Estado de la solicitud de creador
-  const [enviando, setEnviando] = useState(false);
-  const [ok, setOk] = useState(false);
-  const [error, setError] = useState('');
-
-  // Cargar foto de perfil de Cognito
-  useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(u => setAvatar(u.attributes.picture))
-      .catch(() => setAvatar(null));
-  }, []);
-
-  // Calcular dominio y si puede solicitar rol de creador
-  const dominio = useMemo(
-    () => (email?.split('@')[1] || '').toLowerCase(),
-    [email]
-  );
-  const esDominioNetec = DOMINIOS_PERMITIDOS.has(dominio);
-  const puedeSolicitarCreador = grupo === 'admin' && esDominioNetec;
-
-  const toggleColapsar = () => setColapsado(v => !v);
-
-  // Enviar solicitud de rol de creador
-  const enviarSolicitudCreador = async () => {
-    setEnviando(true);
-    setOk(false);
-    setError('');
-    try {
-      const res = await fetch(`${API_BASE}/solicitar-rol`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token
-        },
-        body: JSON.stringify({ correo: email })
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.error || 'Servidor rechazó la solicitud');
-      }
-      setOk(true);
-    } catch (e) {
-      console.error('❌ Error al enviar solicitud:', e);
-      setError('Error de red al enviar la solicitud.');
-    } finally {
-      setEnviando(false);
-    }
-  };
-
-  const rolFormateado = 
-    grupo === 'admin' ? 'Administrador' :
-    grupo === 'participant' ? 'Participante' :
-    'Sin rol';
-
-  return (
-    <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
-      {/* Botón de colapsar/expandir */}
-      <button
-        className="collapse-btn"
-        onClick={toggleColapsar}
-        aria-label={colapsado ? 'Expandir sidebar' : 'Colapsar sidebar'}
-      >
-        {colapsado ? '▸' : '◂'}
-      </button>
-
-      {/* Perfil */}
-      <div className="perfilSidebar">
-        <div className="avatar-wrap" onClick={() => setIsModalOpen(true)}>
-          <img
-            src={avatar || defaultFoto}
-            alt="Foto perfil"
-            className="avatar-img"
-          />
-        </div>
-
-        {!colapsado && (
-          <>
-            <div className="nombre">{nombre || 'Usuario conectado'}</div>
-            <div className="email">{email}</div>
-            <div className="grupo">🎖️ Rol: {rolFormateado}</div>
-
-            {puedeSolicitarCreador && (
-              <div className="solicitar-creador-card">
-                <button
-                  className="solicitar-creador-btn"
-                  onClick={enviarSolicitudCreador}
-                  disabled={enviando || ok}
-                >
-                  {enviando
-                    ? 'Enviando…'
-                    : ok
-                    ? '✅ Solicitud enviada'
-                    : '📩 Solicitar rol de Creador'}
-                </button>
-                {error && <div className="solicitar-creador-error">❌ {error}</div>}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      <AvatarModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-
-      {/* Navegación */}
-      <div id="caminito" className="caminito">
-        <Link to="/resumenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🧠</div>
-            {!colapsado && <span>Resúmenes</span>}
-          </div>
-        </Link>
-        <Link to="/actividades" className="nav-link">
-          <div className="step">
-            <div className="circle">📘</div>
-            {!colapsado && <span>Actividades</span>}
-          </div>
-        </Link>
-        <Link to="/examenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🔬</div>
-            {!colapsado && <span>Examen</span>}
-          </div>
-        </Link>
-
-        {grupo === 'admin' && (
-          <>
-            <Link to="/admin" className="nav-link">
-              <div className="step">
-                <div className="circle">⚙️</div>
-                {!colapsado && <span>Admin</span>}
-              </div>
-            </Link>
-            <Link to="/usuarios" className="nav-link">
-              <div className="step">
-                <div className="circle">👥</div>
-                {!colapsado && <span>Usuarios</span>}
-              </div>
-            </Link>
-          </>
-        )}
-      </div>
-    </div>
-  );
+  /* scroll interno */
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
+
+/* Estado Colapsado */
+#barraLateral.sidebar.sidebar--colapsado {
+  width: var(--sidebar-collapsed);
+}
+
+/* Botón de Colapsar/Expandir */
+.collapse-btn {
+  position: sticky;
+  top: 8px;
+  margin: 10px 12px 6px 12px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: #0d3f66;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+/* Perfil */
+.perfilSidebar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+  padding: 16px 14px 20px;
+}
+
+/* Avatar */
+.avatar-wrap {
+  margin-bottom: 10px;
+}
+.avatar-img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.avatar-img:hover {
+  transform: scale(1.04);
+}
+
+.perfilSidebar .nombre {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  text-align: center;
+}
+.perfilSidebar .email {
+  font-size: 14px;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+.perfilSidebar .grupo {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+/* Solicitar rol de Creador */
+.solicitar-creador-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 4px;
+}
+.solicitar-creador-btn {
+  background-color: #035b6e;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.solicitar-creador-btn:hover {
+  background-color: #197fa6;
+}
+.solicitar-creador-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.solicitar-creador-error {
+  color: #ffb3b3;
+  font-size: 0.9rem;
+}
+
+/* Camino de Iconos */
+#caminito.caminito {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  flex: 1;
+  justify-content: flex-start;
+  padding: 18px 0 24px;
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.circle {
+  width: 70px;
+  height: 70px;
+  background-color: #ffffff;
+  border: 4px solid #1b5784;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.circle:hover {
+  transform: translateY(-5px) scale(1.08);
+  background-color: #d0e7f5;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+.step span {
+  margin-top: 12px;
+  font-size: 16px;
+  color: white;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Ocultar texto al colapsar */
+.sidebar--colapsado .perfilSidebar .nombre,
+.sidebar--colapsado .perfilSidebar .email,
+.sidebar--colapsado .perfilSidebar .grupo,
+.sidebar--colapsado .solicitar-creador-card,
+.sidebar--colapsado .step span {
+  display: none;
+}
+
