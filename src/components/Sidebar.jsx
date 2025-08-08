@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Auth } from 'aws-amplify';
 import AvatarModal from './AvatarModal';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
@@ -10,66 +11,66 @@ const DOMINIOS_PERMITIDOS = new Set([
   'netec.com.pe', 'netec.com.cl', 'netec.com.es'
 ]);
 
-function Sidebar({ email, nombre, grupo, token }) {
-  const [avatar] = useState(defaultFoto); // siempre usamos la default
+function Sidebar({ email = '', nombre, grupo, token }) {
+  const [avatar, setAvatar] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
+  // Estados de la solicitud de creador
   const [enviando, setEnviando] = useState(false);
   const [ok, setOk] = useState(false);
   const [error, setError] = useState('');
 
-  // Formatear rol de texto
-  const grupoFormateado =
-    grupo === 'admin' ? 'Administrador' :
-    grupo === 'participant' ? 'Participante' :
-    'Sin grupo';
+  // Cargar avatar
+  useEffect(() => {
+    Auth.currentAuthenticatedUser()
+      .then((u) => setAvatar(u.attributes.picture))
+      .catch(() => setAvatar(null));
+  }, []);
 
-  // Chequear dominio y permisos
-  const dominio = useMemo(() => (email || '').split('@')[1]?.toLowerCase() || '', [email]);
+  const dominio = useMemo(() => email.split('@')[1]?.toLowerCase() || '', [email]);
   const esDominioNetec = DOMINIOS_PERMITIDOS.has(dominio);
   const puedeSolicitarCreador = grupo === 'admin' && esDominioNetec;
 
-  const toggleColapso = () => setColapsado(v => !v);
+  const toggleColapso = () => setColapsado((v) => !v);
 
-  const enviarSolicitudCreador = async () => {
+  const enviarSolicitud = async () => {
     setEnviando(true);
-    setOk(false);
     setError('');
     try {
       const res = await fetch(`${API_BASE}/solicitar-rol`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: token } : {})
+          Authorization: token
         },
-        body: JSON.stringify({ correo: email })
+        body: JSON.stringify({}) // correo lo toma de Cognito authorizer
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Rechazado por servidor');
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Rechazado por servidor');
       setOk(true);
     } catch (e) {
-      console.error('Error al enviar solicitud:', e);
+      console.error('❌ Error al enviar solicitud:', e);
       setError('Error de red al enviar la solicitud.');
     } finally {
       setEnviando(false);
     }
   };
 
+  const grupoFormateado =
+    grupo === 'admin' ? 'Administrador' :
+    grupo === 'participant' ? 'Participante' :
+    'Sin grupo';
+
   return (
     <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
-      {/* botón colapsar/expandir */}
-      <button
-        className="collapse-btn"
-        aria-label={colapsado ? 'Expandir barra lateral' : 'Colapsar barra lateral'}
-        onClick={toggleColapso}
-      >
+      <button className="collapse-btn" onClick={toggleColapso}>
         {colapsado ? '▸' : '◂'}
       </button>
 
       <div className="perfilSidebar">
         <div className="avatar-wrap" onClick={() => setIsModalOpen(true)}>
-          <img src={avatar} alt="Avatar" className="avatar-img" />
+          <img src={avatar || defaultFoto} alt="Avatar" className="avatar-img" />
         </div>
 
         {!colapsado && (
@@ -82,16 +83,16 @@ function Sidebar({ email, nombre, grupo, token }) {
               <div className="solicitar-creador-card">
                 <button
                   className="solicitar-creador-btn"
-                  onClick={enviarSolicitudCreador}
+                  onClick={enviarSolicitud}
                   disabled={enviando || ok}
                 >
                   {enviando
                     ? 'Enviando…'
                     : ok
-                      ? '✅ Solicitud enviada'
-                      : '📩 Solicitar rol de Creador'}
+                    ? '✅ Solicitud enviada'
+                    : '📩 Solicitar rol de Creador'}
                 </button>
-                {error && <div className="solicitar-creador-error">❌ {error}</div>}
+                {!!error && <div className="solicitar-creador-error">❌ {error}</div>}
               </div>
             )}
           </>
@@ -102,36 +103,21 @@ function Sidebar({ email, nombre, grupo, token }) {
 
       <div id="caminito" className="caminito">
         <Link to="/resumenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🧠</div>
-            {!colapsado && <span>Resúmenes</span>}
-          </div>
+          <div className="step"><div className="circle">🧠</div>{!colapsado && <span>Resúmenes</span>}</div>
         </Link>
         <Link to="/actividades" className="nav-link">
-          <div className="step">
-            <div className="circle">📘</div>
-            {!colapsado && <span>Actividades</span>}
-          </div>
+          <div className="step"><div className="circle">📘</div>{!colapsado && <span>Actividades</span>}</div>
         </Link>
         <Link to="/examenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🔬</div>
-            {!colapsado && <span>Examen</span>}
-          </div>
+          <div className="step"><div className="circle">🔬</div>{!colapsado && <span>Examen</span>}</div>
         </Link>
         {grupo === 'admin' && (
           <>
             <Link to="/admin" className="nav-link">
-              <div className="step">
-                <div className="circle">⚙️</div>
-                {!colapsado && <span>Admin</span>}
-              </div>
+              <div className="step"><div className="circle">⚙️</div>{!colapsado && <span>Admin</span>}</div>
             </Link>
             <Link to="/usuarios" className="nav-link">
-              <div className="step">
-                <div className="circle">👥</div>
-                {!colapsado && <span>Usuarios</span>}
-              </div>
+              <div className="step"><div className="circle">👥</div>{!colapsado && <span>Usuarios</span>}</div>
             </Link>
           </>
         )}
