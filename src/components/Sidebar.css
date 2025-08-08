@@ -17,7 +17,7 @@
   scrollbar-width: thin;
 }
 
-/* Estado colapsado */
+/* Colapsado */
 #barraLateral.sidebar.sidebar--colapsado {
   width: var(--sidebar-collapsed);
 }
@@ -114,7 +114,7 @@
   font-size: 0.9rem;
 }
 
-/* Camino de iconos */
+/* Camino de opciones */
 #caminito.caminito {
   display: flex;
   flex-direction: column;
@@ -156,7 +156,7 @@
   text-align: center;
 }
 
-/* Ocultar texto y tarjetas al colapsar */
+/* Ocultar textos al colapsar */
 .sidebar--colapsado .perfilSidebar .nombre,
 .sidebar--colapsado .perfilSidebar .email,
 .sidebar--colapsado .perfilSidebar .grupo,
