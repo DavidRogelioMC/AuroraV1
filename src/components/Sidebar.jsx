@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
-import { useEffect, useMemo, useState } from 'react';
-import { Auth } from 'aws-amplify';
+import { useMemo, useState } from 'react';
 import AvatarModal from './AvatarModal';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
@@ -12,7 +11,7 @@ const DOMINIOS_PERMITIDOS = new Set([
 ]);
 
 function Sidebar({ email, nombre, grupo, token }) {
-  const [avatar, setAvatar] = useState(null);
+  const [avatar] = useState(defaultFoto); // siempre usamos la default
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
@@ -20,17 +19,14 @@ function Sidebar({ email, nombre, grupo, token }) {
   const [ok, setOk] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(user => setAvatar(user.attributes?.picture))
-      .catch(() => setAvatar(null));
-  }, []);
-
+  // Formatear rol de texto
   const grupoFormateado =
     grupo === 'admin' ? 'Administrador' :
-    grupo === 'participant' ? 'Participante' : 'Sin grupo';
+    grupo === 'participant' ? 'Participante' :
+    'Sin grupo';
 
-  const dominio = useMemo(() => (email?.split('@')[1] || '').toLowerCase(), [email]);
+  // Chequear dominio y permisos
+  const dominio = useMemo(() => (email || '').split('@')[1]?.toLowerCase() || '', [email]);
   const esDominioNetec = DOMINIOS_PERMITIDOS.has(dominio);
   const puedeSolicitarCreador = grupo === 'admin' && esDominioNetec;
 
@@ -53,7 +49,7 @@ function Sidebar({ email, nombre, grupo, token }) {
       if (!res.ok) throw new Error(data.error || 'Rechazado por servidor');
       setOk(true);
     } catch (e) {
-      console.error(e);
+      console.error('Error al enviar solicitud:', e);
       setError('Error de red al enviar la solicitud.');
     } finally {
       setEnviando(false);
@@ -62,9 +58,10 @@ function Sidebar({ email, nombre, grupo, token }) {
 
   return (
     <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
+      {/* botón colapsar/expandir */}
       <button
         className="collapse-btn"
-        aria-label={colapsado ? 'Expandir' : 'Colapsar'}
+        aria-label={colapsado ? 'Expandir barra lateral' : 'Colapsar barra lateral'}
         onClick={toggleColapso}
       >
         {colapsado ? '▸' : '◂'}
@@ -72,7 +69,7 @@ function Sidebar({ email, nombre, grupo, token }) {
 
       <div className="perfilSidebar">
         <div className="avatar-wrap" onClick={() => setIsModalOpen(true)}>
-          <img src={avatar || defaultFoto} alt="Foto perfil" className="avatar-img" />
+          <img src={avatar} alt="Avatar" className="avatar-img" />
         </div>
 
         {!colapsado && (
@@ -88,7 +85,11 @@ function Sidebar({ email, nombre, grupo, token }) {
                   onClick={enviarSolicitudCreador}
                   disabled={enviando || ok}
                 >
-                  {enviando ? 'Enviando…' : ok ? '✅ Solicitud enviada' : '📩 Solicitar rol de Creador'}
+                  {enviando
+                    ? 'Enviando…'
+                    : ok
+                      ? '✅ Solicitud enviada'
+                      : '📩 Solicitar rol de Creador'}
                 </button>
                 {error && <div className="solicitar-creador-error">❌ {error}</div>}
               </div>
