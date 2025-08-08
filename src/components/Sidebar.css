@@ -170,4 +170,31 @@
   display: none;
 }
 
+/* 🔄 Botón visual de solicitud */
+.btn-solicitud {
+  background-color: #035b6e;
+  color: white;
+  padding: 10px 16px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease;
+}
+
+.btn-solicitud:hover:not(:disabled) {
+  background-color: #197fa6;
+}
+
+.btn-solicitud:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.btn-solicitud.enviada {
+  background-color: #1d7f5f;
+  color: #fff;
+}
 
