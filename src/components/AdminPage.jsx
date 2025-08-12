@@ -4,11 +4,12 @@ import { useLocation } from 'react-router-dom';
 import './AdminPage.css';
 
 const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
+const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
 function AdminPage() {
-  // 🔒 Candado: este componente NO debe renderizarse fuera de /admin
+  // 🔒 solo debe renderizarse dentro de /ajustes
   const { pathname } = useLocation();
-  if (!pathname.startsWith('/admin')) return null;
+  if (!pathname.startsWith('/ajustes')) return null;
 
   const [solicitudes, setSolicitudes] = useState([]);
   const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ function AdminPage() {
 
   const token = localStorage.getItem('id_token');
 
-  // Decodificar token de forma segura
+  // Decodificar token (solo email)
   useEffect(() => {
     if (!token) return;
     try {
@@ -33,13 +34,10 @@ function AdminPage() {
     setCargando(true);
     setError('');
     try {
-      const res = await fetch(
-        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
-        {
-          method: 'GET',
-          headers: token ? { Authorization: token } : {},
-        }
-      );
+      const res = await fetch(`${API_BASE}/obtener-solicitudes-rol`, {
+        method: 'GET',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await res.json();
       setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
     } catch (e) {
@@ -58,23 +56,17 @@ function AdminPage() {
     setEnviando(correo);
     setError('');
     try {
-      const res = await fetch(
-        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: token } : {}),
-          },
-          body: JSON.stringify({ correo }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/aprobar-rol`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ correo, accion: 'aprobar' }),
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Error al aprobar');
-
-      // Si quieres, en vez de quitarla, recarga la tabla:
-      // await cargarSolicitudes();
-      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
+      await cargarSolicitudes();
       alert(`✅ Usuario ${correo} aprobado como creador.`);
     } catch (e) {
       console.error(e);
@@ -88,21 +80,17 @@ function AdminPage() {
     setEnviando(correo);
     setError('');
     try {
-      const res = await fetch(
-        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/rechazar-rol',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: token } : {}),
-          },
-          body: JSON.stringify({ correo }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/rechazar-rol`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ correo, accion: 'rechazar' }),
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Error al rechazar');
-
-      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
+      await cargarSolicitudes();
       alert(`❌ Usuario ${correo} rechazado.`);
     } catch (e) {
       console.error(e);
@@ -112,17 +100,39 @@ function AdminPage() {
     }
   };
 
-  const puedeGestionar = email === ADMIN_EMAIL;
+  const revocarRol = async (correo) => {
+    setEnviando(correo);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE}/revocar-rol`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ correo }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Error al revocar');
+      await cargarSolicitudes();
+      alert(`🗑️ Rol de creador revocado a ${correo}.`);
+    } catch (e) {
+      console.error(e);
+      setError('No se pudo revocar el rol.');
+    } finally {
+      setEnviando('');
+    }
+  };
+
+  const puedeGestionar = email === ADMIN_EMAIL; // solo Anette
 
   return (
     <div className="pagina-admin">
-      <h1>Panel de Administración</h1>
-      <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
+      <h1>Panel de Ajustes</h1>
+      <p>Revisión y gestión del rol <b>creador</b>.</p>
 
       {!puedeGestionar && (
-        <p className="solo-autorizado">
-          🚫 Solo el administrador autorizado puede gestionar estas solicitudes.
-        </p>
+        <p className="solo-autorizado">🚫 Solo el administrador autorizado puede aprobar/rechazar/revocar.</p>
       )}
 
       <div className="acciones-encabezado">
@@ -136,7 +146,7 @@ function AdminPage() {
       ) : error ? (
         <div className="error-box">{error}</div>
       ) : solicitudes.length === 0 ? (
-        <p>No hay solicitudes pendientes.</p>
+        <p>No hay solicitudes.</p>
       ) : (
         <div className="tabla-solicitudes">
           <table>
@@ -176,6 +186,16 @@ function AdminPage() {
                         >
                           {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
                         </button>
+                        {estado === 'aprobado' && (
+                          <button
+                            className="btn-rechazar"
+                            onClick={() => revocarRol(s.correo)}
+                            disabled={enviando === s.correo}
+                            title="Revocar rol de creador"
+                          >
+                            {enviando === s.correo ? 'Aplicando…' : '🗑️ Revocar'}
+                          </button>
+                        )}
                       </td>
                     )}
                   </tr>
@@ -190,4 +210,5 @@ function AdminPage() {
 }
 
 export default AdminPage;
+
 
