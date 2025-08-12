@@ -1,6 +1,6 @@
-/* Mantiene el margen para que no se esconda bajo el sidebar */
+/* --- Contenedor principal de la página de Ajustes --- */
 .pagina-admin {
-  margin-left: 260px; /* Ancho del sidebar expandido */
+  margin-left: 260px; /* ancho del sidebar expandido */
   padding: 2rem;
   background-color: #f5f8fc;
   min-height: 100vh;
@@ -12,12 +12,14 @@
   color: #1b5784;
 }
 
+/* Aviso para usuarios no autorizados */
 .solo-autorizado {
   color: #c62828;
   font-weight: 600;
   margin-bottom: 1rem;
 }
 
+/* Encabezado con acciones (botón actualizar, etc.) */
 .acciones-encabezado {
   display: flex;
   gap: 10px;
@@ -55,7 +57,7 @@
   margin-bottom: 1rem;
 }
 
-/* Tabla */
+/* --- Tabla de solicitudes --- */
 .tabla-solicitudes {
   background: #ffffff;
   border: 1px solid #dfe6e9;
@@ -107,32 +109,48 @@
   border: 1px solid #f5c6cb;
 }
 
+/* Columna de acciones */
 .col-acciones {
   white-space: nowrap;
 }
 
+/* Botones de acción */
 .btn-aprobar,
-.btn-rechazar {
+.btn-rechazar,
+.btn-root {
   margin-right: 10px;
   padding: 8px 12px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
+  color: #fff;
 }
 
 .btn-aprobar {
   background-color: #2e7d32;
 }
-.btn-aprobar,
-.btn-rechazar {
-  color: white;
+.btn-aprobar:hover {
+  background-color: #2b6f2f;
 }
-.btn-aprobar:hover { background-color: #2b6f2f; }
-.btn-rechazar { background-color: #c62828; }
-.btn-rechazar:hover { background-color: #ab2323; }
 
-/* Responsivo básico */
+.btn-rechazar {
+  background-color: #c62828;
+}
+.btn-rechazar:hover {
+  background-color: #ab2323;
+}
+
+/* Usuario root (protegido): botón gris sin acciones */
+.btn-root {
+  background-color: #6b7280; /* gris */
+  cursor: default;
+}
+.btn-root:hover {
+  background-color: #6b7280;
+}
+
+/* Responsivo para distintos anchos del sidebar */
 @media (max-width: 1000px) {
   .pagina-admin { margin-left: 220px; }
 }
