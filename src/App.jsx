@@ -128,7 +128,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 {/* estos tres NO se tocan */}
-                <Route path="/actividades" element={<ActividadesPage />} />
+                <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
 
