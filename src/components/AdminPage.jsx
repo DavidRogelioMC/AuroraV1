@@ -3,22 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './AdminPage.css';
 
-// Decodificador base64url seguro
-const decodeJWT = (t) => {
-  try {
-    const part = (t || '').split('.')[1] || '';
-    const normalized = part.replace(/-/g, '+').replace(/_/g, '/');
-    const json = decodeURIComponent(
-      atob(normalized).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
-    );
-    return JSON.parse(json);
-  } catch {
-    return {};
-  }
-};
+const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
 function AdminPage() {
-  // 🔒 CANDADO: solo renderiza en /admin
+  // 🔒 Candado: este componente NO debe renderizarse fuera de /admin
   const { pathname } = useLocation();
   if (!pathname.startsWith('/admin')) return null;
 
@@ -28,30 +16,31 @@ function AdminPage() {
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(''); // correo en proceso
 
-  const token = localStorage.getItem('id_token') || '';
-  const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
+  const token = localStorage.getItem('id_token');
 
-  // 👉 Solo ESTA persona puede aprobar/rechazar:
-  const correoAutorizado = 'anette.flores@netec.com.mx';
-
-  // Decodificar token y tomar el email
+  // Decodificar token de forma segura
   useEffect(() => {
     if (!token) return;
-    const payload = decodeJWT(token);
-    setEmail((payload?.email || '').toLowerCase());
+    try {
+      const payload = JSON.parse(atob((token.split('.')[1] || '').replace(/-/g, '+').replace(/_/g, '/')));
+      setEmail(payload?.email || '');
+    } catch (e) {
+      console.error('Error al decodificar token', e);
+    }
   }, [token]);
-
-  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
   const cargarSolicitudes = async () => {
     setCargando(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/obtener-solicitudes-rol`, {
-        method: 'GET',
-        headers: authHeader,
-      });
-      const data = await res.json().catch(() => ({}));
+      const res = await fetch(
+        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
+        {
+          method: 'GET',
+          headers: token ? { Authorization: token } : {},
+        }
+      );
+      const data = await res.json();
       setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
     } catch (e) {
       setError('No se pudieron cargar las solicitudes.');
@@ -69,24 +58,26 @@ function AdminPage() {
     setEnviando(correo);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/aprobar-rol`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader,
-        },
-        body: JSON.stringify({ correo }),
-      });
-      const raw = await res.text();
-      const data = raw ? JSON.parse(raw) : {};
+      const res = await fetch(
+        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: token } : {}),
+          },
+          body: JSON.stringify({ correo }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Error al aprobar');
 
-      // Mantener fila y actualizar estado
-      setSolicitudes((prev) =>
-        prev.map((s) => (s.correo === correo ? { ...s, estado: 'aprobado' } : s))
-      );
+      // Si quieres, en vez de quitarla, recarga la tabla:
+      // await cargarSolicitudes();
+      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
       alert(`✅ Usuario ${correo} aprobado como creador.`);
     } catch (e) {
+      console.error(e);
       setError('No se pudo aprobar la solicitud.');
     } finally {
       setEnviando('');
@@ -97,31 +88,31 @@ function AdminPage() {
     setEnviando(correo);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/rechazar-rol`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader,
-        },
-        body: JSON.stringify({ correo }),
-      });
-      const raw = await res.text();
-      const data = raw ? JSON.parse(raw) : {};
+      const res = await fetch(
+        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/rechazar-rol',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: token } : {}),
+          },
+          body: JSON.stringify({ correo }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Error al rechazar');
 
-      // Mantener fila y actualizar estado
-      setSolicitudes((prev) =>
-        prev.map((s) => (s.correo === correo ? { ...s, estado: 'rechazado' } : s))
-      );
+      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
       alert(`❌ Usuario ${correo} rechazado.`);
     } catch (e) {
+      console.error(e);
       setError('No se pudo rechazar la solicitud.');
     } finally {
       setEnviando('');
     }
   };
 
-  const puedeGestionar = email === correoAutorizado;
+  const puedeGestionar = email === ADMIN_EMAIL;
 
   return (
     <div className="pagina-admin">
@@ -199,5 +190,4 @@ function AdminPage() {
 }
 
 export default AdminPage;
-
 
