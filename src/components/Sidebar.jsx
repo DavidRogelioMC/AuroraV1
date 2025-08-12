@@ -8,17 +8,15 @@ import AvatarModal from './AvatarModal';
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 const DOMINIOS_PERMITIDOS = new Set([
   'netec.com','netec.com.mx','netec.com.co',
-  'netec.com.pe','netec.com.cl','netec.com.es'
+  'netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
 ]);
-
-const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
 export default function Sidebar({ email = '', nombre, grupo, token }) {
   const [avatar, setAvatar] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estados para el botón de solicitud (tu lógica original)
+  // estado botón solicitud (tu lógica original)
   const [enviando, setEnviando] = useState(false);
   const [ok, setOk] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +29,11 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
+
+  // botón de solicitud visible sólo si es admin (por dominio) y es de Netec
   const puedeSolicitar = grupo === 'admin' && esNetec;
+  // botón Ajustes visible para todos los administradores por dominio
+  const puedeVerAjustes = esNetec;
 
   const toggle = () => setColapsado(v => !v);
 
@@ -63,9 +65,6 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
     grupo === 'creador' ? 'Creador' :
     grupo === 'participant' ? 'Participante' :
     'Sin grupo';
-
-  // Ajustes visible para administradores por dominio (participantes NO lo ven)
-  const puedeVerAjustes = esNetec;
 
   return (
     <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
@@ -112,7 +111,7 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
           </div>
         </Link>
 
-        {/* 🔹 ACTIVIDADES: SIN CAMBIOS */}
+        {/* ACTIVIDADES — sin cambios */}
         <Link to="/actividades" className="nav-link">
           <div className="step">
             <div className="circle">📘</div>
@@ -135,15 +134,8 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
             </div>
           </Link>
         )}
-
-        {/* Tu link existente a Usuarios lo dejo tal cual */}
-        <Link to="/usuarios" className="nav-link">
-          <div className="step">
-            <div className="circle">👥</div>
-            {!colapsado && <span>Usuarios</span>}
-          </div>
-        </Link>
       </div>
     </div>
   );
 }
+
