@@ -1,4 +1,3 @@
-// src/components/AdminPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './AdminPage.css';
@@ -75,9 +74,9 @@ function AdminPage() {
     }
   };
 
-  const aprobarSolicitud = (correo) => callAccion(correo, 'aprobar');
-  const rechazarSolicitud = (correo) => callAccion(correo, 'rechazar');
-  const revocarRol = (correo) => callAccion(correo, 'revocar');
+  const aprobar = (c) => callAccion(c, 'aprobar');
+  const rechazar = (c) => callAccion(c, 'rechazar'); // para solicitudes PENDIENTES
+  const revocar  = (c) => callAccion(c, 'revocar');  // para usuarios APROBADOS
 
   const puedeGestionar = email === ADMIN_EMAIL;
 
@@ -115,6 +114,8 @@ function AdminPage() {
             <tbody>
               {solicitudes.map((s) => {
                 const estado = (s.estado || 'pendiente').toLowerCase();
+                const isPendiente = estado === 'pendiente';
+                const isAprobado  = estado === 'aprobado';
                 return (
                   <tr key={s.correo}>
                     <td>{s.correo}</td>
@@ -125,26 +126,35 @@ function AdminPage() {
                     </td>
                     {puedeGestionar && (
                       <td className="col-acciones">
-                        <button
-                          className="btn-aprobar"
-                          onClick={() => aprobarSolicitud(s.correo)}
-                          disabled={enviando === s.correo}
-                          title="Aprobar solicitud"
-                        >
-                          {enviando === s.correo ? 'Aplicando…' : '✅ Aprobar'}
-                        </button>
-                        <button
-                          className="btn-rechazar"
-                          onClick={() => rechazarSolicitud(s.correo)}
-                          disabled={enviando === s.correo}
-                          title="Rechazar solicitud"
-                        >
-                          {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
-                        </button>
-                        {estado === 'aprobado' && (
+                        {/* Aprobar solo si NO está aprobado todavía */}
+                        {!isAprobado && (
+                          <button
+                            className="btn-aprobar"
+                            onClick={() => aprobar(s.correo)}
+                            disabled={enviando === s.correo}
+                            title="Aprobar solicitud"
+                          >
+                            {enviando === s.correo ? 'Aplicando…' : '✅ Aprobar'}
+                          </button>
+                        )}
+
+                        {/* Rechazar solo si está PENDIENTE */}
+                        {isPendiente && (
                           <button
                             className="btn-rechazar"
-                            onClick={() => revocarRol(s.correo)}
+                            onClick={() => rechazar(s.correo)}
+                            disabled={enviando === s.correo}
+                            title="Rechazar solicitud"
+                          >
+                            {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
+                          </button>
+                        )}
+
+                        {/* Revocar solo si está APROBADO */}
+                        {isAprobado && (
+                          <button
+                            className="btn-rechazar"
+                            onClick={() => revocar(s.correo)}
                             disabled={enviando === s.correo}
                             title="Revocar rol de creador"
                           >
