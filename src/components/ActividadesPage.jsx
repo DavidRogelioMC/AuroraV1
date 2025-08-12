@@ -1,50 +1,183 @@
-// src/components/ActividadesPage.jsx (CÓDIGO COMPLETO)
+// src/components/AdminPage.jsx
+import React, { useEffect, useState } from 'react';
+import './AdminPage.css';
 
-import { useState } from 'react';
-import GeneradorActividades from './GeneradorActividades'; // Importa el generador
+function AdminPage() {
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [email, setEmail] = useState('');
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+  const [enviando, setEnviando] = useState(''); // correo en proceso
 
-// Asumimos que este CSS es un archivo separado para ActividadesPage
-import './ActividadesPage.css'; 
+  const token = localStorage.getItem('id_token');
+  const correoAutorizado = 'anette.flores@netec.com.mx';
 
-const tiposDeActividad = [
-  { id: 'quiz', nombre: 'Opción Múltiple', icono: '❓' },
-  { id: 'fill', nombre: 'Completar Espacios', icono: '✏️' },
-  { id: 'truefalse', nombre: 'Verdadero o Falso', icono: '✅' },
-  { id: 'match', nombre: 'Emparejamiento', icono: '🔗' },
-];
+  // Decodifica el JWT de forma segura (manejo de base64url)
+  useEffect(() => {
+    if (!token) return;
+    try {
+      const payloadPart = token.split('.')[1] || '';
+      const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(
+        atob(normalized)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const payload = JSON.parse(json);
+      setEmail(payload?.email || '');
+    } catch (e) {
+      console.error('Error al decodificar token', e);
+    }
+  }, [token]);
 
-function ActividadesPage({ token }) {
-  const [tipoSeleccionado, setTipoSeleccionado] = useState(null);
+  // Normaliza el shape de la respuesta
+  const normalizeSolicitudes = (data) => {
+    const arr =
+      (Array.isArray(data?.solicitudes) && data.solicitudes) ||
+      (Array.isArray(data?.items) && data.items) ||
+      (Array.isArray(data?.Items) && data.Items) ||
+      (Array.isArray(data) && data) ||
+      [];
+    return arr.map((x) => ({
+      correo: x.correo || x.email || '',
+      estado: (x.estado || 'pendiente').toLowerCase(),
+      rol: x.rol || x.rol_solicitado || 'creador',
+      fecha: x.fecha || '—',
+    }));
+  };
 
-  // Si no se ha seleccionado un tipo, muestra los botones de selección
-  if (!tipoSeleccionado) {
-    return (
-      // Aplica la clase de layout general y la específica de esta página
-      <div className="page-content-container seleccion-actividad-container">
-        <h1>Generador de Actividades</h1>
-        <p>Elige el tipo de ejercicio interactivo que deseas crear a partir de tus documentos.</p>
-        <div className="botones-actividad">
-          {tiposDeActividad.map((tipo) => (
-            <button key={tipo.id} className="btn-tipo-actividad" onClick={() => setTipoSeleccionado(tipo.id)}>
-              <span className="icono-actividad">{tipo.icono}</span>
-              <span>{tipo.nombre}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const cargarSolicitudes = async () => {
+    setCargando(true);
+    setError('');
+    try {
+      const res = await fetch(
+        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
+        {
+          method: 'GET',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setSolicitudes(normalizeSolicitudes(data));
+    } catch (e) {
+      console.error('obtener-solicitudes-rol error:', e);
+      setError('No se pudieron cargar las solicitudes.');
+      setSolicitudes([]);
+    } finally {
+      setCargando(false);
+    }
+  };
 
-  // Si ya se seleccionó un tipo, muestra el generador
+  useEffect(() => {
+    cargarSolicitudes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  // ÚNICA acción: Autorizar -> la Lambda aprueba o rechaza según dominio
+  const autorizar = async (correo) => {
+    setEnviando(correo);
+    setError('');
+    try {
+      const res = await fetch(
+        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ correo }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Error al autorizar');
+      // Después de autorizar, recargamos desde la fuente de verdad (DynamoDB)
+      await cargarSolicitudes();
+      alert(data?.message || `Solicitud procesada para ${correo}.`);
+    } catch (e) {
+      console.error('autorizar error:', e);
+      setError('No se pudo procesar la autorización.');
+    } finally {
+      setEnviando('');
+    }
+  };
+
+  const puedeGestionar = email === correoAutorizado;
+
   return (
-    // Aplica la clase de layout general y la específica de esta vista
-    <div className="page-content-container pagina-generador">
-      <button className="btn-volver" onClick={() => setTipoSeleccionado(null)}>
-        ← Volver a seleccionar tipo
-      </button>
-      <GeneradorActividades token={token} tipoActividad={tipoSeleccionado} />
+    <div className="pagina-admin">
+      <h1>Panel de Administración</h1>
+      <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
+
+      {!puedeGestionar && (
+        <p className="solo-autorizado">
+          🚫 Solo el administrador autorizado puede gestionar estas solicitudes.
+        </p>
+      )}
+
+      <div className="acciones-encabezado">
+        <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
+          {cargando ? 'Actualizando…' : '↻ Actualizar'}
+        </button>
+      </div>
+
+      {cargando ? (
+        <div className="spinner">Cargando solicitudes…</div>
+      ) : error ? (
+        <div className="error-box">{error}</div>
+      ) : solicitudes.length === 0 ? (
+        <p>No hay solicitudes pendientes.</p>
+      ) : (
+        <div className="tabla-solicitudes">
+          <table>
+            <thead>
+              <tr>
+                <th>Correo</th>
+                <th>Estado</th>
+                <th>Rol</th>
+                <th>Fecha</th>
+                {puedeGestionar && <th>Acciones</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {solicitudes.map((s) => {
+                const estado = (s.estado || 'pendiente').toLowerCase();
+                return (
+                  <tr key={s.correo}>
+                    <td>{s.correo}</td>
+                    <td>
+                      <span className={`badge-estado ${estado}`}>
+                        {estado.replace(/^./, (c) => c.toUpperCase())}
+                      </span>
+                    </td>
+                    <td>{s.rol || 'creador'}</td>
+                    <td>{s.fecha || '—'}</td>
+                    {puedeGestionar && (
+                      <td className="col-acciones">
+                        <button
+                          className="btn-aprobar"
+                          onClick={() => autorizar(s.correo)}
+                          disabled={enviando === s.correo || estado !== 'pendiente'}
+                          title="Autorizar (la Lambda aprobará o rechazará según dominio)"
+                        >
+                          {enviando === s.correo ? 'Aplicando…' : '✅ Autorizar'}
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
 
-export default ActividadesPage;
+export default AdminPage;
+
