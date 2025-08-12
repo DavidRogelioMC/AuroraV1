@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 import Sidebar from './components/Sidebar';
@@ -20,35 +20,66 @@ import colombiaFlag from './assets/colombia.png';
 import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
+const DOMINIOS_PERMITIDOS = new Set([
+  'netec.com', 'netec.com.mx', 'netec.com.co', 'netec.com.pe', 'netec.com.cl', 'netec.com.es', 'netec.com.pr'
+]);
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token'));
   const [email, setEmail] = useState('');
-  const [rol, setRol] = useState('');
+  const [rolUI, setRolUI] = useState('');         // lo que verá el Sidebar
+  const [adminAllowed, setAdminAllowed] = useState(false); // guard para /admin
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
+  // Recuperar id_token del hash al regresar de Cognito
   useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes('id_token')) {
       const newToken = hash.split('id_token=')[1].split('&')[0];
       localStorage.setItem('id_token', newToken);
       setToken(newToken);
+      // limpiar el hash de la URL
       window.history.pushState('', document.title, window.location.pathname + window.location.search);
     }
   }, []);
 
+  // Decodificar token y calcular rol de UI + permiso de /admin
   useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setEmail(decoded.email || '');
-        setRol(decoded['custom:rol'] || '');
-      } catch (err) {
-        console.error('❌ Error al decodificar el token:', err);
+    if (!token) return;
+
+    try {
+      const decoded = jwtDecode(token);
+      const mail = (decoded.email || '').toLowerCase();
+      const groups = decoded['cognito:groups'] || [];
+      const dominio = (mail.split('@')[1] || '').toLowerCase();
+
+      setEmail(mail);
+
+      const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
+      const esAdminGrupo = groups.includes('Administrador');
+      const esCreadorGrupo = groups.includes('Creador');
+      const esAnette = mail === 'anette.flores@netec.com.mx';
+
+      // rol que muestra el Sidebar
+      if (esCreadorGrupo) {
+        setRolUI('Creador');
+      } else if (esNetec || esAdminGrupo) {
+        setRolUI('Administrador');
+      } else {
+        setRolUI('Participante');
       }
+
+      // permiso para /admin
+      setAdminAllowed(esNetec || esAdminGrupo || esAnette);
+    } catch (err) {
+      console.error('❌ Error al decodificar el token:', err);
+      setEmail('');
+      setRolUI('');
+      setAdminAllowed(false);
     }
   }, [token]);
 
@@ -93,8 +124,7 @@ function App() {
       ) : (
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar email={email} grupo={rol} token={token} />
-            {/* ← Eliminé la franja gris del correo */}
+            <Sidebar email={email} grupo={rolUI} token={token} />
 
             <ProfileModal token={token} />
             <ChatModal token={token} />
@@ -105,7 +135,14 @@ function App() {
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
-                <Route path="/admin" element={rol === 'admin' ? <AdminPage /> : <Home />} />
+
+                {/* Admin NO depende de custom:rol; usa dominio/grupo/anette */}
+                <Route
+                  path="/admin"
+                  element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />}
+                />
+
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
 
@@ -118,3 +155,4 @@ function App() {
 }
 
 export default App;
+
