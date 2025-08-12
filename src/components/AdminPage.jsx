@@ -1,6 +1,35 @@
 // src/components/AdminPage.jsx
 import React, { useEffect, useState } from 'react';
 import './AdminPage.css';
+import { Auth } from 'aws-amplify';
+
+// base64url-safe
+const decodeJWT = (token) => {
+  if (!token) return null;
+  try {
+    const part = token.split('.')[1] || '';
+    const normalized = part.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(normalized).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+};
+
+// Amplify v5 (como usas en Sidebar)
+const refreshTokens = async () => {
+  try {
+    await Auth.currentAuthenticatedUser({ bypassCache: true });
+    const session = await Auth.currentSession();
+    const id = session?.getIdToken()?.getJwtToken();
+    if (id) localStorage.setItem('id_token', id);
+    return id || null;
+  } catch {
+    return null;
+  }
+};
 
 function AdminPage() {
   const [solicitudes, setSolicitudes] = useState([]);
@@ -17,12 +46,8 @@ function AdminPage() {
   // Decodificar token de forma segura
   useEffect(() => {
     if (!token) return;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1] || ''));
-      setEmail(payload?.email || '');
-    } catch (e) {
-      console.error('Error al decodificar token', e);
-    }
+    const payload = decodeJWT(token);
+    setEmail(payload?.email || '');
   }, [token]);
 
   const cargarSolicitudes = async () => {
@@ -31,10 +56,11 @@ function AdminPage() {
     try {
       const res = await fetch(
         'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
-      {
-        method: 'GET',
-        headers: token ? { Authorization: token } : {},
-      });
+        {
+          method: 'GET',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+      );
       const data = await res.json();
       setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
     } catch (e) {
@@ -59,43 +85,58 @@ function AdminPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(token ? { Authorization: token } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({ correo }),
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Error al aprobar');
-      // Remover de la lista (si la lista es de pendientes)
-      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
+      const raw = await res.text();
+      const data = raw ? JSON.parse(raw) : {};
+      if (!res.ok) throw new Error(data?.error || data?.detail || 'Error al aprobar');
+
+      // Recargar pendientes y refrescar tokens (para que el id_token traiga grupos/rol actualizados)
+      await cargarSolicitudes();
+      const newTok = await refreshTokens();
+      const payload = decodeJWT(newTok || localStorage.getItem('id_token'));
+      setEmail(payload?.email || '');
+
       alert(`✅ Usuario ${correo} aprobado como creador.`);
     } catch (e) {
+      console.error(e);
       setError('No se pudo aprobar la solicitud.');
     } finally {
       setEnviando('');
     }
   };
 
+  // Usamos el mismo endpoint con una bandera 'accion' para rechazar
   const rechazarSolicitud = async (correo) => {
     setEnviando(correo);
     setError('');
     try {
       const res = await fetch(
-        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/rechazar-rol',
+        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(token ? { Authorization: token } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ correo }),
+          body: JSON.stringify({ correo, accion: 'rechazar' }),
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Error al rechazar');
-      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
+      const raw = await res.text();
+      const data = raw ? JSON.parse(raw) : {};
+      if (!res.ok) throw new Error(data?.error || data?.detail || 'Error al rechazar');
+
+      await cargarSolicitudes();
+      const newTok = await refreshTokens();
+      const payload = decodeJWT(newTok || localStorage.getItem('id_token'));
+      setEmail(payload?.email || '');
+
       alert(`❌ Usuario ${correo} rechazado.`);
     } catch (e) {
+      console.error(e);
       setError('No se pudo rechazar la solicitud.');
     } finally {
       setEnviando('');
@@ -180,6 +221,4 @@ function AdminPage() {
 }
 
 export default AdminPage;
-
-
 
