@@ -13,12 +13,9 @@ const decodeJWT = (token) => {
       atob(normalized).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
     );
     return JSON.parse(json);
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 };
 
-// Amplify v5 (como usas en Sidebar)
 const refreshTokens = async () => {
   try {
     await Auth.currentAuthenticatedUser({ bypassCache: true });
@@ -26,9 +23,7 @@ const refreshTokens = async () => {
     const id = session?.getIdToken()?.getJwtToken();
     if (id) localStorage.setItem('id_token', id);
     return id || null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 };
 
 function AdminPage() {
@@ -36,14 +31,11 @@ function AdminPage() {
   const [email, setEmail] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [enviando, setEnviando] = useState(''); // correo en proceso
+  const [enviando, setEnviando] = useState('');
 
   const token = localStorage.getItem('id_token');
-
-  // 👉 Solo ESTA persona puede aprobar/rechazar:
   const correoAutorizado = 'anette.flores@netec.com.mx';
 
-  // Decodificar token de forma segura
   useEffect(() => {
     if (!token) return;
     const payload = decodeJWT(token);
@@ -56,91 +48,60 @@ function AdminPage() {
     try {
       const res = await fetch(
         'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
-        {
-          method: 'GET',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
+        { method: 'GET', headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
       const data = await res.json();
       setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
-    } catch (e) {
+    } catch {
       setError('No se pudieron cargar las solicitudes.');
     } finally {
       setCargando(false);
     }
   };
 
-  useEffect(() => {
-    cargarSolicitudes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  useEffect(() => { cargarSolicitudes(); /* eslint-disable-next-line */ }, [token]);
 
   const aprobarSolicitud = async (correo) => {
-    setEnviando(correo);
-    setError('');
+    setEnviando(correo); setError('');
     try {
       const res = await fetch(
         'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ correo }),
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ correo })
         }
       );
-      const raw = await res.text();
-      const data = raw ? JSON.parse(raw) : {};
+      const raw = await res.text(); const data = raw ? JSON.parse(raw) : {};
       if (!res.ok) throw new Error(data?.error || data?.detail || 'Error al aprobar');
-
-      // Recargar pendientes y refrescar tokens (para que el id_token traiga grupos/rol actualizados)
       await cargarSolicitudes();
-      const newTok = await refreshTokens();
-      const payload = decodeJWT(newTok || localStorage.getItem('id_token'));
-      setEmail(payload?.email || '');
-
+      await refreshTokens();
       alert(`✅ Usuario ${correo} aprobado como creador.`);
     } catch (e) {
-      console.error(e);
       setError('No se pudo aprobar la solicitud.');
-    } finally {
-      setEnviando('');
-    }
+    } finally { setEnviando(''); }
   };
 
-  // Usamos el mismo endpoint con una bandera 'accion' para rechazar
+  // usamos el mismo endpoint con 'accion: rechazar'
   const rechazarSolicitud = async (correo) => {
-    setEnviando(correo);
-    setError('');
+    setEnviando(correo); setError('');
     try {
       const res = await fetch(
         'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ correo, accion: 'rechazar' }),
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ correo, accion: 'rechazar' })
         }
       );
-      const raw = await res.text();
-      const data = raw ? JSON.parse(raw) : {};
+      const raw = await res.text(); const data = raw ? JSON.parse(raw) : {};
       if (!res.ok) throw new Error(data?.error || data?.detail || 'Error al rechazar');
-
       await cargarSolicitudes();
-      const newTok = await refreshTokens();
-      const payload = decodeJWT(newTok || localStorage.getItem('id_token'));
-      setEmail(payload?.email || '');
-
+      await refreshTokens();
       alert(`❌ Usuario ${correo} rechazado.`);
     } catch (e) {
-      console.error(e);
       setError('No se pudo rechazar la solicitud.');
-    } finally {
-      setEnviando('');
-    }
+    } finally { setEnviando(''); }
   };
 
   const puedeGestionar = email === correoAutorizado;
@@ -151,9 +112,7 @@ function AdminPage() {
       <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
 
       {!puedeGestionar && (
-        <p className="solo-autorizado">
-          🚫 Solo el administrador autorizado puede gestionar estas solicitudes.
-        </p>
+        <p className="solo-autorizado">🚫 Solo el administrador autorizado puede gestionar estas solicitudes.</p>
       )}
 
       <div className="acciones-encabezado">
@@ -173,9 +132,7 @@ function AdminPage() {
           <table>
             <thead>
               <tr>
-                <th>Correo</th>
-                <th>Estado</th>
-                {puedeGestionar && <th>Acciones</th>}
+                <th>Correo</th><th>Estado</th>{puedeGestionar && <th>Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -184,27 +141,13 @@ function AdminPage() {
                 return (
                   <tr key={s.correo}>
                     <td>{s.correo}</td>
-                    <td>
-                      <span className={`badge-estado ${estado}`}>
-                        {estado.replace(/^./, (c) => c.toUpperCase())}
-                      </span>
-                    </td>
+                    <td><span className={`badge-estado ${estado}`}>{estado.replace(/^./, c => c.toUpperCase())}</span></td>
                     {puedeGestionar && (
                       <td className="col-acciones">
-                        <button
-                          className="btn-aprobar"
-                          onClick={() => aprobarSolicitud(s.correo)}
-                          disabled={enviando === s.correo}
-                          title="Aprobar solicitud"
-                        >
+                        <button className="btn-aprobar" onClick={() => aprobarSolicitud(s.correo)} disabled={enviando === s.correo} title="Aprobar solicitud">
                           {enviando === s.correo ? 'Aplicando…' : '✅ Aprobar'}
                         </button>
-                        <button
-                          className="btn-rechazar"
-                          onClick={() => rechazarSolicitud(s.correo)}
-                          disabled={enviando === s.correo}
-                          title="Rechazar solicitud"
-                        >
+                        <button className="btn-rechazar" onClick={() => rechazarSolicitud(s.correo)} disabled={enviando === s.correo} title="Rechazar solicitud">
                           {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
                         </button>
                       </td>
