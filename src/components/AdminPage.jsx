@@ -1,29 +1,19 @@
 // src/components/AdminPage.jsx
 import React, { useEffect, useState } from 'react';
 import './AdminPage.css';
-import { Auth } from 'aws-amplify';
 
-// base64url-safe
-const decodeJWT = (token) => {
-  if (!token) return null;
+// Decodificador base64url seguro
+const decodeJWT = (t) => {
   try {
-    const part = token.split('.')[1] || '';
+    const part = (t || '').split('.')[1] || '';
     const normalized = part.replace(/-/g, '+').replace(/_/g, '/');
     const json = decodeURIComponent(
       atob(normalized).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
     );
     return JSON.parse(json);
-  } catch { return null; }
-};
-
-const refreshTokens = async () => {
-  try {
-    await Auth.currentAuthenticatedUser({ bypassCache: true });
-    const session = await Auth.currentSession();
-    const id = session?.getIdToken()?.getJwtToken();
-    if (id) localStorage.setItem('id_token', id);
-    return id || null;
-  } catch { return null; }
+  } catch {
+    return {};
+  }
 };
 
 function AdminPage() {
@@ -31,77 +21,99 @@ function AdminPage() {
   const [email, setEmail] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [enviando, setEnviando] = useState('');
+  const [enviando, setEnviando] = useState(''); // correo en proceso
 
-  const token = localStorage.getItem('id_token');
+  const token = localStorage.getItem('id_token') || '';
+  const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
+
+  // 👉 Solo ESTA persona puede aprobar/rechazar:
   const correoAutorizado = 'anette.flores@netec.com.mx';
 
+  // Decodificar token y tomar el email
   useEffect(() => {
     if (!token) return;
     const payload = decodeJWT(token);
-    setEmail(payload?.email || '');
+    setEmail((payload?.email || '').toLowerCase());
   }, [token]);
+
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
   const cargarSolicitudes = async () => {
     setCargando(true);
     setError('');
     try {
-      const res = await fetch(
-        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
-        { method: 'GET', headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
-      const data = await res.json();
+      const res = await fetch(`${API_BASE}/obtener-solicitudes-rol`, {
+        method: 'GET',
+        headers: authHeader,
+      });
+      const data = await res.json().catch(() => ({}));
       setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
-    } catch {
+    } catch (e) {
       setError('No se pudieron cargar las solicitudes.');
     } finally {
       setCargando(false);
     }
   };
 
-  useEffect(() => { cargarSolicitudes(); /* eslint-disable-next-line */ }, [token]);
+  useEffect(() => {
+    cargarSolicitudes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const aprobarSolicitud = async (correo) => {
-    setEnviando(correo); setError('');
+    setEnviando(correo);
+    setError('');
     try {
-      const res = await fetch(
-        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({ correo })
-        }
+      const res = await fetch(`${API_BASE}/aprobar-rol`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeader,
+        },
+        body: JSON.stringify({ correo }),
+      });
+      const raw = await res.text();
+      const data = raw ? JSON.parse(raw) : {};
+      if (!res.ok) throw new Error(data?.error || 'Error al aprobar');
+
+      // ✅ Mantener la fila y actualizar el estado a "aprobado"
+      setSolicitudes((prev) =>
+        prev.map((s) => (s.correo === correo ? { ...s, estado: 'aprobado' } : s))
       );
-      const raw = await res.text(); const data = raw ? JSON.parse(raw) : {};
-      if (!res.ok) throw new Error(data?.error || data?.detail || 'Error al aprobar');
-      await cargarSolicitudes();
-      await refreshTokens();
       alert(`✅ Usuario ${correo} aprobado como creador.`);
     } catch (e) {
       setError('No se pudo aprobar la solicitud.');
-    } finally { setEnviando(''); }
+    } finally {
+      setEnviando('');
+    }
   };
 
-  // usamos el mismo endpoint con 'accion: rechazar'
   const rechazarSolicitud = async (correo) => {
-    setEnviando(correo); setError('');
+    setEnviando(correo);
+    setError('');
     try {
-      const res = await fetch(
-        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/aprobar-rol',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({ correo, accion: 'rechazar' })
-        }
+      const res = await fetch(`${API_BASE}/rechazar-rol`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeader,
+        },
+        body: JSON.stringify({ correo }),
+      });
+      const raw = await res.text();
+      const data = raw ? JSON.parse(raw) : {};
+      if (!res.ok) throw new Error(data?.error || 'Error al rechazar');
+
+      // ✅ Mantener la fila y actualizar el estado a "rechazado"
+      setSolicitudes((prev) =>
+        prev.map((s) => (s.correo === correo ? { ...s, estado: 'rechazado' } : s))
       );
-      const raw = await res.text(); const data = raw ? JSON.parse(raw) : {};
-      if (!res.ok) throw new Error(data?.error || data?.detail || 'Error al rechazar');
-      await cargarSolicitudes();
-      await refreshTokens();
       alert(`❌ Usuario ${correo} rechazado.`);
     } catch (e) {
       setError('No se pudo rechazar la solicitud.');
-    } finally { setEnviando(''); }
+    } finally {
+      setEnviando('');
+    }
   };
 
   const puedeGestionar = email === correoAutorizado;
@@ -112,7 +124,9 @@ function AdminPage() {
       <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
 
       {!puedeGestionar && (
-        <p className="solo-autorizado">🚫 Solo el administrador autorizado puede gestionar estas solicitudes.</p>
+        <p className="solo-autorizado">
+          🚫 Solo el administrador autorizado puede gestionar estas solicitudes.
+        </p>
       )}
 
       <div className="acciones-encabezado">
@@ -132,7 +146,9 @@ function AdminPage() {
           <table>
             <thead>
               <tr>
-                <th>Correo</th><th>Estado</th>{puedeGestionar && <th>Acciones</th>}
+                <th>Correo</th>
+                <th>Estado</th>
+                {puedeGestionar && <th>Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -141,13 +157,27 @@ function AdminPage() {
                 return (
                   <tr key={s.correo}>
                     <td>{s.correo}</td>
-                    <td><span className={`badge-estado ${estado}`}>{estado.replace(/^./, c => c.toUpperCase())}</span></td>
+                    <td>
+                      <span className={`badge-estado ${estado}`}>
+                        {estado.replace(/^./, (c) => c.toUpperCase())}
+                      </span>
+                    </td>
                     {puedeGestionar && (
                       <td className="col-acciones">
-                        <button className="btn-aprobar" onClick={() => aprobarSolicitud(s.correo)} disabled={enviando === s.correo} title="Aprobar solicitud">
+                        <button
+                          className="btn-aprobar"
+                          onClick={() => aprobarSolicitud(s.correo)}
+                          disabled={enviando === s.correo}
+                          title="Aprobar solicitud"
+                        >
                           {enviando === s.correo ? 'Aplicando…' : '✅ Aprobar'}
                         </button>
-                        <button className="btn-rechazar" onClick={() => rechazarSolicitud(s.correo)} disabled={enviando === s.correo} title="Rechazar solicitud">
+                        <button
+                          className="btn-rechazar"
+                          onClick={() => rechazarSolicitud(s.correo)}
+                          disabled={enviando === s.correo}
+                          title="Rechazar solicitud"
+                        >
                           {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
                         </button>
                       </td>
