@@ -4,32 +4,25 @@ import React, { useEffect, useState } from 'react';
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
 function SolicitarRolCreadorAdmin({ correoAutenticado }) {
-  const [estado, setEstado] = useState(''); // '', 'pendiente', 'aprobado', 'rechazado'
+  const [estado, setEstado] = useState(''); // '', 'pendiente','aprobado','rechazado'
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
   const token = localStorage.getItem('id_token');
-
   const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
-  // Traer estado REAL desde el backend al montar (y cuando cambie el correo)
   useEffect(() => {
     if (!correoAutenticado) return;
-
     const fetchEstado = async () => {
       try {
-        // Usamos obtener-solicitudes-rol y filtramos por correo
         const r = await fetch(`${API_BASE}/obtener-solicitudes-rol`, { headers: authHeader });
         if (!r.ok) return;
         const data = await r.json().catch(() => ({}));
         const lista = Array.isArray(data?.solicitudes) ? data.solicitudes : [];
-        const item = lista.find(s => (s.correo || '').toLowerCase() === correoAutenticado.toLowerCase());
-        const e = (item?.estado || '').toLowerCase();
+        const it = lista.find(s => (s.correo || '').toLowerCase() === correoAutenticado.toLowerCase());
+        const e = (it?.estado || '').toLowerCase();
         setEstado(e || '');
-      } catch {
-        // silencioso
-      }
+      } catch {}
     };
-
     fetchEstado();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [correoAutenticado, token]);
@@ -39,28 +32,16 @@ function SolicitarRolCreadorAdmin({ correoAutenticado }) {
     try {
       const res = await fetch(`${API_BASE}/solicitar-rol`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader
-        },
+        headers: { 'Content-Type': 'application/json', ...authHeader },
         body: JSON.stringify({ correo: correoAutenticado })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'No se pudo enviar la solicitud');
-
-      // Estado persistente: queda en pendiente hasta que un admin decida
       setEstado('pendiente');
       setMsg('✅ Solicitud enviada. Queda en revisión.');
-    } catch (e) {
+    } catch {
       setErr('❌ Error al enviar la solicitud.');
     }
-  };
-
-  const renderEstado = () => {
-    if (estado === 'pendiente') return <div style={{color: 'orange', marginTop: 6}}>⏳ Solicitud en revisión</div>;
-    if (estado === 'aprobado')  return <div style={{color: 'lightgreen', marginTop: 6}}>✅ Ya eres creador</div>;
-    if (estado === 'rechazado') return <div style={{color: 'salmon', marginTop: 6}}>❌ Solicitud rechazada. Puedes volver a intentar.</div>;
-    return null;
   };
 
   const disabled = estado === 'pendiente' || estado === 'aprobado';
@@ -84,7 +65,10 @@ function SolicitarRolCreadorAdmin({ correoAutenticado }) {
             : 'Solicitar Rol de Creador'}
       </button>
 
-      {renderEstado()}
+      {estado === 'pendiente' && <div style={{color:'orange',marginTop:6}}>⏳ Solicitud en revisión</div>}
+      {estado === 'aprobado'  && <div style={{color:'lightgreen',marginTop:6}}>✅ Ya eres creador</div>}
+      {estado === 'rechazado' && <div style={{color:'salmon',marginTop:6}}>❌ Rechazada. Puedes volver a intentar.</div>}
+
       {msg && <div style={{ color: 'lightgreen', marginTop: 6 }}>{msg}</div>}
       {err && <div style={{ color: 'salmon', marginTop: 6 }}>{err}</div>}
     </div>
@@ -92,4 +76,5 @@ function SolicitarRolCreadorAdmin({ correoAutenticado }) {
 }
 
 export default SolicitarRolCreadorAdmin;
+
 
