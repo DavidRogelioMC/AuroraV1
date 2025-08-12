@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
@@ -11,14 +12,29 @@ const DOMINIOS_PERMITIDOS = new Set([
   'netec.com.pe','netec.com.cl','netec.com.es'
 ]);
 
+// base64url-safe
+const decodeJWT = (t) => {
+  if (!t) return null;
+  try {
+    const part = t.split('.')[1] || '';
+    const normalized = part.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(normalized).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+};
+
 export default function Sidebar({ email = '', nombre, grupo, token }) {
   const [avatar, setAvatar] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estados para el botón de solicitud
+  // Estado real de la solicitud (para persistencia)
+  const [estadoSolicitud, setEstadoSolicitud] = useState(''); // '', 'pendiente','aprobado','rechazado'
   const [enviando, setEnviando] = useState(false);
-  const [ok, setOk] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -29,9 +45,46 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
-  const puedeSolicitar = grupo === 'admin' && esNetec;
+  const tokenBearer = token ? { Authorization: `Bearer ${token}` } : {};
+
+  // Leer grupos/rol desde el token para mostrar "Rol: ..."
+  const payload = decodeJWT(token);
+  const groups = payload?.['cognito:groups'] || [];
+  const customRol = (payload?.['custom:rol'] || '').toLowerCase();
+
+  const rolTexto =
+    groups.includes('Administrador') ? 'Administrador' :
+    (groups.includes('Creador') || customRol.includes('creador')) ? 'Creador' :
+    (grupo === 'admin' ? 'Administrador' : (grupo === 'participant' ? 'Participante' : 'Sin grupo'));
+
+  // Menú Admin: que no se esconda si eres la cuenta autorizada
+  const correoAutorizado = 'anette.flores@netec.com.mx';
+  const esAdmin = groups.includes('Administrador') || email === correoAutorizado;
+
+  // Traer estado REAL desde backend al montar/cambiar email
+  useEffect(() => {
+    let cancel = false;
+    const fetchEstado = async () => {
+      try {
+        const r = await fetch(`${API_BASE}/obtener-solicitudes-rol`, { headers: tokenBearer });
+        if (!r.ok) return;
+        const j = await r.json().catch(() => ({}));
+        const lista = Array.isArray(j?.solicitudes) ? j.solicitudes : [];
+        const item = lista.find(s => (s.correo || '').toLowerCase() === email.toLowerCase());
+        const e = (item?.estado || '').toLowerCase();
+        if (!cancel) setEstadoSolicitud(e || '');
+      } catch {
+        // silencioso
+      }
+    };
+    if (email) fetchEstado();
+    return () => { cancel = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, token]);
 
   const toggle = () => setColapsado(v => !v);
+
+  const puedeSolicitar = esNetec; // si quieres limitar además por grupo, añade "&& grupo === 'admin'"
 
   const enviarSolicitud = async () => {
     setEnviando(true);
@@ -41,13 +94,15 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: token
+          ...tokenBearer
         },
         body: JSON.stringify({ correo: email })
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
-      setOk(true);
+
+      // Persistente: queda en pendiente
+      setEstadoSolicitud('pendiente');
     } catch (e) {
       console.error(e);
       setError('Error de red al enviar la solicitud.');
@@ -56,10 +111,11 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
     }
   };
 
-  const rolTexto =
-    grupo === 'admin' ? 'Administrador' :
-    grupo === 'participant' ? 'Participante' :
-    'Sin grupo';
+  const disableBtn = estadoSolicitud === 'pendiente' || estadoSolicitud === 'aprobado';
+  const labelBtn =
+    estadoSolicitud === 'aprobado' ? '✅ Ya eres Creador' :
+    estadoSolicitud === 'pendiente' ? '⏳ Solicitud en revisión' :
+    (enviando ? 'Enviando…' : '📩 Solicitar rol de Creador');
 
   return (
     <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
@@ -82,13 +138,9 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
               <button
                 className="solicitar-creador-btn"
                 onClick={enviarSolicitud}
-                disabled={enviando || ok}
+                disabled={disableBtn}
               >
-                {enviando
-                  ? 'Enviando…'
-                  : ok
-                  ? '✅ Solicitud enviada'
-                  : '📩 Solicitar rol de Creador'}
+                {labelBtn}
               </button>
               {!!error && <div className="solicitar-creador-error">❌ {error}</div>}
             </div>
@@ -117,7 +169,8 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
             {!colapsado && <span>Examen</span>}
           </div>
         </Link>
-        {grupo === 'admin' && <>
+
+        {esAdmin && <>
           <Link to="/admin" className="nav-link">
             <div className="step">
               <div className="circle">⚙️</div>
