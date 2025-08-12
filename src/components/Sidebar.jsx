@@ -8,8 +8,7 @@ import AvatarModal from './AvatarModal';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 const DOMINIOS_PERMITIDOS = new Set([
-  'netec.com','netec.com.mx','netec.com.co',
-  'netec.com.pe','netec.com.cl','netec.com.es'
+  'netec.com','netec.com.mx','netec.com.co','netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
 ]);
 
 // base64url-safe
@@ -32,7 +31,7 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estado real de la solicitud (para persistencia)
+  // Estado persistente de la solicitud de Creador
   const [estadoSolicitud, setEstadoSolicitud] = useState(''); // '', 'pendiente','aprobado','rechazado'
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -45,37 +44,37 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
-  const tokenBearer = token ? { Authorization: `Bearer ${token}` } : {};
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
-  // Leer grupos/rol desde el token para mostrar "Rol: ..."
+  // Leer grupos del token
   const payload = decodeJWT(token);
   const groups = payload?.['cognito:groups'] || [];
-  const customRol = (payload?.['custom:rol'] || '').toLowerCase();
+  const esCreador = groups.includes('Creador');        // ✅ único criterio para “Creador”
+  const esAdminPorDominio = esNetec || groups.includes('Administrador');
 
+  // Texto de rol
   const rolTexto =
-    groups.includes('Administrador') ? 'Administrador' :
-    (groups.includes('Creador') || customRol.includes('creador')) ? 'Creador' :
-    (grupo === 'admin' ? 'Administrador' : (grupo === 'participant' ? 'Participante' : 'Sin grupo'));
+    esCreador ? 'Creador' :
+    esAdminPorDominio ? 'Administrador' :
+    'Participante';
 
-  // Menú Admin: que no se esconda si eres la cuenta autorizada
+  // Menú Admin visible para @netec.* y para Anette explícitamente
   const correoAutorizado = 'anette.flores@netec.com.mx';
-  const esAdmin = groups.includes('Administrador') || email === correoAutorizado;
+  const esAdminParaUI = esAdminPorDominio || email === correoAutorizado;
 
-  // Traer estado REAL desde backend al montar/cambiar email
+  // Traer estado REAL desde backend (si existe solicitud)
   useEffect(() => {
     let cancel = false;
     const fetchEstado = async () => {
       try {
-        const r = await fetch(`${API_BASE}/obtener-solicitudes-rol`, { headers: tokenBearer });
+        const r = await fetch(`${API_BASE}/obtener-solicitudes-rol`, { headers: authHeader });
         if (!r.ok) return;
         const j = await r.json().catch(() => ({}));
         const lista = Array.isArray(j?.solicitudes) ? j.solicitudes : [];
         const item = lista.find(s => (s.correo || '').toLowerCase() === email.toLowerCase());
         const e = (item?.estado || '').toLowerCase();
         if (!cancel) setEstadoSolicitud(e || '');
-      } catch {
-        // silencioso
-      }
+      } catch { /* noop */ }
     };
     if (email) fetchEstado();
     return () => { cancel = true; };
@@ -84,7 +83,13 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
   const toggle = () => setColapsado(v => !v);
 
-  const puedeSolicitar = esNetec; // si quieres limitar además por grupo, añade "&& grupo === 'admin'"
+  // Botón para solicitar Creador
+  const puedeSolicitar = esNetec && !esCreador;
+  const disableBtn = estadoSolicitud === 'pendiente' || esCreador;
+  const labelBtn =
+    esCreador ? '✅ Ya eres Creador' :
+    estadoSolicitud === 'pendiente' ? '⏳ Solicitud en revisión' :
+    (enviando ? 'Enviando…' : '📩 Solicitar rol de Creador');
 
   const enviarSolicitud = async () => {
     setEnviando(true);
@@ -94,15 +99,13 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...tokenBearer
+          ...authHeader
         },
         body: JSON.stringify({ correo: email })
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
-
-      // Persistente: queda en pendiente
-      setEstadoSolicitud('pendiente');
+      setEstadoSolicitud('pendiente'); // persistente hasta que Anette apruebe/rechace
     } catch (e) {
       console.error(e);
       setError('Error de red al enviar la solicitud.');
@@ -110,12 +113,6 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
       setEnviando(false);
     }
   };
-
-  const disableBtn = estadoSolicitud === 'pendiente' || estadoSolicitud === 'aprobado';
-  const labelBtn =
-    estadoSolicitud === 'aprobado' ? '✅ Ya eres Creador' :
-    estadoSolicitud === 'pendiente' ? '⏳ Solicitud en revisión' :
-    (enviando ? 'Enviando…' : '📩 Solicitar rol de Creador');
 
   return (
     <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
@@ -170,20 +167,22 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
           </div>
         </Link>
 
-        {esAdmin && <>
-          <Link to="/admin" className="nav-link">
-            <div className="step">
-              <div className="circle">⚙️</div>
-              {!colapsado && <span>Admin</span>}
-            </div>
-          </Link>
-          <Link to="/usuarios" className="nav-link">
-            <div className="step">
-              <div className="circle">👥</div>
-              {!colapsado && <span>Usuarios</span>}
-            </div>
-          </Link>
-        </>}
+        {esAdminParaUI && (
+          <>
+            <Link to="/admin" className="nav-link">
+              <div className="step">
+                <div className="circle">⚙️</div>
+                {!colapsado && <span>Admin</span>}
+              </div>
+            </Link>
+            <Link to="/usuarios" className="nav-link">
+              <div className="step">
+                <div className="circle">👥</div>
+                {!colapsado && <span>Usuarios</span>}
+              </div>
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
