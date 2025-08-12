@@ -64,7 +64,7 @@ function App() {
       const esCreadorGrupo = groups.includes('Creador');
       const esAnette = mail === 'anette.flores@netec.com.mx';
 
-      // Rol que verá el Sidebar (prioridad: Creador > Admin > Participante)
+      // Rol visual en Sidebar (prioridad: Creador > Admin > Participante)
       if (esCreadorGrupo) {
         setRolUI('Creador');
       } else if (esNetec || esAdminGrupo) {
@@ -73,7 +73,7 @@ function App() {
         setRolUI('Participante');
       }
 
-      // 🔒 /admin SOLO lo puede abrir Anette
+      // 🔒 /admin SOLO Anette
       setAdminAllowed(esAnette);
     } catch (err) {
       console.error('❌ Error al decodificar el token:', err);
