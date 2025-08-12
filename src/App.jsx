@@ -21,33 +21,33 @@ import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
 const DOMINIOS_PERMITIDOS = new Set([
-  'netec.com', 'netec.com.mx', 'netec.com.co', 'netec.com.pe', 'netec.com.cl', 'netec.com.es', 'netec.com.pr'
+  'netec.com','netec.com.mx','netec.com.co','netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
 ]);
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token'));
   const [email, setEmail] = useState('');
-  const [rolUI, setRolUI] = useState('');         // lo que verá el Sidebar
-  const [adminAllowed, setAdminAllowed] = useState(false); // guard para /admin
+  const [rolUI, setRolUI] = useState('');              // 'Creador' | 'Administrador' | 'Participante'
+  const [adminAllowed, setAdminAllowed] = useState(false); // /admin SOLO para anette
 
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
   const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-  // Recuperar id_token del hash al regresar de Cognito
+  // Captura id_token del hash al volver de Cognito
   useEffect(() => {
-    const hash = window.location.hash;
+    const hash = window.location.hash || '';
     if (hash.includes('id_token')) {
       const newToken = hash.split('id_token=')[1].split('&')[0];
       localStorage.setItem('id_token', newToken);
       setToken(newToken);
-      // limpiar el hash de la URL
+      // limpia el hash
       window.history.pushState('', document.title, window.location.pathname + window.location.search);
     }
   }, []);
 
-  // Decodificar token y calcular rol de UI + permiso de /admin
+  // Decodifica token y calcula rol visual + permiso /admin
   useEffect(() => {
     if (!token) return;
 
@@ -64,7 +64,7 @@ function App() {
       const esCreadorGrupo = groups.includes('Creador');
       const esAnette = mail === 'anette.flores@netec.com.mx';
 
-      // rol que muestra el Sidebar
+      // Rol que verá el Sidebar (prioridad: Creador > Admin > Participante)
       if (esCreadorGrupo) {
         setRolUI('Creador');
       } else if (esNetec || esAdminGrupo) {
@@ -73,8 +73,8 @@ function App() {
         setRolUI('Participante');
       }
 
-      // permiso para /admin
-      setAdminAllowed(esNetec || esAdminGrupo || esAnette);
+      // 🔒 /admin SOLO lo puede abrir Anette
+      setAdminAllowed(esAnette);
     } catch (err) {
       console.error('❌ Error al decodificar el token:', err);
       setEmail('');
@@ -132,11 +132,12 @@ function App() {
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
+                {/* ✅ Actividades SIEMPRE muestra tu módulo de actividades */}
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
 
-                {/* Admin NO depende de custom:rol; usa dominio/grupo/anette */}
+                {/* 🔒 /admin SOLO para anette.flores@netec.com.mx */}
                 <Route
                   path="/admin"
                   element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />}
@@ -155,4 +156,5 @@ function App() {
 }
 
 export default App;
+
 
