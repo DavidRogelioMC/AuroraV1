@@ -23,6 +23,7 @@ function AdminPage() {
   const [fEstado, setFEstado] = useState('todos'); // todos|pendiente|aprobado|rechazado
 
   const token = localStorage.getItem('id_token');
+  const auth = token?.startsWith('Bearer ') ? token : `Bearer ${token}`;
 
   // Decodificar token
   useEffect(() => {
@@ -45,7 +46,7 @@ function AdminPage() {
     try {
       const res = await fetch(`${API_BASE}/obtener-solicitudes-rol`, {
         method: 'GET',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: { Authorization: auth }
       });
       const data = await res.json();
       const lista = Array.isArray(data?.solicitudes) ? data.solicitudes : [];
@@ -70,10 +71,7 @@ function AdminPage() {
     try {
       const res = await fetch(`${API_BASE}/aprobar-rol`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: auth },
         body: JSON.stringify({ correo, accion }),
       });
       const data = await res.json().catch(() => ({}));
@@ -100,10 +98,7 @@ function AdminPage() {
     try {
       const res = await fetch(`${API_BASE}/eliminar-solicitud`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: auth },
         body: JSON.stringify({ correo }),
       });
       const data = await res.json().catch(() => ({}));
@@ -122,7 +117,7 @@ function AdminPage() {
     try {
       const res = await fetch(`${API_BASE}/set-rol-activo`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: auth },
         body: JSON.stringify({ rol: rolNuevo })
       });
       const j = await res.json().catch(()=>({}));
@@ -146,7 +141,6 @@ function AdminPage() {
         arr = arr.filter(s => (s.estado || '').toLowerCase() === fEstado);
       }
     } else {
-      // defensa extra en UI: mostrar solo su fila
       arr = arr.filter(s => (s.correo || '').toLowerCase() === email);
     }
     return arr;
@@ -184,132 +178,5 @@ function AdminPage() {
         <div className="barra-busqueda">
           <input
             type="text"
-            placeholder="Buscar por correo…"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            className="input-buscar"
-          />
-          <select
-            value={fEstado}
-            onChange={e => setFEstado(e.target.value)}
-            className="select-estado"
-          >
-            <option value="todos">Todos los estados</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="aprobado">Aprobado</option>
-            <option value="rechazado">Rechazado</option>
-          </select>
-          <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
-            {cargando ? 'Actualizando…' : '↻ Actualizar'}
-          </button>
-        </div>
-      )}
-
-      {!esRoot && (
-        <div className="acciones-encabezado">
-          <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
-            {cargando ? 'Actualizando…' : '↻ Actualizar'}
-          </button>
-        </div>
-      )}
-
-      {cargando ? (
-        <div className="spinner">Cargando solicitudes…</div>
-      ) : error ? (
-        <div className="error-box">{error}</div>
-      ) : listaFiltrada.length === 0 ? (
-        <p>No hay solicitudes.</p>
-      ) : (
-        <div className="tabla-solicitudes">
-          <table>
-            <thead>
-              <tr>
-                <th>Correo</th>
-                <th>Estado</th>
-                {puedeGestionar && <th>Acciones</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {listaFiltrada.map((s) => {
-                const estado = (s.estado || 'pendiente').toLowerCase();
-                const isPendiente = estado === 'pendiente';
-                const isAprobado  = estado === 'aprobado';
-                const isRootRow   = (s.correo || '').toLowerCase() === ADMIN_EMAIL;
-
-                return (
-                  <tr key={s.correo}>
-                    <td>{s.correo}</td>
-                    <td>
-                      <span className={`badge-estado ${estado}`}>
-                        {estado.replace(/^./, (c) => c.toUpperCase())}
-                      </span>
-                    </td>
-
-                    {puedeGestionar && (
-                      <td className="col-acciones">
-                        {isRootRow ? (
-                          <button className="btn-root" disabled title="Usuario protegido">
-                            🛡️ Protegido
-                          </button>
-                        ) : (
-                          <>
-                            {!isAprobado && (
-                              <button
-                                className="btn-aprobar"
-                                onClick={() => aprobar(s.correo)}
-                                disabled={enviando === s.correo}
-                                title="Aprobar solicitud"
-                              >
-                                {enviando === s.correo ? 'Aplicando…' : '✅ Aprobar'}
-                              </button>
-                            )}
-
-                            {isPendiente && (
-                              <button
-                                className="btn-rechazar"
-                                onClick={() => rechazar(s.correo)}
-                                disabled={enviando === s.correo}
-                                title="Rechazar solicitud"
-                              >
-                                {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
-                              </button>
-                            )}
-
-                            {isAprobado && (
-                              <button
-                                className="btn-rechazar"
-                                onClick={() => revocar(s.correo)}
-                                disabled={enviando === s.correo}
-                                title="Revocar rol de creador"
-                              >
-                                {enviando === s.correo ? 'Aplicando…' : '🗑️ Revocar'}
-                              </button>
-                            )}
-
-                            {/* 🗑️ Eliminar de la base (solo root) */}
-                            <button
-                              className="btn-eliminar"
-                              onClick={() => eliminar(s.correo)}
-                              disabled={enviando === s.correo}
-                              title="Eliminar registro de la base de datos"
-                            >
-                              {enviando === s.correo ? 'Eliminando…' : '🗑️ Eliminar'}
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default AdminPage;
 
 
