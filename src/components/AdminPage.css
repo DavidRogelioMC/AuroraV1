@@ -123,14 +123,13 @@
 
 .btn-aprobar {
   background-color: #2e7d32;
+}
+.btn-aprobar,
+.btn-rechazar {
   color: white;
 }
 .btn-aprobar:hover { background-color: #2b6f2f; }
-
-.btn-rechazar {
-  background-color: #c62828;
-  color: white;
-}
+.btn-rechazar { background-color: #c62828; }
 .btn-rechazar:hover { background-color: #ab2323; }
 
 /* Responsivo básico */
