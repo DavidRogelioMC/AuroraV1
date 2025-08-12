@@ -1,5 +1,5 @@
 // src/components/AdminPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './AdminPage.css';
 
@@ -7,6 +7,7 @@ const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
 function AdminPage() {
+  // Render SOLO en /ajustes
   const { pathname } = useLocation();
   if (!pathname.startsWith('/ajustes')) return null;
 
@@ -15,21 +16,29 @@ function AdminPage() {
   const [rolToken, setRolToken] = useState(''); // admin | creador
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [enviando, setEnviando] = useState('');
+  const [enviando, setEnviando] = useState(''); // correo en proceso
+
+  // UI búsqueda / filtro (solo se muestran a Anette)
+  const [q, setQ] = useState('');
+  const [fEstado, setFEstado] = useState('todos'); // todos|pendiente|aprobado|rechazado
 
   const token = localStorage.getItem('id_token');
 
+  // Decodificar token
   useEffect(() => {
     if (!token) return;
     try {
       const payload = JSON.parse(atob((token.split('.')[1] || '').replace(/-/g, '+').replace(/_/g, '/')));
-      setEmail((payload?.email || '').toLowerCase());
+      setEmail(String(payload?.email || '').toLowerCase());
       setRolToken(String(payload?.['custom:rol'] || '').toLowerCase());
     } catch (e) {
       console.error('Error al decodificar token', e);
     }
   }, [token]);
 
+  const esRoot = email === ADMIN_EMAIL;
+
+  // Traer solicitudes (el backend ya limita: si NO es root, devuelve solo la suya)
   const cargarSolicitudes = async () => {
     setCargando(true);
     setError('');
@@ -39,7 +48,8 @@ function AdminPage() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await res.json();
-      setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
+      const lista = Array.isArray(data?.solicitudes) ? data.solicitudes : [];
+      setSolicitudes(lista);
     } catch (e) {
       console.error(e);
       setError('No se pudieron cargar las solicitudes.');
@@ -53,22 +63,7 @@ function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const cambiarRolActivo = async (rolNuevo) => {
-    try {
-      const res = await fetch(`${API_BASE}/set-rol-activo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ rol: rolNuevo })
-      });
-      const j = await res.json().catch(()=>({}));
-      if (!res.ok) throw new Error(j.error || 'Error');
-      setRolToken(rolNuevo);
-      alert(`Rol activo cambiado a ${rolNuevo}. Cierra sesión y vuelve a entrar para refrescar el token.`);
-    } catch (e) {
-      alert('No se pudo cambiar el rol activo.');
-    }
-  };
-
+  // Acciones de rol
   const callAccion = async (correo, accion) => {
     setEnviando(correo);
     setError('');
@@ -97,25 +92,86 @@ function AdminPage() {
   const rechazar = (c) => callAccion(c, 'rechazar');
   const revocar  = (c) => callAccion(c, 'revocar');
 
-  const puedeGestionar = email === ADMIN_EMAIL;
+  // Eliminar solicitud (solo root)
+  const eliminar = async (correo) => {
+    if (!window.confirm(`¿Eliminar la solicitud de ${correo}?`)) return;
+    setEnviando(correo);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE}/eliminar-solicitud`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ correo }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || 'Error al eliminar');
+      await cargarSolicitudes();
+    } catch (e) {
+      console.error(e);
+      setError('No se pudo eliminar la solicitud.');
+    } finally {
+      setEnviando('');
+    }
+  };
+
+  // Cambiar rol activo de Anette
+  const cambiarRolActivo = async (rolNuevo) => {
+    try {
+      const res = await fetch(`${API_BASE}/set-rol-activo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ rol: rolNuevo })
+      });
+      const j = await res.json().catch(()=>({}));
+      if (!res.ok) throw new Error(j.error || 'Error');
+      setRolToken(rolNuevo);
+      alert(`Rol activo cambiado a ${rolNuevo}. Cierra sesión y vuelve a entrar para refrescar el token.`);
+    } catch (e) {
+      alert('No se pudo cambiar el rol activo.');
+    }
+  };
+
+  // Búsqueda y filtros (solo root)
+  const listaFiltrada = useMemo(() => {
+    let arr = solicitudes.slice();
+    if (esRoot) {
+      if (q.trim()) {
+        const cmp = q.trim().toLowerCase();
+        arr = arr.filter(s => (s.correo || '').toLowerCase().includes(cmp));
+      }
+      if (fEstado !== 'todos') {
+        arr = arr.filter(s => (s.estado || '').toLowerCase() === fEstado);
+      }
+    } else {
+      // defensa extra en UI: mostrar solo su fila
+      arr = arr.filter(s => (s.correo || '').toLowerCase() === email);
+    }
+    return arr;
+  }, [solicitudes, q, fEstado, esRoot, email]);
+
+  const puedeGestionar = esRoot;
 
   return (
     <div className="pagina-admin">
       <h1>Panel de Ajustes</h1>
       <p>Revisión y gestión del rol <b>creador</b>.</p>
 
-      {puedeGestionar && (
-        <div style={{marginBottom: 12, display: 'flex', gap: 10, alignItems: 'center'}}>
+      {/* Selector de rol activo (Anette) */}
+      {esRoot && (
+        <div className="cinta-rol">
           <b>Tu rol activo:</b>
           <select
             value={rolToken === 'creador' ? 'creador' : 'admin'}
             onChange={(e) => cambiarRolActivo(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 8 }}
+            className="select-rol"
           >
             <option value="creador">Creador</option>
             <option value="admin">Administrador</option>
           </select>
-          <small>(tras cambiar, vuelve a iniciar sesión para refrescar el token)</small>
+          <small>(tras cambiar, vuelve a iniciar sesión)</small>
         </div>
       )}
 
@@ -123,17 +179,45 @@ function AdminPage() {
         <p className="solo-autorizado">🚫 Solo el administrador autorizado puede aprobar/rechazar/revocar.</p>
       )}
 
-      <div className="acciones-encabezado">
-        <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
-          {cargando ? 'Actualizando…' : '↻ Actualizar'}
-        </button>
-      </div>
+      {/* Barra de búsqueda y filtro (solo root) */}
+      {esRoot && (
+        <div className="barra-busqueda">
+          <input
+            type="text"
+            placeholder="Buscar por correo…"
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            className="input-buscar"
+          />
+          <select
+            value={fEstado}
+            onChange={e => setFEstado(e.target.value)}
+            className="select-estado"
+          >
+            <option value="todos">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="aprobado">Aprobado</option>
+            <option value="rechazado">Rechazado</option>
+          </select>
+          <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
+            {cargando ? 'Actualizando…' : '↻ Actualizar'}
+          </button>
+        </div>
+      )}
+
+      {!esRoot && (
+        <div className="acciones-encabezado">
+          <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
+            {cargando ? 'Actualizando…' : '↻ Actualizar'}
+          </button>
+        </div>
+      )}
 
       {cargando ? (
         <div className="spinner">Cargando solicitudes…</div>
       ) : error ? (
         <div className="error-box">{error}</div>
-      ) : solicitudes.length === 0 ? (
+      ) : listaFiltrada.length === 0 ? (
         <p>No hay solicitudes.</p>
       ) : (
         <div className="tabla-solicitudes">
@@ -146,11 +230,11 @@ function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {solicitudes.map((s) => {
+              {listaFiltrada.map((s) => {
                 const estado = (s.estado || 'pendiente').toLowerCase();
                 const isPendiente = estado === 'pendiente';
                 const isAprobado  = estado === 'aprobado';
-                const isRoot      = (s.correo || '').toLowerCase() === ADMIN_EMAIL;
+                const isRootRow   = (s.correo || '').toLowerCase() === ADMIN_EMAIL;
 
                 return (
                   <tr key={s.correo}>
@@ -163,8 +247,7 @@ function AdminPage() {
 
                     {puedeGestionar && (
                       <td className="col-acciones">
-                        {/* 🔒 Root protegido: sin acciones */}
-                        {isRoot ? (
+                        {isRootRow ? (
                           <button className="btn-root" disabled title="Usuario protegido">
                             🛡️ Protegido
                           </button>
@@ -202,6 +285,16 @@ function AdminPage() {
                                 {enviando === s.correo ? 'Aplicando…' : '🗑️ Revocar'}
                               </button>
                             )}
+
+                            {/* 🗑️ Eliminar de la base (solo root) */}
+                            <button
+                              className="btn-eliminar"
+                              onClick={() => eliminar(s.correo)}
+                              disabled={enviando === s.correo}
+                              title="Eliminar registro de la base de datos"
+                            >
+                              {enviando === s.correo ? 'Eliminando…' : '🗑️ Eliminar'}
+                            </button>
                           </>
                         )}
                       </td>
@@ -218,6 +311,5 @@ function AdminPage() {
 }
 
 export default AdminPage;
-
 
 
