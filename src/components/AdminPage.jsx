@@ -1,5 +1,6 @@
 // src/components/AdminPage.jsx
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import './AdminPage.css';
 
 // Decodificador base64url seguro
@@ -17,6 +18,10 @@ const decodeJWT = (t) => {
 };
 
 function AdminPage() {
+  // 🔒 CANDADO: solo renderiza en /admin
+  const { pathname } = useLocation();
+  if (!pathname.startsWith('/admin')) return null;
+
   const [solicitudes, setSolicitudes] = useState([]);
   const [email, setEmail] = useState('');
   const [cargando, setCargando] = useState(true);
@@ -76,7 +81,7 @@ function AdminPage() {
       const data = raw ? JSON.parse(raw) : {};
       if (!res.ok) throw new Error(data?.error || 'Error al aprobar');
 
-      // ✅ Mantener la fila y actualizar el estado a "aprobado"
+      // Mantener fila y actualizar estado
       setSolicitudes((prev) =>
         prev.map((s) => (s.correo === correo ? { ...s, estado: 'aprobado' } : s))
       );
@@ -104,7 +109,7 @@ function AdminPage() {
       const data = raw ? JSON.parse(raw) : {};
       if (!res.ok) throw new Error(data?.error || 'Error al rechazar');
 
-      // ✅ Mantener la fila y actualizar el estado a "rechazado"
+      // Mantener fila y actualizar estado
       setSolicitudes((prev) =>
         prev.map((s) => (s.correo === correo ? { ...s, estado: 'rechazado' } : s))
       );
@@ -194,4 +199,5 @@ function AdminPage() {
 }
 
 export default AdminPage;
+
 
