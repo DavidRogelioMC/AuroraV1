@@ -2,17 +2,17 @@
 import { useState, useEffect } from "react";
 import { Auth, Hub } from "aws-amplify";
 
-const API = import.meta.env.VITE_API_GATEWAY_URL; // viene de tu .env
+const API = import.meta.env.VITE_API_GATEWAY_URL; // ← viene de tus variables de entorno
 
 export default function AvatarModal({ isOpen, onClose }) {
   // Estados
-  const [avatars, setAvatars] = useState([]);         // [{ key, url }]
+  const [avatars, setAvatars] = useState([]);                 // [{ key, url }]
   const [selectedAvatar, setSelectedAvatar] = useState(null); // { key, url }
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // --- Verificar sesión activa con retardo (tu lógica original) ---
+  // --- Verificar sesión activa con retardo (tu lógica original)
   useEffect(() => {
     const timer = setTimeout(() => {
       Auth.currentSession()
@@ -22,7 +22,7 @@ export default function AvatarModal({ isOpen, onClose }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // --- Verificación inmediata + listener de sesión (tu lógica original) ---
+  // --- Verificación inmediata + listener de sesión (tu lógica original)
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -42,7 +42,7 @@ export default function AvatarModal({ isOpen, onClose }) {
     return () => Hub.remove("auth", listener);
   }, []);
 
-  // --- Cargar avatares desde tu API cuando se abre el modal ---
+  // --- Cargar avatares desde tu API cuando se abre el modal
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -51,7 +51,10 @@ export default function AvatarModal({ isOpen, onClose }) {
       setLoading(true);
       setError("");
       try {
-        const r = await fetch(`${API}/avatars`);
+        const r = await fetch(`${API}/avatars`, {
+          method: "GET",
+          credentials: "omit",
+        });
         if (!r.ok) throw new Error("No pude cargar avatares");
         const data = await r.json(); // [{ key, url }]
         if (!cancelled) setAvatars(data);
@@ -63,31 +66,47 @@ export default function AvatarModal({ isOpen, onClose }) {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
 
-  // --- Guardar elección en Cognito (atributo 'picture' con el S3 key) ---
+  // --- Guardar elección en Cognito (atributo 'picture' con el S3 key)
   const handleSave = async () => {
     try {
-      if (!selectedAvatar?.key) {
+      if (!selectedAvatar) {
         setError("⚠️ Selecciona un avatar primero.");
         return;
       }
-      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-      console.log("✅ Usuario autenticado:", user);
-      console.log("🔎 Avatar seleccionado:", selectedAvatar);
+      setSaving(true);
+      setError("");
 
+      // 1) Asegura que hay sesión
+      try {
+        await Auth.currentSession();
+      } catch {
+        setSaving(false);
+        setError("La sesión expiró. Redirigiendo al inicio de sesión…");
+        await Auth.federatedSignIn(); // Cognito Hosted UI
+        return;
+      }
+
+      // 2) Usuario actual y update del atributo "picture"
+      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
       await Auth.updateUserAttributes(user, {
-        picture: selectedAvatar.key,   // Guardamos el S3 KEY (no la URL firmada)
+        // Guardamos el S3 KEY (no la URL firmada)
+        picture: selectedAvatar.key,
       });
 
-      setError("");
       alert("✅ Avatar actualizado correctamente");
-      // Opcional: fuerza refresco si tu UI no reactualiza sola
-      // window.location.reload();
+      setSaving(false);
       onClose?.();
+
+      // Si tu Sidebar no refresca el atributo automáticamente:
+      // window.location.reload();
     } catch (err) {
       console.error("❌ Error al actualizar avatar:", err);
+      setSaving(false);
       setError("⚠️ La sesión expiró o falló la actualización. Intenta reingresar.");
     }
   };
@@ -107,7 +126,13 @@ export default function AvatarModal({ isOpen, onClose }) {
       ) : (
         <div
           className="avatar-grid"
-          style={{ display: "grid", gridTemplateColumns: "repeat(4, 80px)", gap: 12, marginTop: 12, marginBottom: 12 }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 80px)",
+            gap: 12,
+            marginTop: 12,
+            marginBottom: 12,
+          }}
         >
           {avatars.map(({ key, url }) => (
             <button
@@ -119,7 +144,10 @@ export default function AvatarModal({ isOpen, onClose }) {
                 height: 80,
                 padding: 0,
                 borderRadius: "50%",
-                border: selectedAvatar?.key === key ? "3px solid #1e90ff" : "2px solid #999",
+                border:
+                  selectedAvatar?.key === key
+                    ? "3px solid #1e90ff"
+                    : "2px solid #999",
                 overflow: "hidden",
                 cursor: "pointer",
                 background: "transparent",
