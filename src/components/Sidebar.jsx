@@ -31,7 +31,6 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estado persistente de la solicitud de Creador
   const [estadoSolicitud, setEstadoSolicitud] = useState(''); // '', 'pendiente','aprobado','rechazado'
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState('');
@@ -46,23 +45,19 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
   const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
-  // Leer grupos del token
   const payload = decodeJWT(token);
   const groups = payload?.['cognito:groups'] || [];
-  const esCreador = groups.includes('Creador');        // ✅ único criterio para “Creador”
+  const esCreador = groups.includes('Creador');
   const esAdminPorDominio = esNetec || groups.includes('Administrador');
 
-  // Texto de rol
   const rolTexto =
     esCreador ? 'Creador' :
     esAdminPorDominio ? 'Administrador' :
     'Participante';
 
-  // Menú Admin visible para @netec.* y para Anette explícitamente
   const correoAutorizado = 'anette.flores@netec.com.mx';
   const esAdminParaUI = esAdminPorDominio || email === correoAutorizado;
 
-  // Traer estado REAL desde backend (si existe solicitud)
   useEffect(() => {
     let cancel = false;
     const fetchEstado = async () => {
@@ -74,7 +69,7 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
         const item = lista.find(s => (s.correo || '').toLowerCase() === email.toLowerCase());
         const e = (item?.estado || '').toLowerCase();
         if (!cancel) setEstadoSolicitud(e || '');
-      } catch { /* noop */ }
+      } catch {}
     };
     if (email) fetchEstado();
     return () => { cancel = true; };
@@ -83,7 +78,6 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
   const toggle = () => setColapsado(v => !v);
 
-  // Botón para solicitar Creador
   const puedeSolicitar = esNetec && !esCreador;
   const disableBtn = estadoSolicitud === 'pendiente' || esCreador;
   const labelBtn =
@@ -97,15 +91,12 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
     try {
       const res = await fetch(`${API_BASE}/solicitar-rol`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader
-        },
+        headers: { 'Content-Type': 'application/json', ...authHeader },
         body: JSON.stringify({ correo: email })
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
-      setEstadoSolicitud('pendiente'); // persistente hasta que Anette apruebe/rechace
+      setEstadoSolicitud('pendiente');
     } catch (e) {
       console.error(e);
       setError('Error de red al enviar la solicitud.');
@@ -147,6 +138,7 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
       <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
+      {/* 🔒 Enlaces totalmente separados (ningún Link anidado accidentalmente) */}
       <div id="caminito" className="caminito">
         <Link to="/resumenes" className="nav-link">
           <div className="step">
@@ -154,12 +146,14 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
             {!colapsado && <span>Resúmenes</span>}
           </div>
         </Link>
+
         <Link to="/actividades" className="nav-link">
           <div className="step">
             <div className="circle">📘</div>
             {!colapsado && <span>Actividades</span>}
           </div>
         </Link>
+
         <Link to="/examenes" className="nav-link">
           <div className="step">
             <div className="circle">🔬</div>
@@ -175,6 +169,7 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
                 {!colapsado && <span>Admin</span>}
               </div>
             </Link>
+
             <Link to="/usuarios" className="nav-link">
               <div className="step">
                 <div className="circle">👥</div>
@@ -187,3 +182,4 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
     </div>
   );
 }
+
