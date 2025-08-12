@@ -4,24 +4,17 @@ import defaultFoto from '../assets/default.jpg';
 import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
 import AvatarModal from './AvatarModal';
+import SolicitarRolCreadorAdmin from './SolicitarRolCreadorAdmin';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 const DOMINIOS_PERMITIDOS = new Set([
-  'netec.com','netec.com.mx','netec.com.co',
-  'netec.com.pe','netec.com.cl','netec.com.es'
+  'netec.com','netec.com.mx','netec.com.co','netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
 ]);
-
-const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
 export default function Sidebar({ email = '', nombre, grupo, token }) {
   const [avatar, setAvatar] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
-
-  // Estados para el botón de solicitud
-  const [enviando, setEnviando] = useState(false);
-  const [ok, setOk] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     Auth.currentAuthenticatedUser()
@@ -31,32 +24,9 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
-  const puedeSolicitar = grupo === 'admin' && esNetec;
+  const puedeSolicitar = grupo === 'admin' && esNetec; // botón solo admins por dominio
 
   const toggle = () => setColapsado(v => !v);
-
-  const enviarSolicitud = async () => {
-    setEnviando(true);
-    setError('');
-    try {
-      const res = await fetch(`${API_BASE}/solicitar-rol`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token
-        },
-        body: JSON.stringify({ correo: email })
-      });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
-      setOk(true);
-    } catch (e) {
-      console.error(e);
-      setError('Error de red al enviar la solicitud.');
-    } finally {
-      setEnviando(false);
-    }
-  };
 
   const rolTexto =
     grupo === 'admin' ? 'Administrador' :
@@ -64,7 +34,7 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
     grupo === 'participant' ? 'Participante' :
     'Sin grupo';
 
-  const puedeVerAdmin = email === ADMIN_EMAIL;
+  const puedeVerAjustes = esNetec; // Ajustes para admins por dominio
 
   return (
     <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
@@ -84,18 +54,7 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
           {puedeSolicitar && (
             <div className="solicitar-creador-card">
-              <button
-                className="solicitar-creador-btn"
-                onClick={enviarSolicitud}
-                disabled={enviando || ok}
-              >
-                {enviando
-                  ? 'Enviando…'
-                  : ok
-                  ? '✅ Solicitud enviada'
-                  : '📩 Solicitar rol de Creador'}
-              </button>
-              {!!error && <div className="solicitar-creador-error">❌ {error}</div>}
+              <SolicitarRolCreadorAdmin correoAutenticado={email} />
             </div>
           )}
         </>}
@@ -105,39 +64,20 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
       <div id="caminito" className="caminito">
         <Link to="/resumenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🧠</div>
-            {!colapsado && <span>Resúmenes</span>}
-          </div>
+          <div className="step"><div className="circle">🧠</div>{!colapsado && <span>Resúmenes</span>}</div>
         </Link>
         <Link to="/actividades" className="nav-link">
-          <div className="step">
-            <div className="circle">📘</div>
-            {!colapsado && <span>Actividades</span>}
-          </div>
+          <div className="step"><div className="circle">📘</div>{!colapsado && <span>Actividades</span>}</div>
         </Link>
         <Link to="/examenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🔬</div>
-            {!colapsado && <span>Examen</span>}
-          </div>
+          <div className="step"><div className="circle">🔬</div>{!colapsado && <span>Examen</span>}</div>
         </Link>
 
-        {puedeVerAdmin && (
-          <Link to="/admin" className="nav-link">
-            <div className="step">
-              <div className="circle">⚙️</div>
-              {!colapsado && <span>Admin</span>}
-            </div>
+        {puedeVerAjustes && (
+          <Link to="/ajustes" className="nav-link">
+            <div className="step"><div className="circle">⚙️</div>{!colapsado && <span>Ajustes</span>}</div>
           </Link>
         )}
-
-        <Link to="/usuarios" className="nav-link">
-          <div className="step">
-            <div className="circle">👥</div>
-            {!colapsado && <span>Usuarios</span>}
-          </div>
-        </Link>
       </div>
     </div>
   );
