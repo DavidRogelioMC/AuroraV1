@@ -7,7 +7,6 @@ const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
 function AdminPage() {
-  // 🔒 solo debe renderizarse dentro de /ajustes
   const { pathname } = useLocation();
   if (!pathname.startsWith('/ajustes')) return null;
 
@@ -15,11 +14,10 @@ function AdminPage() {
   const [email, setEmail] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [enviando, setEnviando] = useState(''); // correo en proceso
+  const [enviando, setEnviando] = useState('');
 
   const token = localStorage.getItem('id_token');
 
-  // Decodificar token (solo email)
   useEffect(() => {
     if (!token) return;
     try {
@@ -41,6 +39,7 @@ function AdminPage() {
       const data = await res.json();
       setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
     } catch (e) {
+      console.error(e);
       setError('No se pudieron cargar las solicitudes.');
     } finally {
       setCargando(false);
@@ -52,7 +51,7 @@ function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const aprobarSolicitud = async (correo) => {
+  const callAccion = async (correo, accion) => {
     setEnviando(correo);
     setError('');
     try {
@@ -62,69 +61,25 @@ function AdminPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ correo, accion: 'aprobar' }),
+        body: JSON.stringify({ correo, accion }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Error al aprobar');
+      if (!res.ok) throw new Error(data?.error || `Error al ${accion}`);
       await cargarSolicitudes();
-      alert(`✅ Usuario ${correo} aprobado como creador.`);
+      alert(data?.message || `Acción ${accion} aplicada a ${correo}.`);
     } catch (e) {
       console.error(e);
-      setError('No se pudo aprobar la solicitud.');
+      setError(`No se pudo ${accion} la solicitud.`);
     } finally {
       setEnviando('');
     }
   };
 
-  const rechazarSolicitud = async (correo) => {
-    setEnviando(correo);
-    setError('');
-    try {
-      const res = await fetch(`${API_BASE}/rechazar-rol`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ correo, accion: 'rechazar' }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Error al rechazar');
-      await cargarSolicitudes();
-      alert(`❌ Usuario ${correo} rechazado.`);
-    } catch (e) {
-      console.error(e);
-      setError('No se pudo rechazar la solicitud.');
-    } finally {
-      setEnviando('');
-    }
-  };
+  const aprobarSolicitud = (correo) => callAccion(correo, 'aprobar');
+  const rechazarSolicitud = (correo) => callAccion(correo, 'rechazar');
+  const revocarRol = (correo) => callAccion(correo, 'revocar');
 
-  const revocarRol = async (correo) => {
-    setEnviando(correo);
-    setError('');
-    try {
-      const res = await fetch(`${API_BASE}/revocar-rol`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ correo }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Error al revocar');
-      await cargarSolicitudes();
-      alert(`🗑️ Rol de creador revocado a ${correo}.`);
-    } catch (e) {
-      console.error(e);
-      setError('No se pudo revocar el rol.');
-    } finally {
-      setEnviando('');
-    }
-  };
-
-  const puedeGestionar = email === ADMIN_EMAIL; // solo Anette
+  const puedeGestionar = email === ADMIN_EMAIL;
 
   return (
     <div className="pagina-admin">
