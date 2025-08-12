@@ -7,12 +7,13 @@ function AdminPage() {
   const [email, setEmail] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [enviando, setEnviando] = useState(''); // correo en proceso
+  const [enviando, setEnviando] = useState('');
+  const [debugInfo, setDebugInfo] = useState(null); // 👈 para diagnosticar
 
   const token = localStorage.getItem('id_token');
   const correoAutorizado = 'anette.flores@netec.com.mx';
 
-  // Decodifica el JWT de forma segura (manejo de base64url)
+  // decodifica JWT (base64url-safe)
   useEffect(() => {
     if (!token) return;
     try {
@@ -31,17 +32,46 @@ function AdminPage() {
     }
   }, [token]);
 
-  // Normaliza el shape de la respuesta
-  const normalizeSolicitudes = (data) => {
-    const arr =
-      (Array.isArray(data?.solicitudes) && data.solicitudes) ||
-      (Array.isArray(data?.items) && data.items) ||
-      (Array.isArray(data?.Items) && data.Items) ||
-      (Array.isArray(data) && data) ||
+  // 🔧 convierte AttributeValue de DynamoDB v3 a JS plano
+  const fromAttrVal = (v) => {
+    if (!v || typeof v !== 'object') return v;
+    if ('S' in v) return v.S;
+    if ('N' in v) return v.N;
+    if ('BOOL' in v) return v.BOOL;
+    if ('SS' in v) return v.SS;
+    if ('M' in v) {
+      const out = {};
+      for (const k of Object.keys(v.M)) out[k] = fromAttrVal(v.M[k]);
+      return out;
+    }
+    return v;
+  };
+
+  // 🧹 normaliza distintas formas de respuesta
+  const normalizeSolicitudes = (raw) => {
+    // 1) intenta arreglos típicos
+    let arr =
+      (Array.isArray(raw?.solicitudes) && raw.solicitudes) ||
+      (Array.isArray(raw?.items) && raw.items) ||
+      (Array.isArray(raw?.Items) && raw.Items) ||
+      (Array.isArray(raw) && raw) ||
       [];
+
+    // 2) si parece ser v3 crudo (Items con AttributeValue), convierte
+    if (arr.length && arr[0] && typeof arr[0] === 'object' && ('S' in (arr[0].correo || {}))) {
+      arr = arr.map((it) => ({
+        correo: fromAttrVal(it.correo),
+        estado: String(fromAttrVal(it.estado) ?? 'pendiente').toLowerCase(),
+        rol: fromAttrVal(it.rol_solicitado) || fromAttrVal(it.rol) || 'creador',
+        fecha: fromAttrVal(it.fecha) || '—',
+      }));
+      return arr;
+    }
+
+    // 3) arreglo “limpio”
     return arr.map((x) => ({
       correo: x.correo || x.email || '',
-      estado: (x.estado || 'pendiente').toLowerCase(),
+      estado: String(x.estado ?? 'pendiente').toLowerCase(),
       rol: x.rol || x.rol_solicitado || 'creador',
       fecha: x.fecha || '—',
     }));
@@ -50,19 +80,42 @@ function AdminPage() {
   const cargarSolicitudes = async () => {
     setCargando(true);
     setError('');
+    setDebugInfo(null);
     try {
-      const res = await fetch(
-        'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol',
-        {
-          method: 'GET',
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setSolicitudes(normalizeSolicitudes(data));
+      const url = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/obtener-solicitudes-rol';
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      const text = await res.text(); // 👈 leemos crudo primero
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { rawText: text };
+      }
+
+      console.debug('GET /obtener-solicitudes-rol -> status', res.status, 'data:', data);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} ${res.statusText} ${text?.slice(0, 300) || ''}`);
+      }
+
+      const normalizadas = normalizeSolicitudes(data);
+      setSolicitudes(normalizadas);
+
+      // Si vino vacío, mostramos bloque de depuración
+      if (!normalizadas.length) {
+        setDebugInfo({
+          status: res.status,
+          hasAuthHeader: !!token,
+          headers: Object.fromEntries([...res.headers.entries()]),
+          preview: typeof text === 'string' ? text.slice(0, 500) : String(text),
+        });
+      }
     } catch (e) {
       console.error('obtener-solicitudes-rol error:', e);
       setError('No se pudieron cargar las solicitudes.');
@@ -77,7 +130,7 @@ function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // ÚNICA acción: Autorizar -> la Lambda aprueba o rechaza según dominio
+  // Acción única: Autorizar (Lambda decide aprobar/rechazar por dominio)
   const autorizar = async (correo) => {
     setEnviando(correo);
     setError('');
@@ -93,10 +146,11 @@ function AdminPage() {
           body: JSON.stringify({ correo }),
         }
       );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Error al autorizar');
-      // Después de autorizar, recargamos desde la fuente de verdad (DynamoDB)
-      await cargarSolicitudes();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { rawText: text }; }
+      if (!res.ok) throw new Error(data?.error || text || 'Error al autorizar');
+      await cargarSolicitudes(); // reconsulta DynamoDB
       alert(data?.message || `Solicitud procesada para ${correo}.`);
     } catch (e) {
       console.error('autorizar error:', e);
@@ -130,7 +184,18 @@ function AdminPage() {
       ) : error ? (
         <div className="error-box">{error}</div>
       ) : solicitudes.length === 0 ? (
-        <p>No hay solicitudes pendientes.</p>
+        <>
+          <p>No hay solicitudes pendientes.</p>
+          {debugInfo && (
+            <div className="error-box" style={{ marginTop: '10px' }}>
+              <div><b>DEBUG</b> (muéstrame este bloque si sigue vacío):</div>
+              <div>status: {debugInfo.status}</div>
+              <div>authHeader: {String(debugInfo.hasAuthHeader)}</div>
+              <div>headers: <code>{JSON.stringify(debugInfo.headers)}</code></div>
+              <div>preview: <code>{debugInfo.preview}</code></div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="tabla-solicitudes">
           <table>
