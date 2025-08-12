@@ -24,11 +24,10 @@ import espanaFlag from './assets/espana.png';
 function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token') || '');
   const [email, setEmail] = useState('');
-  const [rol, setRol] = useState(''); // admin | creador | participant
+  const [rol, setRol] = useState('');
 
-  // ⚙️ Cognito env vars
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  const domain = import.meta.env.VITE_COGNITO_DOMAIN; // https://xxx.auth.us-east-1.amazoncognito.com
+  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
 
   const loginUrl = useMemo(() => {
@@ -39,7 +38,7 @@ function App() {
     return u.toString();
   }, [clientId, domain, redirectUri]);
 
-  // 1) Captura id_token al volver de Cognito
+  // captura id_token del hash
   useEffect(() => {
     const { hash } = window.location;
     if (hash.includes('id_token=')) {
@@ -52,7 +51,7 @@ function App() {
     }
   }, []);
 
-  // 2) Decodifica token para email y rol efectivo
+  // decodifica y calcula rol efectivo (creador | admin dominio netec | participant)
   useEffect(() => {
     if (!token) return;
     try {
@@ -62,21 +61,19 @@ function App() {
 
       const customRol = (decoded?.['custom:rol'] || '').toLowerCase();
       const domainPart = (mail.split('@')[1] || '').toLowerCase();
-      const isNetecAdmin = /^netec\.com(\.[a-z]{2,3})?$/.test(domainPart); // .mx .co .cl .pe .es .pr ...
+      const isNetecAdmin = /^netec\.com(\.[a-z]{2,3})?$/.test(domainPart);
 
       const effective =
         customRol === 'creador' ? 'creador' :
         isNetecAdmin ? 'admin' : 'participant';
 
       setRol(effective);
-    } catch (err) {
-      console.error('❌ Error al decodificar token:', err);
+    } catch {
       setEmail('');
       setRol('');
     }
   }, [token]);
 
-  // 3) Cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem('id_token');
     const u = new URL(`${domain}/logout`);
@@ -90,7 +87,6 @@ function App() {
   return (
     <>
       {!token ? (
-        // ---------- Pantalla de acceso ----------
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -121,7 +117,6 @@ function App() {
           </div>
         </div>
       ) : (
-        // ---------- App privada ----------
         <Router>
           <div id="contenidoPrincipal">
             <Sidebar email={email} grupo={rol} token={token} />
@@ -132,18 +127,17 @@ function App() {
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
-                {/* ✅ No tocar estos módulos */}
+                {/* estos tres NO se tocan */}
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
 
-                {/* ⚙️ Ajustes: visibles solo para administradores por dominio */}
+                {/* ajustes solo admins por dominio netec */}
                 <Route
                   path="/ajustes"
                   element={isNetecAdmin ? <AdminPage /> : <Navigate to="/" replace />}
                 />
 
-                {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
