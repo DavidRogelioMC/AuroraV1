@@ -7,19 +7,20 @@ import AvatarModal from './AvatarModal';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 const DOMINIOS_PERMITIDOS = new Set([
-  'netec.com','netec.com.mx','netec.com.co',
-  'netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
+  'netec.com', 'netec.com.mx', 'netec.com.co',
+  'netec.com.pe', 'netec.com.cl', 'netec.com.es', 'netec.com.pr'
 ]);
+const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
 export default function Sidebar({ email = '', nombre, grupo, token }) {
   const [avatar, setAvatar] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // estado botón solicitud (tu lógica original)
+  // Estado del botón de solicitud
   const [enviando, setEnviando] = useState(false);
-  const [ok, setOk] = useState(false);
   const [error, setError] = useState('');
+  const [estadoSolicitud, setEstadoSolicitud] = useState(''); // '', 'pendiente', 'aprobado', 'rechazado'
 
   useEffect(() => {
     Auth.currentAuthenticatedUser()
@@ -29,13 +30,35 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
+  const esAnette = (email || '').toLowerCase() === ADMIN_EMAIL;
 
-  // botón de solicitud visible sólo si es admin (por dominio) y es de Netec
-  const puedeSolicitar = grupo === 'admin' && esNetec;
-  // botón Ajustes visible para todos los administradores por dominio
-  const puedeVerAjustes = esNetec;
+  // Puede solicitar: admins por dominio Netec (no participantes) y que NO sea Anette
+  const puedeSolicitar = !esAnette && esNetec && grupo === 'admin';
 
   const toggle = () => setColapsado(v => !v);
+
+  // Traer estado persistido de la solicitud desde DynamoDB
+  const cargarEstadoSolicitud = async () => {
+    if (!token || !email) return;
+    try {
+      const r = await fetch(`${API_BASE}/obtener-solicitudes-rol`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await r.json().catch(() => ({}));
+      const lista = Array.isArray(data?.solicitudes) ? data.solicitudes : [];
+      const m = lista.find(s => (s.correo || '').toLowerCase() === email.toLowerCase());
+      const e = (m?.estado || '').toLowerCase();
+      setEstadoSolicitud(e || '');
+    } catch (e) {
+      // Silencioso: si falla, no rompemos la UI
+    }
+  };
+
+  useEffect(() => {
+    cargarEstadoSolicitud();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, token]);
 
   const enviarSolicitud = async () => {
     setEnviando(true);
@@ -51,7 +74,8 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
-      setOk(true);
+      // Persistimos inmediatamente a "pendiente" para que el botón no se re-habilite
+      setEstadoSolicitud('pendiente');
     } catch (e) {
       console.error(e);
       setError('Error de red al enviar la solicitud.');
@@ -60,11 +84,17 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
     }
   };
 
+  // Texto de rol mostrado
   const rolTexto =
-    grupo === 'admin' ? 'Administrador' :
     grupo === 'creador' ? 'Creador' :
-    grupo === 'participant' ? 'Participante' :
-    'Sin grupo';
+    grupo === 'admin' ? 'Administrador' :
+    grupo === 'participant' ? 'Participante' : 'Sin grupo';
+
+  // Si ya es creador por token o si la solicitud está aprobada, mostramos estado fijo
+  const yaEsCreador = grupo === 'creador' || estadoSolicitud === 'aprobado';
+
+  // ¿mostrar Ajustes? solo para correos de dominios Netec
+  const puedeVerAjustes = esNetec;
 
   return (
     <div id="barraLateral" className={`sidebar ${colapsado ? 'sidebar--colapsado' : ''}`}>
@@ -82,17 +112,29 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
           <div className="email">{email}</div>
           <div className="grupo">🎖️ Rol: {rolTexto}</div>
 
-          {puedeSolicitar && (
+          {/* Anette siempre verá que ya es creador */}
+          {esAnette && (
+            <div className="solicitar-creador-card">
+              <button className="solicitar-creador-btn" disabled>
+                ✅ Ya eres Creador
+              </button>
+            </div>
+          )}
+
+          {/* Botón solicitar: solo para admins Netec distintos a Anette */}
+          {!esAnette && puedeSolicitar && (
             <div className="solicitar-creador-card">
               <button
                 className="solicitar-creador-btn"
                 onClick={enviarSolicitud}
-                disabled={enviando || ok}
+                disabled={enviando || yaEsCreador || estadoSolicitud === 'pendiente'}
               >
-                {enviando
+                {yaEsCreador
+                  ? '✅ Ya eres Creador'
+                  : estadoSolicitud === 'pendiente'
+                  ? '⏳ Solicitud enviada (Pendiente)'
+                  : enviando
                   ? 'Enviando…'
-                  : ok
-                  ? '✅ Solicitud enviada'
                   : '📩 Solicitar rol de Creador'}
               </button>
               {!!error && <div className="solicitar-creador-error">❌ {error}</div>}
@@ -111,7 +153,6 @@ export default function Sidebar({ email = '', nombre, grupo, token }) {
           </div>
         </Link>
 
-        {/* ACTIVIDADES — sin cambios */}
         <Link to="/actividades" className="nav-link">
           <div className="step">
             <div className="circle">📘</div>
