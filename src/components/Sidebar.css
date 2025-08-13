@@ -1,7 +1,7 @@
 /* Contenedor principal */
 #barraLateral.sidebar {
   --sidebar-width: 260px;
-  --sidebar-collapsed: 120px;
+  --sidebar-collapsed: 140px; /* ⬅️ ancho cuando está colapsado (antes 120px) */
   position: fixed;
   top: 0;
   left: 0;
