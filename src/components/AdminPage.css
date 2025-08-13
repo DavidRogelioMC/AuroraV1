@@ -1,7 +1,7 @@
 /* src/components/AdminPage.css */
 
 .pagina-admin {
-  padding: 18px 22px;
+  padding: 0; /* el padding lo da .main-content-area global */
 }
 
 .pagina-admin h1 {
@@ -23,16 +23,19 @@
   gap: 12px;
   flex-wrap: wrap;
   margin: 12px 0 10px;
+  width: 100%;
 }
 
-/* ALARGAR el input de búsqueda */
+/* El buscador ahora se adapta al espacio sobrante */
 .pagina-admin .buscar-correo {
-  width: 460px;         /* ajusta a tu gusto: 420px, 520px, etc. */
-  max-width: 60vw;      /* no desborda en pantallas pequeñas */
+  flex: 1 1 520px;   /* crece, encoge, base 520px */
+  min-width: 320px;  /* no más chico que 320px */
+  max-width: 100%;   /* nunca más grande que el contenedor */
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid #cfd8dc;
   outline: none;
+  box-sizing: border-box;
 }
 
 .pagina-admin .buscar-correo:focus {
