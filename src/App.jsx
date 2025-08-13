@@ -180,13 +180,17 @@ function App() {
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
+
                 {/* ✅ Actividades: siempre tu generador */}
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
 
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
 
-                {/* 🔒 Admin SOLO para anette */}
+                {/* ⚙️ Ajustes (para cualquier admin netec.*) */}
+                <Route path="/ajustes" element={<AdminPage />} />
+
+                {/* 🛠️ Admin SOLO para Anette (root) */}
                 <Route
                   path="/admin"
                   element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />}
