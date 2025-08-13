@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { Auth } from 'aws-amplify'; // ⬅️ NUEVO: para refrescar atributos reales
+import { Auth } from 'aws-amplify'; // para refrescar atributos reales
 
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
@@ -71,38 +71,53 @@ function App() {
     }
   }, [token]);
 
-  // 3) 🔄 REFRESCAR ROL REAL desde Cognito (bypass cache)
-  //    Esto corrige el caso en que el id_token quedó con "creador", pero ya fue revocado/rechazado/eliminado.
+  // 3) 🔄 REFRESCAR ROL REAL desde Cognito (bypass cache) + “banderita” force_attr_refresh
   useEffect(() => {
     if (!token) return;
+
+    let cancelled = false;
 
     const refreshFromCognito = () => {
       Auth.currentAuthenticatedUser({ bypassCache: true })
         .then(u => {
+          if (cancelled) return;
           const freshRol = u?.attributes?.['custom:rol'] || '';
           const freshEmail = u?.attributes?.email || '';
           if (freshEmail && freshEmail !== email) setEmail(freshEmail);
           if (freshRol && freshRol !== rol) setRol(freshRol);
         })
         .catch(err => {
-          // Si el usuario no está autenticado vía Amplify, no pasa nada.
-          // (La app seguirá con el rol del token hasta que vuelva a iniciar sesión)
           console.log('No se pudo refrescar atributos de Cognito', err?.message || err);
+        })
+        .finally(() => {
+          if (localStorage.getItem('force_attr_refresh') === '1') {
+            localStorage.removeItem('force_attr_refresh');
+          }
         });
     };
 
-    // a) Al montar / tener token
+    // a) Al montar / tener token (y si hay bandera de refresco)
     refreshFromCognito();
 
     // b) Cada vez que la ventana recupera foco
     const onFocus = () => refreshFromCognito();
     window.addEventListener('focus', onFocus);
 
-    // c) (Opcional) refresco periódico suave: cada 60s
+    // c) Escucha del storage para refresco inmediato (set desde AdminPage)
+    const onStorage = (e) => {
+      if (e.key === 'force_attr_refresh' && e.newValue === '1') {
+        refreshFromCognito();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    // d) Refresco periódico suave (60s)
     const iv = setInterval(refreshFromCognito, 60_000);
 
     return () => {
+      cancelled = true;
       window.removeEventListener('focus', onFocus);
+      window.removeEventListener('storage', onStorage);
       clearInterval(iv);
     };
   }, [token, email, rol]);
@@ -191,3 +206,4 @@ function App() {
 }
 
 export default App;
+
