@@ -1,5 +1,5 @@
 // src/components/AdminPage.jsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './AdminPage.css';
 
@@ -7,52 +7,39 @@ const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
 function AdminPage() {
-  // Render SOLO en /ajustes
+  // 🔒 Evitar render fuera de /admin
   const { pathname } = useLocation();
-  if (!pathname.startsWith('/ajustes')) return null;
+  if (!pathname.startsWith('/admin')) return null;
 
   const [solicitudes, setSolicitudes] = useState([]);
   const [email, setEmail] = useState('');
-  const [rolToken, setRolToken] = useState(''); // admin | creador
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(''); // correo en proceso
-
-  // UI búsqueda / filtro (solo se muestran a Anette)
-  const [q, setQ] = useState('');
-  const [fEstado, setFEstado] = useState('todos'); // todos|pendiente|aprobado|rechazado
-
   const token = localStorage.getItem('id_token');
-  const auth = token?.startsWith('Bearer ') ? token : `Bearer ${token}`;
 
-  // Decodificar token
+  // Decodificar token simple para email
   useEffect(() => {
     if (!token) return;
     try {
       const payload = JSON.parse(atob((token.split('.')[1] || '').replace(/-/g, '+').replace(/_/g, '/')));
-      setEmail(String(payload?.email || '').toLowerCase());
-      setRolToken(String(payload?.['custom:rol'] || '').toLowerCase());
+      setEmail(payload?.email || '');
     } catch (e) {
       console.error('Error al decodificar token', e);
     }
   }, [token]);
 
-  const esRoot = email === ADMIN_EMAIL;
-
-  // Traer solicitudes (el backend ya limita: si NO es root, devuelve solo la suya)
   const cargarSolicitudes = async () => {
     setCargando(true);
     setError('');
     try {
       const res = await fetch(`${API_BASE}/obtener-solicitudes-rol`, {
         method: 'GET',
-        headers: { Authorization: auth }
+        headers: token ? { Authorization: token } : {},
       });
       const data = await res.json();
-      const lista = Array.isArray(data?.solicitudes) ? data.solicitudes : [];
-      setSolicitudes(lista);
+      setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
     } catch (e) {
-      console.error(e);
       setError('No se pudieron cargar las solicitudes.');
     } finally {
       setCargando(false);
@@ -64,20 +51,38 @@ function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // Acciones de rol
-  const callAccion = async (correo, accion) => {
+  const puedeGestionar = email === ADMIN_EMAIL;
+
+  // helper para forzar refresh de atributos en los clientes
+  const pokeClientsToRefresh = () => {
+    try {
+      localStorage.setItem('force_attr_refresh', '1');
+    } catch {}
+  };
+
+  const accionSolicitud = async (correo, accion) => {
     setEnviando(correo);
     setError('');
     try {
       const res = await fetch(`${API_BASE}/aprobar-rol`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: auth },
-        body: JSON.stringify({ correo, accion }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: token } : {}),
+        },
+        body: JSON.stringify({ correo, accion }), // 'aprobar' | 'rechazar' | 'revocar'
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || `Error al ${accion}`);
-      await cargarSolicitudes();
-      alert(data?.message || `Acción ${accion} aplicada a ${correo}.`);
+      if (!res.ok) throw new Error(data?.error || 'Error en la acción');
+
+      // Forzar que los clientes refresquen su rol
+      pokeClientsToRefresh();
+
+      // Saca de la tabla o recarga
+      setSolicitudes((prev) =>
+        prev.map((s) => (s.correo === correo ? { ...s, estado: accion === 'aprobar' ? 'aprobado' : 'rechazado' } : s))
+      );
+      alert(`✅ Acción ${accion} aplicada para ${correo}.`);
     } catch (e) {
       console.error(e);
       setError(`No se pudo ${accion} la solicitud.`);
@@ -86,24 +91,26 @@ function AdminPage() {
     }
   };
 
-  const aprobar = (c) => callAccion(c, 'aprobar');
-  const rechazar = (c) => callAccion(c, 'rechazar');
-  const revocar  = (c) => callAccion(c, 'revocar');
-
-  // Eliminar solicitud (solo root)
-  const eliminar = async (correo) => {
-    if (!window.confirm(`¿Eliminar la solicitud de ${correo}?`)) return;
+  const eliminarSolicitud = async (correo) => {
     setEnviando(correo);
     setError('');
     try {
       const res = await fetch(`${API_BASE}/eliminar-solicitud`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: auth },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: token } : {}),
+        },
         body: JSON.stringify({ correo }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Error al eliminar');
-      await cargarSolicitudes();
+
+      // Forzar refresh en clientes (revierte a admin y quita del grupo en Lambda)
+      pokeClientsToRefresh();
+
+      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
+      alert(`🗑️ Solicitud de ${correo} eliminada.`);
     } catch (e) {
       console.error(e);
       setError('No se pudo eliminar la solicitud.');
@@ -112,106 +119,28 @@ function AdminPage() {
     }
   };
 
-  // Cambiar rol activo de Anette
-  const cambiarRolActivo = async (rolNuevo) => {
-    try {
-      const res = await fetch(`${API_BASE}/set-rol-activo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: auth },
-        body: JSON.stringify({ rol: rolNuevo })
-      });
-      const j = await res.json().catch(()=>({}));
-      if (!res.ok) throw new Error(j.error || 'Error');
-      setRolToken(rolNuevo);
-      alert(`Rol activo cambiado a ${rolNuevo}. Cierra sesión y vuelve a entrar para refrescar el token.`);
-    } catch (e) {
-      alert('No se pudo cambiar el rol activo.');
-    }
-  };
-
-  // Búsqueda y filtros (solo root)
-  const listaFiltrada = useMemo(() => {
-    let arr = solicitudes.slice();
-    if (esRoot) {
-      if (q.trim()) {
-        const cmp = q.trim().toLowerCase();
-        arr = arr.filter(s => (s.correo || '').toLowerCase().includes(cmp));
-      }
-      if (fEstado !== 'todos') {
-        arr = arr.filter(s => (s.estado || '').toLowerCase() === fEstado);
-      }
-    } else {
-      arr = arr.filter(s => (s.correo || '').toLowerCase() === email);
-    }
-    return arr;
-  }, [solicitudes, q, fEstado, esRoot, email]);
-
-  const puedeGestionar = esRoot;
-
   return (
     <div className="pagina-admin">
-      <h1>Panel de Ajustes</h1>
-      <p>Revisión y gestión del rol <b>creador</b>.</p>
-
-      {/* Selector de rol activo (Anette) */}
-      {esRoot && (
-        <div className="cinta-rol">
-          <b>Tu rol activo:</b>
-          <select
-            value={rolToken === 'creador' ? 'creador' : 'admin'}
-            onChange={(e) => cambiarRolActivo(e.target.value)}
-            className="select-rol"
-          >
-            <option value="creador">Creador</option>
-            <option value="admin">Administrador</option>
-          </select>
-          <small>(tras cambiar, vuelve a iniciar sesión)</small>
-        </div>
-      )}
+      <h1>Panel de Administración</h1>
+      <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
 
       {!puedeGestionar && (
-        <p className="solo-autorizado">🚫 Solo el administrador autorizado puede aprobar/rechazar/revocar.</p>
+        <p className="solo-autorizado">
+          🚫 Solo el administrador autorizado puede aprobar/rechazar/revocar.
+        </p>
       )}
 
-      {/* Barra de búsqueda y filtro (solo root) */}
-      {esRoot && (
-        <div className="barra-busqueda">
-          <input
-            type="text"
-            placeholder="Buscar por correo…"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            className="input-buscar"
-          />
-          <select
-            value={fEstado}
-            onChange={e => setFEstado(e.target.value)}
-            className="select-estado"
-          >
-            <option value="todos">Todos los estados</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="aprobado">Aprobado</option>
-            <option value="rechazado">Rechazado</option>
-          </select>
-          <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
-            {cargando ? 'Actualizando…' : '↻ Actualizar'}
-          </button>
-        </div>
-      )}
-
-      {!esRoot && (
-        <div className="acciones-encabezado">
-          <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
-            {cargando ? 'Actualizando…' : '↻ Actualizar'}
-          </button>
-        </div>
-      )}
+      <div className="acciones-encabezado">
+        <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
+          {cargando ? 'Actualizando…' : '↻ Actualizar'}
+        </button>
+      </div>
 
       {cargando ? (
         <div className="spinner">Cargando solicitudes…</div>
       ) : error ? (
         <div className="error-box">{error}</div>
-      ) : listaFiltrada.length === 0 ? (
+      ) : solicitudes.length === 0 ? (
         <p>No hay solicitudes.</p>
       ) : (
         <div className="tabla-solicitudes">
@@ -224,73 +153,53 @@ function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {listaFiltrada.map((s) => {
+              {solicitudes.map((s) => {
                 const estado = (s.estado || 'pendiente').toLowerCase();
-                const isPendiente = estado === 'pendiente';
-                const isAprobado  = estado === 'aprobado';
-                const isRootRow   = (s.correo || '').toLowerCase() === ADMIN_EMAIL;
-
+                const correo = s.correo;
                 return (
-                  <tr key={s.correo}>
-                    <td>{s.correo}</td>
+                  <tr key={correo}>
+                    <td>{correo}</td>
                     <td>
                       <span className={`badge-estado ${estado}`}>
                         {estado.replace(/^./, (c) => c.toUpperCase())}
                       </span>
                     </td>
-
                     {puedeGestionar && (
                       <td className="col-acciones">
-                        {isRootRow ? (
-                          <button className="btn-root" disabled title="Usuario protegido">
-                            🛡️ Protegido
-                          </button>
-                        ) : (
-                          <>
-                            {!isAprobado && (
-                              <button
-                                className="btn-aprobar"
-                                onClick={() => aprobar(s.correo)}
-                                disabled={enviando === s.correo}
-                                title="Aprobar solicitud"
-                              >
-                                {enviando === s.correo ? 'Aplicando…' : '✅ Aprobar'}
-                              </button>
-                            )}
-
-                            {isPendiente && (
-                              <button
-                                className="btn-rechazar"
-                                onClick={() => rechazar(s.correo)}
-                                disabled={enviando === s.correo}
-                                title="Rechazar solicitud"
-                              >
-                                {enviando === s.correo ? 'Aplicando…' : '❌ Rechazar'}
-                              </button>
-                            )}
-
-                            {isAprobado && (
-                              <button
-                                className="btn-rechazar"
-                                onClick={() => revocar(s.correo)}
-                                disabled={enviando === s.correo}
-                                title="Revocar rol de creador"
-                              >
-                                {enviando === s.correo ? 'Aplicando…' : '🗑️ Revocar'}
-                              </button>
-                            )}
-
-                            {/* 🗑️ Eliminar de la base (solo root) */}
-                            <button
-                              className="btn-eliminar"
-                              onClick={() => eliminar(s.correo)}
-                              disabled={enviando === s.correo}
-                              title="Eliminar registro de la base de datos"
-                            >
-                              {enviando === s.correo ? 'Eliminando…' : '🗑️ Eliminar'}
-                            </button>
-                          </>
-                        )}
+                        <button
+                          className="btn-aprobar"
+                          onClick={() => accionSolicitud(correo, 'aprobar')}
+                          disabled={enviando === correo}
+                          title="Aprobar"
+                        >
+                          {enviando === correo ? 'Aplicando…' : '✅ Aprobar'}
+                        </button>
+                        <button
+                          className="btn-rechazar"
+                          onClick={() => accionSolicitud(correo, 'rechazar')}
+                          disabled={enviando === correo}
+                          title="Rechazar"
+                        >
+                          {enviando === correo ? 'Aplicando…' : '❌ Rechazar'}
+                        </button>
+                        <button
+                          className="btn-rechazar"
+                          onClick={() => accionSolicitud(correo, 'revocar')}
+                          disabled={enviando === correo}
+                          title="Revocar rol"
+                          style={{ marginLeft: 8 }}
+                        >
+                          {enviando === correo ? 'Aplicando…' : '🗑️ Revocar'}
+                        </button>
+                        <button
+                          className="btn-rechazar"
+                          onClick={() => eliminarSolicitud(correo)}
+                          disabled={enviando === correo}
+                          title="Eliminar solicitud (DynamoDB)"
+                          style={{ marginLeft: 8 }}
+                        >
+                          {enviando === correo ? 'Eliminando…' : '🗑️ Eliminar'}
+                        </button>
                       </td>
                     )}
                   </tr>
