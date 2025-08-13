@@ -1,5 +1,5 @@
 // src/components/AdminPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import './AdminPage.css';
 
@@ -7,27 +7,28 @@ const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
 function AdminPage() {
-  // 🔒 Evitar render fuera de /admin
+  const token = localStorage.getItem('id_token') || '';
   const { pathname } = useLocation();
-  if (!pathname.startsWith('/admin')) return null;
 
-  const [solicitudes, setSolicitudes] = useState([]);
   const [email, setEmail] = useState('');
+  const [solicitudes, setSolicitudes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [enviando, setEnviando] = useState(''); // correo en proceso
-  const token = localStorage.getItem('id_token');
+  const [enviando, setEnviando] = useState('');
 
-  // Decodificar token simple para email
+  // Decodificar email del token (simple)
   useEffect(() => {
     if (!token) return;
     try {
       const payload = JSON.parse(atob((token.split('.')[1] || '').replace(/-/g, '+').replace(/_/g, '/')));
       setEmail(payload?.email || '');
-    } catch (e) {
-      console.error('Error al decodificar token', e);
-    }
+    } catch {}
   }, [token]);
+
+  const esRoot = email === ADMIN_EMAIL;
+  const esVistaAjustes = pathname.startsWith('/ajustes');
+
+  const headers = useMemo(() => (token ? { Authorization: token } : {}), [token]);
 
   const cargarSolicitudes = async () => {
     setCargando(true);
@@ -35,10 +36,15 @@ function AdminPage() {
     try {
       const res = await fetch(`${API_BASE}/obtener-solicitudes-rol`, {
         method: 'GET',
-        headers: token ? { Authorization: token } : {},
+        headers
       });
       const data = await res.json();
-      setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
+      let lista = Array.isArray(data?.solicitudes) ? data.solicitudes : [];
+      // Si NO es root o estamos en /ajustes, solo ver mi registro
+      if (!esRoot || esVistaAjustes) {
+        lista = lista.filter(s => (s.correo || '').toLowerCase() === email.toLowerCase());
+      }
+      setSolicitudes(lista);
     } catch (e) {
       setError('No se pudieron cargar las solicitudes.');
     } finally {
@@ -47,13 +53,11 @@ function AdminPage() {
   };
 
   useEffect(() => {
+    if (!email) return;
     cargarSolicitudes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [email, esRoot, esVistaAjustes]);
 
-  const puedeGestionar = email === ADMIN_EMAIL;
-
-  // helper para forzar refresh de atributos en los clientes
   const pokeClientsToRefresh = () => {
     try {
       localStorage.setItem('force_attr_refresh', '1');
@@ -61,30 +65,27 @@ function AdminPage() {
   };
 
   const accionSolicitud = async (correo, accion) => {
+    if (!esRoot) return;                 // solo root gestiona
+    if ((correo || '').toLowerCase() === ADMIN_EMAIL) {
+      alert('⛔ No puedes modificar a la cuenta raíz.');
+      return;
+    }
+
     setEnviando(correo);
     setError('');
     try {
       const res = await fetch(`${API_BASE}/aprobar-rol`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: token } : {}),
-        },
-        body: JSON.stringify({ correo, accion }), // 'aprobar' | 'rechazar' | 'revocar'
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ correo, accion }) // 'aprobar' | 'rechazar' | 'revocar'
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Error en la acción');
 
-      // Forzar que los clientes refresquen su rol
       pokeClientsToRefresh();
-
-      // Saca de la tabla o recarga
-      setSolicitudes((prev) =>
-        prev.map((s) => (s.correo === correo ? { ...s, estado: accion === 'aprobar' ? 'aprobado' : 'rechazado' } : s))
-      );
+      await cargarSolicitudes();
       alert(`✅ Acción ${accion} aplicada para ${correo}.`);
     } catch (e) {
-      console.error(e);
       setError(`No se pudo ${accion} la solicitud.`);
     } finally {
       setEnviando('');
@@ -92,27 +93,28 @@ function AdminPage() {
   };
 
   const eliminarSolicitud = async (correo) => {
+    if (!esRoot) return;
+    if ((correo || '').toLowerCase() === ADMIN_EMAIL) {
+      alert('⛔ No puedes eliminar la solicitud de la cuenta raíz.');
+      return;
+    }
+    if (!confirm(`¿Eliminar la solicitud de ${correo}?`)) return;
+
     setEnviando(correo);
     setError('');
     try {
       const res = await fetch(`${API_BASE}/eliminar-solicitud`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: token } : {}),
-        },
-        body: JSON.stringify({ correo }),
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ correo })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Error al eliminar');
 
-      // Forzar refresh en clientes (revierte a admin y quita del grupo en Lambda)
       pokeClientsToRefresh();
-
-      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
-      alert(`🗑️ Solicitud de ${correo} eliminada.`);
+      await cargarSolicitudes();
+      alert(`🧹 Solicitud de ${correo} eliminada.`);
     } catch (e) {
-      console.error(e);
       setError('No se pudo eliminar la solicitud.');
     } finally {
       setEnviando('');
@@ -121,12 +123,16 @@ function AdminPage() {
 
   return (
     <div className="pagina-admin">
-      <h1>Panel de Administración</h1>
-      <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
+      <h1>{esRoot && !esVistaAjustes ? 'Panel de Administración' : 'Panel de Ajustes'}</h1>
+      <p>
+        {esRoot && !esVistaAjustes
+          ? 'Desde aquí puedes revisar solicitudes para otorgar el rol "creador".'
+          : 'Revisión y estado de tu solicitud del rol "creador".'}
+      </p>
 
-      {!puedeGestionar && (
+      {!esRoot && (
         <p className="solo-autorizado">
-          🚫 Solo el administrador autorizado puede aprobar/rechazar/revocar.
+          🚫 Solo la administradora autorizada puede aprobar/rechazar/revocar.
         </p>
       )}
 
@@ -149,13 +155,14 @@ function AdminPage() {
               <tr>
                 <th>Correo</th>
                 <th>Estado</th>
-                {puedeGestionar && <th>Acciones</th>}
+                {esRoot && !esVistaAjustes && <th>Acciones</th>}
               </tr>
             </thead>
             <tbody>
               {solicitudes.map((s) => {
                 const estado = (s.estado || 'pendiente').toLowerCase();
-                const correo = s.correo;
+                const correo = s.correo || '';
+
                 return (
                   <tr key={correo}>
                     <td>{correo}</td>
@@ -164,7 +171,8 @@ function AdminPage() {
                         {estado.replace(/^./, (c) => c.toUpperCase())}
                       </span>
                     </td>
-                    {puedeGestionar && (
+
+                    {esRoot && !esVistaAjustes && (
                       <td className="col-acciones">
                         <button
                           className="btn-aprobar"
@@ -198,7 +206,7 @@ function AdminPage() {
                           title="Eliminar solicitud (DynamoDB)"
                           style={{ marginLeft: 8 }}
                         >
-                          {enviando === correo ? 'Eliminando…' : '🗑️ Eliminar'}
+                          {enviando === correo ? 'Eliminando…' : '🧹 Eliminar'}
                         </button>
                       </td>
                     )}
