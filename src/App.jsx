@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { Auth } from 'aws-amplify';
+import { Auth } from 'aws-amplify'; // Para refrescar atributos reales
 
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
@@ -25,17 +25,27 @@ import espanaFlag from './assets/espana.png';
 
 const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
+/** Normaliza cualquier string de rol:
+ *  - acepta "admin,creador" y devuelve uno solo.
+ *  - prioridad: creador > admin > participant
+ */
+const normalizarRol = (raw) => {
+  if (!raw) return '';
+  const parts = String(raw).toLowerCase().split(/[,\s]+/).filter(Boolean);
+  if (parts.includes('creador')) return 'creador';
+  if (parts.includes('admin')) return 'admin';
+  if (parts.includes('participant')) return 'participant';
+  return parts[0] || '';
+};
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token') || '');
   const [email, setEmail] = useState('');
   const [rol, setRol] = useState(''); // "admin" | "creador" | "participant" | ""
 
-  const hasAuth =
-    typeof window !== 'undefined' && window.__HAS_AMPLIFY_AUTH__ === true;
-
   // ⚙️ Cognito env vars
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  const domain = import.meta.env.VITE_COGNITO_DOMAIN; // https://...amazoncognito.com
+  const domain = import.meta.env.VITE_COGNITO_DOMAIN; // Ej: https://us-xxx.auth.us-east-1.amazoncognito.com
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
 
   const loginUrl = useMemo(() => {
@@ -46,7 +56,7 @@ function App() {
     return u.toString();
   }, [clientId, domain, redirectUri]);
 
-  // 1) Captura id_token
+  // 1) Captura id_token en el hash al volver de Cognito
   useEffect(() => {
     const { hash } = window.location;
     if (hash.includes('id_token=')) {
@@ -55,26 +65,28 @@ function App() {
         localStorage.setItem('id_token', newToken);
         setToken(newToken);
       }
+      // Limpia el hash de la URL
       window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
     }
   }, []);
 
-  // 2) Decodifica token
+  // 2) Decodifica token (rápido) para email y rol inicial
   useEffect(() => {
     if (!token) return;
     try {
       const decoded = jwtDecode(token);
       setEmail(decoded?.email || '');
-      setRol(decoded?.['custom:rol'] || '');
-    } catch {
+      setRol(normalizarRol(decoded?.['custom:rol']));
+    } catch (err) {
+      console.error('❌ Error al decodificar token:', err);
       setEmail('');
       setRol('');
     }
   }, [token]);
 
-  // 3) Refrescar atributos reales (si hay Amplify)
+  // 3) 🔄 REFRESCAR ROL REAL desde Cognito (bypass cache) + “banderita” force_attr_refresh
   useEffect(() => {
-    if (!token || !hasAuth) return;
+    if (!token) return;
 
     let cancelled = false;
 
@@ -82,25 +94,57 @@ function App() {
       Auth.currentAuthenticatedUser({ bypassCache: true })
         .then(u => {
           if (cancelled) return;
-          const freshRol = u?.attributes?.['custom:rol'] || '';
+          const freshRol = normalizarRol(u?.attributes?.['custom:rol'] || '');
           const freshEmail = u?.attributes?.email || '';
           if (freshEmail && freshEmail !== email) setEmail(freshEmail);
           if (freshRol && freshRol !== rol) setRol(freshRol);
+
+          // Fallback para la superadmin: si viene vacío, tratamos como admin
+          if (freshEmail === ADMIN_EMAIL && !freshRol) {
+            setRol('admin');
+          }
         })
-        .catch(() => {});
+        .catch(err => {
+          // Si el usuario no está autenticado vía Amplify, no pasa nada.
+          console.log('No se pudo refrescar atributos de Cognito', err?.message || err);
+        })
+        .finally(() => {
+          if (localStorage.getItem('force_attr_refresh') === '1') {
+            localStorage.removeItem('force_attr_refresh');
+          }
+        });
     };
 
+    // a) Al montar / tener token (y si hay bandera de refresco)
     refreshFromCognito();
+
+    // b) Cada vez que la ventana recupera foco
     const onFocus = () => refreshFromCognito();
     window.addEventListener('focus', onFocus);
+
+    // c) Escucha del storage para refresco inmediato (set desde AdminPage)
+    const onStorage = (e) => {
+      if (e.key === 'force_attr_refresh' && e.newValue === '1') {
+        refreshFromCognito();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    // d) Refresco periódico suave (60s)
     const iv = setInterval(refreshFromCognito, 60_000);
 
     return () => {
       cancelled = true;
       window.removeEventListener('focus', onFocus);
+      window.removeEventListener('storage', onStorage);
       clearInterval(iv);
     };
-  }, [token, email, rol, hasAuth]);
+  }, [token, email, rol]);
+
+  // 3.1) Fallback adicional: si es Anette y por alguna razón rol está vacío, muéstrala como admin
+  useEffect(() => {
+    if (email === ADMIN_EMAIL && !rol) setRol('admin');
+  }, [email, rol]);
 
   // 4) Cerrar sesión
   const handleLogout = () => {
@@ -111,12 +155,13 @@ function App() {
     window.location.href = u.toString();
   };
 
+  // 🔒 Solo esta persona puede ver/rutear a /admin
   const adminAllowed = email === ADMIN_EMAIL;
 
   return (
     <>
       {!token ? (
-        // ---------- Login ----------
+        // ---------- Pantalla de acceso ----------
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -147,25 +192,31 @@ function App() {
           </div>
         </div>
       ) : (
-        // ---------- App ----------
+        // ---------- App privada ----------
         <Router>
           <div id="contenidoPrincipal">
+            {/* Pasamos el rol FRESCO a la barra lateral */}
             <Sidebar email={email} grupo={rol} token={token} />
 
-            {/* ✅ Solo si Amplify está configurado */}
-            {hasAuth && <ProfileModal token={token} />}
-            {hasAuth && <ChatModal token={token} />}
+            <ProfileModal token={token} />
+            <ChatModal token={token} />
 
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
+                {/* ✅ Actividades: siempre tu generador */}
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
+
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
+
+                {/* 🔒 Admin SOLO para anette */}
                 <Route
                   path="/admin"
                   element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />}
                 />
+
+                {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
@@ -179,4 +230,5 @@ function App() {
 }
 
 export default App;
+
 
