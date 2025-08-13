@@ -8,10 +8,8 @@ import AvatarModal from './AvatarModal';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 const DOMINIOS_PERMITIDOS = new Set([
-  'netec.com','netec.com.mx','netec.com.co',
-  'netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
+  'netec.com','netec.com.mx','netec.com.co','netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
 ]);
-
 const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
 export default function Sidebar({ email = '', nombre, grupo = '', token }) {
@@ -19,12 +17,10 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estados del botón / estado persistente de solicitud
   const [enviando, setEnviando] = useState(false);
-  const [estado, setEstado] = useState(''); // '', 'pendiente', 'aprobado', 'rechazado'
+  const [estado, setEstado] = useState(''); // '', pendiente, aprobado, rechazado
   const [error, setError] = useState('');
 
-  // Carga avatar (si tienes Amplify Auth configurado)
   useEffect(() => {
     Auth.currentAuthenticatedUser({ bypassCache: true })
       .then(u => setAvatar(u?.attributes?.picture || null))
@@ -33,20 +29,23 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
-  const esRoot = email === ADMIN_EMAIL;
 
-  // ⚠️ Mostrar botón si es dominio netec y NO es creador
-  const mostrarBoton = esNetec && (grupo !== 'creador');
+  // 👇 override local para que Anette "simule" rol en la UI
+  const override = (typeof window !== 'undefined' && localStorage.getItem('ui_active_role')) || '';
+  const grupoMostrado = (['admin','creador','participant'].includes(override) ? override : '') || grupo;
 
-  // ⛳️ Tu API espera el token "crudo", no con 'Bearer'
+  // Mostrar botón si es dominio netec y NO es creador
+  const mostrarBoton = esNetec && (grupoMostrado !== 'creador');
+
   const authHeader = useMemo(() => {
-    return token ? { Authorization: token } : {};
+    if (!token) return {};
+    const v = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+    return { Authorization: v };
   }, [token]);
 
-  // Trae el estado real desde Dynamo para que persista tras recargar
+  // Traer estado persistente de la solicitud
   useEffect(() => {
     if (!email || !esNetec) return;
-
     const fetchEstado = async () => {
       setError('');
       try {
@@ -56,13 +55,10 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         const lista = Array.isArray(data?.solicitudes) ? data.solicitudes : [];
         const it = lista.find(s => (s.correo || '').toLowerCase() === email.toLowerCase());
         const e = (it?.estado || '').toLowerCase();
-        if (e === 'aprobado' || e === 'pendiente' || e === 'rechazado') setEstado(e);
+        if (['aprobado','pendiente','rechazado'].includes(e)) setEstado(e);
         else setEstado('');
-      } catch (e) {
-        console.log('No se pudo obtener estado de solicitud', e);
-      }
+      } catch {}
     };
-
     fetchEstado();
   }, [email, esNetec, authHeader]);
 
@@ -82,7 +78,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
       setEstado('pendiente');
     } catch (e) {
-      console.error(e);
       setError('Error de red al enviar la solicitud.');
     } finally {
       setEnviando(false);
@@ -90,12 +85,12 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   };
 
   const rolTexto =
-    grupo === 'admin' ? 'Administrador' :
-    grupo === 'creador' ? 'Creador' :
-    grupo === 'participant' ? 'Participante' :
-    esNetec ? 'Administrador' : 'Sin grupo';
+    grupoMostrado === 'admin' ? 'Administrador' :
+    grupoMostrado === 'creador' ? 'Creador' :
+    grupoMostrado === 'participant' ? 'Participante' :
+    'Sin grupo';
 
-  const puedeVerAdmin = esRoot;
+  const puedeVerAdmin = email === ADMIN_EMAIL;
 
   const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
   const label =
@@ -144,53 +139,26 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
       <div id="caminito" className="caminito">
         <Link to="/resumenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🧠</div>
-            {!colapsado && <span>Resúmenes</span>}
-          </div>
+          <div className="step"><div className="circle">🧠</div>{!colapsado && <span>Resúmenes</span>}</div>
         </Link>
-
         <Link to="/actividades" className="nav-link">
-          <div className="step">
-            <div className="circle">📘</div>
-            {!colapsado && <span>Actividades</span>}
-          </div>
+          <div className="step"><div className="circle">📘</div>{!colapsado && <span>Actividades</span>}</div>
         </Link>
-
         <Link to="/examenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🔬</div>
-            {!colapsado && <span>Examen</span>}
-          </div>
+          <div className="step"><div className="circle">🔬</div>{!colapsado && <span>Examen</span>}</div>
         </Link>
 
-        {/* ⚙️ Ajustes visible para admins netec */}
-        {esNetec && (
-          <Link to="/ajustes" className="nav-link">
-            <div className="step">
-              <div className="circle">⚙️</div>
-              {!colapsado && <span>Ajustes</span>}
-            </div>
-          </Link>
-        )}
+        {/* Ajustes: todos pueden entrar */}
+        <Link to="/ajustes" className="nav-link">
+          <div className="step"><div className="circle">🛠️</div>{!colapsado && <span>Ajustes</span>}</div>
+        </Link>
 
-        {/* 🛠️ Admin global solo root */}
+        {/* Admin: solo Anette */}
         {puedeVerAdmin && (
           <Link to="/admin" className="nav-link">
-            <div className="step">
-              <div className="circle">🛠️</div>
-              {!colapsado && <span>Admin</span>}
-            </div>
+            <div className="step"><div className="circle">⚙️</div>{!colapsado && <span>Admin</span>}</div>
           </Link>
         )}
-
-        {/* Mantengo tu enlace Usuarios si lo usas */}
-        <Link to="/usuarios" className="nav-link">
-          <div className="step">
-            <div className="circle">👥</div>
-            {!colapsado && <span>Usuarios</span>}
-          </div>
-        </Link>
       </div>
     </div>
   );
