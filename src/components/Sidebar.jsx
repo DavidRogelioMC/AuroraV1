@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
@@ -18,19 +19,25 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estados del botón / estado persistente de solicitud
+  // Estado de solicitud en Dynamo
   const [enviando, setEnviando] = useState(false);
   const [estado, setEstado] = useState(''); // '', 'pendiente', 'aprobado', 'rechazado'
   const [error, setError] = useState('');
 
-  // Rol REAL consultado en Cognito (por GET a /aprobar-rol)
-  const [rolReal, setRolReal] = useState(grupo || '');
-
-  // Carga avatar
+  // Cargar avatar SOLO si Amplify se configuró bien
   useEffect(() => {
-    Auth.currentAuthenticatedUser({ bypassCache: true })
-      .then(u => setAvatar(u?.attributes?.picture || null))
-      .catch(() => setAvatar(null));
+    if (!window.__HAS_AMPLIFY_AUTH__) {
+      setAvatar(null);
+      return;
+    }
+    (async () => {
+      try {
+        const u = await Auth.currentAuthenticatedUser({ bypassCache: true });
+        setAvatar(u?.attributes?.picture || null);
+      } catch {
+        setAvatar(null);
+      }
+    })();
   }, []);
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
@@ -42,33 +49,9 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     return { Authorization: v };
   }, [token]);
 
-  // ✅ Trae el ROL REAL de Cognito (para que el botón aparezca aunque el id_token tenga rol viejo)
-  useEffect(() => {
-    if (!email) return;
-
-    const fetchRol = async () => {
-      try {
-        const url = `${API_BASE}/aprobar-rol?correo=${encodeURIComponent(email)}`;
-        const r = await fetch(url, { headers: { ...authHeader } });
-        if (!r.ok) return;
-        const data = await r.json().catch(() => ({}));
-        const rr = String(data?.rol || '').toLowerCase();
-        if (rr) setRolReal(rr);
-      } catch {
-        // si falla, quedamos con el rol del token
-      }
-    };
-
-    fetchRol();
-  }, [email, authHeader]);
-
-  // 🔘 Mostrar botón SOLO si NO es creador según el ROL REAL
-  const mostrarBoton = esNetec && (rolReal !== 'creador');
-
   // Trae el estado real desde Dynamo para que persista tras recargar
   useEffect(() => {
     if (!email || !esNetec) return;
-
     const fetchEstado = async () => {
       setError('');
       try {
@@ -81,11 +64,9 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         if (e === 'aprobado' || e === 'pendiente' || e === 'rechazado') setEstado(e);
         else setEstado('');
       } catch (e) {
-        // no bloquea la UI
         console.log('No se pudo obtener estado de solicitud', e);
       }
     };
-
     fetchEstado();
   }, [email, esNetec, authHeader]);
 
@@ -103,7 +84,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
-      setEstado('pendiente'); // Persistimos inmediatamente como pendiente
+      setEstado('pendiente'); // reflejar de inmediato
     } catch (e) {
       console.error(e);
       setError('Error de red al enviar la solicitud.');
@@ -113,16 +94,17 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   };
 
   const rolTexto =
-    (rolReal || grupo) === 'admin' ? 'Administrador' :
-    (rolReal || grupo) === 'creador' ? 'Creador' :
-    (rolReal || grupo) === 'participant' ? 'Participante' :
+    grupo === 'admin' ? 'Administrador' :
+    grupo === 'creador' ? 'Creador' :
+    grupo === 'participant' ? 'Participante' :
     'Sin grupo';
 
   const puedeVerAdmin = email === ADMIN_EMAIL;
 
-  // Etiqueta y deshabilitado del botón según estado persistente
-  const disabled =
-    estado === 'pendiente' || estado === 'aprobado' || enviando;
+  // ✅ Mostrar botón si es dominio NETEC y la solicitud NO está aprobada en Dynamo
+  const mostrarBoton = esNetec && estado !== 'aprobado';
+
+  const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
 
   const label =
     estado === 'aprobado'  ? '✅ Ya eres Creador'
@@ -207,4 +189,5 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     </div>
   );
 }
+
 
