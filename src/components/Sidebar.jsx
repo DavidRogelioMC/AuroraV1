@@ -14,34 +14,43 @@ const DOMINIOS_PERMITIDOS = new Set([
 
 const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
+/** Igual que en App.jsx: devuelve un rol único válido */
+const normalizarRol = (raw) => {
+  if (!raw) return '';
+  const parts = String(raw).toLowerCase().split(/[,\s]+/).filter(Boolean);
+  if (parts.includes('creador')) return 'creador';
+  if (parts.includes('admin')) return 'admin';
+  if (parts.includes('participant')) return 'participant';
+  return parts[0] || '';
+};
+
 export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [avatar, setAvatar] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estado de solicitud en Dynamo
+  // Estados del botón / estado persistente de solicitud
   const [enviando, setEnviando] = useState(false);
   const [estado, setEstado] = useState(''); // '', 'pendiente', 'aprobado', 'rechazado'
   const [error, setError] = useState('');
 
-  // Cargar avatar SOLO si Amplify se configuró bien
+  // Carga avatar (si tienes Amplify Auth configurado)
   useEffect(() => {
-    if (!window.__HAS_AMPLIFY_AUTH__) {
-      setAvatar(null);
-      return;
-    }
-    (async () => {
-      try {
-        const u = await Auth.currentAuthenticatedUser({ bypassCache: true });
-        setAvatar(u?.attributes?.picture || null);
-      } catch {
-        setAvatar(null);
-      }
-    })();
+    Auth.currentAuthenticatedUser({ bypassCache: true })
+      .then(u => setAvatar(u?.attributes?.picture || null))
+      .catch(() => setAvatar(null));
   }, []);
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
+  const esRoot = email === ADMIN_EMAIL;
+
+  // Normaliza grupo recibido
+  const rolNormalizado = esRoot && !grupo ? 'admin' : normalizarRol(grupo);
+
+  // ⚠️ Mostrar botón si es dominio netec y NO es creador,
+  // y NUNCA mostrarlo para la superadmin
+  const mostrarBoton = esNetec && (rolNormalizado !== 'creador') && !esRoot;
 
   const authHeader = useMemo(() => {
     if (!token) return {};
@@ -52,6 +61,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   // Trae el estado real desde Dynamo para que persista tras recargar
   useEffect(() => {
     if (!email || !esNetec) return;
+
     const fetchEstado = async () => {
       setError('');
       try {
@@ -67,6 +77,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         console.log('No se pudo obtener estado de solicitud', e);
       }
     };
+
     fetchEstado();
   }, [email, esNetec, authHeader]);
 
@@ -84,7 +95,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
-      setEstado('pendiente'); // reflejar de inmediato
+      setEstado('pendiente');
     } catch (e) {
       console.error(e);
       setError('Error de red al enviar la solicitud.');
@@ -94,17 +105,15 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   };
 
   const rolTexto =
-    grupo === 'admin' ? 'Administrador' :
-    grupo === 'creador' ? 'Creador' :
-    grupo === 'participant' ? 'Participante' :
+    rolNormalizado === 'admin' ? 'Administrador' :
+    rolNormalizado === 'creador' ? 'Creador' :
+    rolNormalizado === 'participant' ? 'Participante' :
     'Sin grupo';
 
-  const puedeVerAdmin = email === ADMIN_EMAIL;
+  const puedeVerAdmin = esRoot; // Solo Anette ve el panel admin
 
-  // ✅ Mostrar botón si es dominio NETEC y la solicitud NO está aprobada en Dynamo
-  const mostrarBoton = esNetec && estado !== 'aprobado';
-
-  const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
+  const disabled =
+    estado === 'pendiente' || estado === 'aprobado' || enviando;
 
   const label =
     estado === 'aprobado'  ? '✅ Ya eres Creador'
@@ -189,5 +198,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     </div>
   );
 }
+
 
 
