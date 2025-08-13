@@ -1,6 +1,8 @@
+// src/App.jsx
 import { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { Auth } from 'aws-amplify'; // ⬅️ NUEVO: para refrescar atributos reales
 
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
@@ -21,13 +23,16 @@ import colombiaFlag from './assets/colombia.png';
 import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
+const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token') || '');
   const [email, setEmail] = useState('');
-  const [rol, setRol] = useState('');
+  const [rol, setRol] = useState(''); // "admin" | "creador" | "participant" | ""
 
+  // ⚙️ Cognito env vars
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+  const domain = import.meta.env.VITE_COGNITO_DOMAIN; // Ej: https://us-xxx.auth.us-east-1.amazoncognito.com
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
 
   const loginUrl = useMemo(() => {
@@ -38,7 +43,7 @@ function App() {
     return u.toString();
   }, [clientId, domain, redirectUri]);
 
-  // captura id_token del hash
+  // 1) Captura id_token en el hash al volver de Cognito
   useEffect(() => {
     const { hash } = window.location;
     if (hash.includes('id_token=')) {
@@ -47,33 +52,62 @@ function App() {
         localStorage.setItem('id_token', newToken);
         setToken(newToken);
       }
+      // Limpia el hash de la URL
       window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
     }
   }, []);
 
-  // decodifica y calcula rol efectivo (creador | admin dominio netec | participant)
+  // 2) Decodifica token (rápido) para email y rol inicial
   useEffect(() => {
     if (!token) return;
     try {
       const decoded = jwtDecode(token);
-      const mail = decoded?.email || '';
-      setEmail(mail);
-
-      const customRol = (decoded?.['custom:rol'] || '').toLowerCase();
-      const domainPart = (mail.split('@')[1] || '').toLowerCase();
-      const isNetecAdmin = /^netec\.com(\.[a-z]{2,3})?$/.test(domainPart);
-
-      const effective =
-        customRol === 'creador' ? 'creador' :
-        isNetecAdmin ? 'admin' : 'participant';
-
-      setRol(effective);
-    } catch {
+      setEmail(decoded?.email || '');
+      setRol(decoded?.['custom:rol'] || '');
+    } catch (err) {
+      console.error('❌ Error al decodificar token:', err);
       setEmail('');
       setRol('');
     }
   }, [token]);
 
+  // 3) 🔄 REFRESCAR ROL REAL desde Cognito (bypass cache)
+  //    Esto corrige el caso en que el id_token quedó con "creador", pero ya fue revocado/rechazado/eliminado.
+  useEffect(() => {
+    if (!token) return;
+
+    const refreshFromCognito = () => {
+      Auth.currentAuthenticatedUser({ bypassCache: true })
+        .then(u => {
+          const freshRol = u?.attributes?.['custom:rol'] || '';
+          const freshEmail = u?.attributes?.email || '';
+          if (freshEmail && freshEmail !== email) setEmail(freshEmail);
+          if (freshRol && freshRol !== rol) setRol(freshRol);
+        })
+        .catch(err => {
+          // Si el usuario no está autenticado vía Amplify, no pasa nada.
+          // (La app seguirá con el rol del token hasta que vuelva a iniciar sesión)
+          console.log('No se pudo refrescar atributos de Cognito', err?.message || err);
+        });
+    };
+
+    // a) Al montar / tener token
+    refreshFromCognito();
+
+    // b) Cada vez que la ventana recupera foco
+    const onFocus = () => refreshFromCognito();
+    window.addEventListener('focus', onFocus);
+
+    // c) (Opcional) refresco periódico suave: cada 60s
+    const iv = setInterval(refreshFromCognito, 60_000);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      clearInterval(iv);
+    };
+  }, [token, email, rol]);
+
+  // 4) Cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem('id_token');
     const u = new URL(`${domain}/logout`);
@@ -82,11 +116,13 @@ function App() {
     window.location.href = u.toString();
   };
 
-  const isNetecAdmin = /^netec\.com(\.[a-z]{2,3})?$/.test((email.split('@')[1] || '').toLowerCase());
+  // 🔒 Solo esta persona puede ver/rutear a /admin
+  const adminAllowed = email === ADMIN_EMAIL;
 
   return (
     <>
       {!token ? (
+        // ---------- Pantalla de acceso ----------
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -117,8 +153,10 @@ function App() {
           </div>
         </div>
       ) : (
+        // ---------- App privada ----------
         <Router>
           <div id="contenidoPrincipal">
+            {/* Pasamos el rol FRESCO a la barra lateral */}
             <Sidebar email={email} grupo={rol} token={token} />
 
             <ProfileModal token={token} />
@@ -127,17 +165,19 @@ function App() {
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
-                {/* estos tres NO se tocan */}
+                {/* ✅ Actividades: siempre tu generador */}
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
+
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
 
-                {/* ajustes solo admins por dominio netec */}
+                {/* 🔒 Admin SOLO para anette */}
                 <Route
-                  path="/ajustes"
-                  element={isNetecAdmin ? <AdminPage /> : <Navigate to="/" replace />}
+                  path="/admin"
+                  element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />}
                 />
 
+                {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
@@ -151,6 +191,3 @@ function App() {
 }
 
 export default App;
-
-
-
