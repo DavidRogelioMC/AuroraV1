@@ -28,10 +28,14 @@ const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token') || '');
   const [email, setEmail] = useState('');
-  const [rol, setRol] = useState(''); // admin | creador | participant | ""
+  const [rol, setRol] = useState(''); // "admin" | "creador" | "participant" | ""
 
+  const hasAuth =
+    typeof window !== 'undefined' && window.__HAS_AMPLIFY_AUTH__ === true;
+
+  // ⚙️ Cognito env vars
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+  const domain = import.meta.env.VITE_COGNITO_DOMAIN; // https://...amazoncognito.com
   const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
 
   const loginUrl = useMemo(() => {
@@ -42,7 +46,7 @@ function App() {
     return u.toString();
   }, [clientId, domain, redirectUri]);
 
-  // captura id_token del hash
+  // 1) Captura id_token
   useEffect(() => {
     const { hash } = window.location;
     if (hash.includes('id_token=')) {
@@ -55,7 +59,7 @@ function App() {
     }
   }, []);
 
-  // decodifica token rápido
+  // 2) Decodifica token
   useEffect(() => {
     if (!token) return;
     try {
@@ -68,9 +72,9 @@ function App() {
     }
   }, [token]);
 
-  // refresco de atributos reales (para cuando revocas, etc.)
+  // 3) Refrescar atributos reales (si hay Amplify)
   useEffect(() => {
-    if (!token) return;
+    if (!token || !hasAuth) return;
 
     let cancelled = false;
 
@@ -83,32 +87,22 @@ function App() {
           if (freshEmail && freshEmail !== email) setEmail(freshEmail);
           if (freshRol && freshRol !== rol) setRol(freshRol);
         })
-        .catch(() => {})
-        .finally(() => {
-          if (localStorage.getItem('force_attr_refresh') === '1') {
-            localStorage.removeItem('force_attr_refresh');
-          }
-        });
+        .catch(() => {});
     };
 
     refreshFromCognito();
     const onFocus = () => refreshFromCognito();
     window.addEventListener('focus', onFocus);
-
-    const onStorage = (e) => {
-      if (e.key === 'force_attr_refresh' && e.newValue === '1') refreshFromCognito();
-    };
-    window.addEventListener('storage', onStorage);
-
     const iv = setInterval(refreshFromCognito, 60_000);
+
     return () => {
       cancelled = true;
       window.removeEventListener('focus', onFocus);
-      window.removeEventListener('storage', onStorage);
       clearInterval(iv);
     };
-  }, [token, email, rol]);
+  }, [token, email, rol, hasAuth]);
 
+  // 4) Cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem('id_token');
     const u = new URL(`${domain}/logout`);
@@ -122,6 +116,7 @@ function App() {
   return (
     <>
       {!token ? (
+        // ---------- Login ----------
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -152,11 +147,14 @@ function App() {
           </div>
         </div>
       ) : (
+        // ---------- App ----------
         <Router>
           <div id="contenidoPrincipal">
             <Sidebar email={email} grupo={rol} token={token} />
-            <ProfileModal token={token} />
-            <ChatModal token={token} />
+
+            {/* ✅ Solo si Amplify está configurado */}
+            {hasAuth && <ProfileModal token={token} />}
+            {hasAuth && <ChatModal token={token} />}
 
             <main className="main-content-area">
               <Routes>
@@ -164,16 +162,10 @@ function App() {
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
-
-                {/* Ajustes: visible para todos para ver el estado de su solicitud */}
-                <Route path="/ajustes" element={<AdminPage />} />
-
-                {/* Admin: solo Anette puede gestionar */}
                 <Route
                   path="/admin"
-                  element={adminAllowed ? <AdminPage /> : <Navigate to="/ajustes" replace />}
+                  element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />}
                 />
-
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
