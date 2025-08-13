@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
@@ -32,15 +33,14 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
+  const esRoot = email === ADMIN_EMAIL;
 
   // ⚠️ Mostrar botón si es dominio netec y NO es creador
-  // (La regla de negocio es que "administrador" = dominios netec.*)
   const mostrarBoton = esNetec && (grupo !== 'creador');
 
+  // ⛳️ Tu API espera el token "crudo", no con 'Bearer'
   const authHeader = useMemo(() => {
-    if (!token) return {};
-    const v = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-    return { Authorization: v };
+    return token ? { Authorization: token } : {};
   }, [token]);
 
   // Trae el estado real desde Dynamo para que persista tras recargar
@@ -56,11 +56,9 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         const lista = Array.isArray(data?.solicitudes) ? data.solicitudes : [];
         const it = lista.find(s => (s.correo || '').toLowerCase() === email.toLowerCase());
         const e = (it?.estado || '').toLowerCase();
-        // normaliza
         if (e === 'aprobado' || e === 'pendiente' || e === 'rechazado') setEstado(e);
         else setEstado('');
       } catch (e) {
-        // no bloquea la UI; solo no persistirá el estado
         console.log('No se pudo obtener estado de solicitud', e);
       }
     };
@@ -82,7 +80,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || 'Rechazado por servidor');
-      // Persistimos inmediatamente como pendiente
       setEstado('pendiente');
     } catch (e) {
       console.error(e);
@@ -96,14 +93,11 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     grupo === 'admin' ? 'Administrador' :
     grupo === 'creador' ? 'Creador' :
     grupo === 'participant' ? 'Participante' :
-    'Sin grupo';
+    esNetec ? 'Administrador' : 'Sin grupo';
 
-  const puedeVerAdmin = email === ADMIN_EMAIL;
+  const puedeVerAdmin = esRoot;
 
-  // Etiqueta y deshabilitado del botón según estado persistente
-  const disabled =
-    estado === 'pendiente' || estado === 'aprobado' || enviando;
-
+  const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
   const label =
     estado === 'aprobado'  ? '✅ Ya eres Creador'
   : estado === 'pendiente' ? '⏳ Solicitud enviada'
@@ -155,12 +149,14 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
             {!colapsado && <span>Resúmenes</span>}
           </div>
         </Link>
+
         <Link to="/actividades" className="nav-link">
           <div className="step">
             <div className="circle">📘</div>
             {!colapsado && <span>Actividades</span>}
           </div>
         </Link>
+
         <Link to="/examenes" className="nav-link">
           <div className="step">
             <div className="circle">🔬</div>
@@ -168,15 +164,27 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           </div>
         </Link>
 
+        {/* ⚙️ Ajustes visible para admins netec */}
+        {esNetec && (
+          <Link to="/ajustes" className="nav-link">
+            <div className="step">
+              <div className="circle">⚙️</div>
+              {!colapsado && <span>Ajustes</span>}
+            </div>
+          </Link>
+        )}
+
+        {/* 🛠️ Admin global solo root */}
         {puedeVerAdmin && (
           <Link to="/admin" className="nav-link">
             <div className="step">
-              <div className="circle">⚙️</div>
+              <div className="circle">🛠️</div>
               {!colapsado && <span>Admin</span>}
             </div>
           </Link>
         )}
 
+        {/* Mantengo tu enlace Usuarios si lo usas */}
         <Link to="/usuarios" className="nav-link">
           <div className="step">
             <div className="circle">👥</div>
@@ -187,5 +195,4 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     </div>
   );
 }
-
 
