@@ -1,7 +1,27 @@
-/* src/components/AdminPage.css */
+/* =======================
+   src/components/AdminPage.css
+   ======================= */
 
+/* Vars de ancho del sidebar */
+:root {
+  --sidebar-width: 260px;      /* ancho normal del sidebar */
+  --sidebar-collapsed: 120px;  /* ancho al colapsar (un poco más ancho) */
+}
+
+/* === OFFSET: mueve SOLO la página de Admin a la derecha del sidebar ===
+   Sidebar y main están a la par en el DOM, por eso usamos el ~ (hermano general).
+   Cuando el sidebar está colapsado, reducimos el offset automáticamente. */
+#barraLateral.sidebar ~ .main-content-area .pagina-admin {
+  margin-left: var(--sidebar-width);
+}
+#barraLateral.sidebar.sidebar--colapsado ~ .main-content-area .pagina-admin {
+  margin-left: var(--sidebar-collapsed);
+}
+
+/* Evita que algo quede debajo visualmente */
 .pagina-admin {
-  padding: 0; /* el padding lo da .main-content-area global */
+  padding: 0; /* el padding general lo da .main-content-area */
+  box-sizing: border-box;
 }
 
 .pagina-admin h1 {
@@ -26,7 +46,7 @@
   width: 100%;
 }
 
-/* El buscador ahora se adapta al espacio sobrante */
+/* Buscador que se adapta y puede ser largo */
 .pagina-admin .buscar-correo {
   flex: 1 1 520px;   /* crece, encoge, base 520px */
   min-width: 320px;  /* no más chico que 320px */
@@ -184,4 +204,5 @@
   padding: 12px 14px;
   border-radius: 10px;
 }
+
 
