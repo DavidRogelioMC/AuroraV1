@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
@@ -7,11 +8,9 @@ import AvatarModal from './AvatarModal';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 const DOMINIOS_PERMITIDOS = new Set([
-  'netec.com','netec.com.mx','netec.com.co',
-  'netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
+  'netec.com', 'netec.com.mx', 'netec.com.co',
+  'netec.com.pe', 'netec.com.cl', 'netec.com.es', 'netec.com.pr'
 ]);
-
-const ADMIN_EMAIL_ROOT = 'anette.flores@netec.com.mx';
 
 export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [avatar, setAvatar] = useState(null);
@@ -94,9 +93,8 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     grupo === 'participant' ? 'Participante' :
     'Sin grupo';
 
-  // ✅ Cualquier admin (o correo netec con rol admin) verá el botón "Admin"
-  const esAdmin = grupo === 'admin' || esNetec;
-  const puedeVerAdmin = esAdmin;
+  // ✅ El acceso "Admin" aparece para cualquier usuario con rol admin
+  const puedeVerAdmin = (grupo === 'admin');
 
   const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
 
@@ -151,12 +149,14 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
             {!colapsado && <span>Resúmenes</span>}
           </div>
         </Link>
+
         <Link to="/actividades" className="nav-link">
           <div className="step">
             <div className="circle">📘</div>
             {!colapsado && <span>Actividades</span>}
           </div>
         </Link>
+
         <Link to="/examenes" className="nav-link">
           <div className="step">
             <div className="circle">🔬</div>
@@ -164,9 +164,9 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           </div>
         </Link>
 
-        {/* ✅ Ahora cualquier admin verá el botón Admin */}
+        {/* ✅ Ahora cualquier usuario con rol admin verá el botón Admin */}
         {puedeVerAdmin && (
-          <Link to="/admin" className="nav-link">
+          <Link to="/admin" className="nav-link" title="Panel de administración">
             <div className="step">
               <div className="circle">⚙️</div>
               {!colapsado && <span>Admin</span>}
@@ -184,6 +184,5 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     </div>
   );
 }
-
 
 
