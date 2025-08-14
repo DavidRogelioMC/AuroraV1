@@ -17,7 +17,7 @@ function AdminPage() {
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(''); // correo en proceso
 
-  // Filtros y “vista” de rol
+  // Filtros y “vista” de rol (solo visible para la administradora autorizada)
   const [filtroTexto, setFiltroTexto] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('all'); // all | pendiente | aprobado | rechazado
   const [vistaRol, setVistaRol] = useState(
@@ -29,7 +29,7 @@ function AdminPage() {
   // auth header
   const authHeader = useMemo(() => {
     if (!token) return {};
-    // En tu backend aceptas el raw token, así que lo dejamos igual
+    // Tu backend acepta el raw token
     return { Authorization: token };
   }, [token]);
 
@@ -37,7 +37,9 @@ function AdminPage() {
   useEffect(() => {
     if (!token) return;
     try {
-      const payload = JSON.parse(atob((token.split('.')[1] || '').replace(/-/g, '+').replace(/_/g, '/')));
+      const payload = JSON.parse(
+        atob((token.split('.')[1] || '').replace(/-/g, '+').replace(/_/g, '/'))
+      );
       setEmail(payload?.email || '');
     } catch (e) {
       console.error('Error al decodificar token', e);
@@ -96,7 +98,9 @@ function AdminPage() {
 
       setSolicitudes((prev) =>
         prev.map((s) =>
-          s.correo === correo ? { ...s, estado: accion === 'aprobar' ? 'aprobado' : 'rechazado' } : s
+          s.correo === correo
+            ? { ...s, estado: accion === 'aprobar' ? 'aprobado' : 'rechazado' }
+            : s
         )
       );
       alert(`✅ Acción ${accion} aplicada para ${correo}.`);
@@ -136,7 +140,7 @@ function AdminPage() {
     }
   };
 
-  // Filtrado en memoria
+  // Filtrado en memoria (para la administradora autorizada)
   const solicitudesFiltradas = useMemo(() => {
     const txt = filtroTexto.trim().toLowerCase();
     return solicitudes.filter((s) => {
@@ -148,10 +152,34 @@ function AdminPage() {
     });
   }, [solicitudes, filtroTexto, filtroEstado]);
 
-  // Guardar "vista" de rol (solo UI / demo)
+  // Guardar "vista" de rol demo
   useEffect(() => {
     localStorage.setItem('ui_role_preview', vistaRol);
   }, [vistaRol]);
+
+  // === Mi solicitud (para usuarios NO autorizados) ===
+  const miSolicitud = useMemo(() => {
+    if (!email) return null;
+    return solicitudes.find(
+      (s) => (s.correo || '').toLowerCase() === email.toLowerCase()
+    );
+  }, [solicitudes, email]);
+
+  const estadoMiSolicitud = (miSolicitud?.estado || '').toLowerCase();
+  const etiquetaMiSolicitud =
+    estadoMiSolicitud === 'pendiente'
+      ? 'Pendiente'
+      : estadoMiSolicitud === 'aprobado'
+      ? 'Aprobado'
+      : estadoMiSolicitud === 'rechazado'
+      ? 'Rechazado'
+      : 'No registrada';
+  const claseBadgeMiSolicitud =
+    estadoMiSolicitud === 'pendiente' ||
+    estadoMiSolicitud === 'aprobado' ||
+    estadoMiSolicitud === 'rechazado'
+      ? `badge-estado ${estadoMiSolicitud}`
+      : 'badge-estado'; // sin estado => neutro
 
   return (
     <div className="pagina-admin">
@@ -159,138 +187,168 @@ function AdminPage() {
       <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
 
       {!puedeGestionar && (
-        <p className="solo-autorizado">
-          🚫 Solo la administradora autorizada puede aprobar/rechazar/revocar/eliminar.
-        </p>
+        <>
+          <p className="solo-autorizado">
+            🚫 Solo la administradora autorizada puede aprobar/rechazar/revocar/eliminar.
+          </p>
+
+          {/* Tarjeta: Mi solicitud (solo informativa) */}
+          <div className="mi-solicitud" style={{ marginTop: 12 }}>
+            <div className="mi-solicitud__fila">
+              <div>
+                <div className="mi-solicitud__correo">{email}</div>
+                <div style={{ marginTop: 6 }}>
+                  Estado:&nbsp;
+                  <span className={claseBadgeMiSolicitud}>{etiquetaMiSolicitud}</span>
+                </div>
+              </div>
+              <button
+                className="btn-recargar"
+                onClick={cargarSolicitudes}
+                disabled={cargando}
+                title="Actualizar estado"
+              >
+                {cargando ? 'Actualizando…' : '↻ Actualizar'}
+              </button>
+            </div>
+            {etiquetaMiSolicitud === 'No registrada' && (
+              <p style={{ marginTop: 10, color: '#6b7280' }}>
+                No encontramos una solicitud registrada con tu correo.
+              </p>
+            )}
+          </div>
+        </>
       )}
 
-      {/* Filtros */}
-      <div className="filtros">
-        <input
-          type="text"
-          className="buscar-correo"
-          placeholder="Buscar por correo…"
-          value={filtroTexto}
-          onChange={(e) => setFiltroTexto(e.target.value)}
-        />
+      {/* Filtros y tabla SOLO para la administradora autorizada */}
+      {puedeGestionar && (
+        <>
+          {/* Filtros */}
+          <div className="filtros">
+            <input
+              type="text"
+              className="buscar-correo"
+              placeholder="Buscar por correo…"
+              value={filtroTexto}
+              onChange={(e) => setFiltroTexto(e.target.value)}
+            />
 
-        <select
-          className="select-estado"
-          value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value)}
-          title="Filtrar por estado"
-        >
-          <option value="all">Todos los estados</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="aprobado">Aprobado</option>
-          <option value="rechazado">Rechazado</option>
-        </select>
+            <select
+              className="select-estado"
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              title="Filtrar por estado"
+            >
+              <option value="all">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aprobado">Aprobado</option>
+              <option value="rechazado">Rechazado</option>
+            </select>
 
-        <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
-          {cargando ? 'Actualizando…' : '↻ Actualizar'}
-        </button>
-      </div>
+            <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
+              {cargando ? 'Actualizando…' : '↻ Actualizar'}
+            </button>
+          </div>
 
-      {/* Vista de rol (solo para probar UI) */}
-      <div className="rol-preview">
-        <label>Tu rol activo:&nbsp;</label>
-        <select
-          className="select-rol"
-          value={vistaRol}
-          onChange={(e) => setVistaRol(e.target.value)}
-        >
-          <option>Administrador</option>
-          <option>Creador</option>
-          <option>Participante</option>
-        </select>
-        <span className="hint">(tras cambiar, vuelve a iniciar sesión)</span>
-      </div>
+          {/* Vista de rol (solo UI) */}
+          <div className="rol-preview">
+            <label>Tu rol activo:&nbsp;</label>
+            <select
+              className="select-rol"
+              value={vistaRol}
+              onChange={(e) => setVistaRol(e.target.value)}
+            >
+              <option>Administrador</option>
+              <option>Creador</option>
+              <option>Participante</option>
+            </select>
+            <span className="hint">(tras cambiar, vuelve a iniciar sesión)</span>
+          </div>
 
-      {cargando ? (
-        <div className="spinner">Cargando solicitudes…</div>
-      ) : error ? (
-        <div className="error-box">{error}</div>
-      ) : solicitudesFiltradas.length === 0 ? (
-        <p>No hay solicitudes.</p>
-      ) : (
-        <div className="tabla-solicitudes">
-          <table>
-            <thead>
-              <tr>
-                <th>Correo</th>
-                <th>Estado</th>
-                {puedeGestionar && <th>Acciones</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {solicitudesFiltradas.map((s) => {
-                const estado = (s.estado || 'pendiente').toLowerCase();
-                const correo = s.correo;
-                const protegido = correo === ADMIN_EMAIL;
-
-                return (
-                  <tr key={correo}>
-                    <td>{correo}</td>
-                    <td>
-                      <span className={`badge-estado ${estado}`}>
-                        {estado.replace(/^./, (c) => c.toUpperCase())}
-                      </span>
-                    </td>
-                    {puedeGestionar && (
-                      <td className="col-acciones">
-                        {protegido ? (
-                          <span className="chip-protegido">🔒 Protegido</span>
-                        ) : (
-                          <>
-                            <button
-                              className="btn-aprobar"
-                              onClick={() => accionSolicitud(correo, 'aprobar')}
-                              disabled={enviando === correo}
-                              title="Aprobar"
-                            >
-                              {enviando === correo ? 'Aplicando…' : '✅ Aprobar'}
-                            </button>
-                            <button
-                              className="btn-rechazar"
-                              onClick={() => accionSolicitud(correo, 'rechazar')}
-                              disabled={enviando === correo}
-                              title="Rechazar"
-                            >
-                              {enviando === correo ? 'Aplicando…' : '❌ Rechazar'}
-                            </button>
-                            <button
-                              className="btn-rechazar"
-                              onClick={() => accionSolicitud(correo, 'revocar')}
-                              disabled={enviando === correo}
-                              title="Revocar rol"
-                              style={{ marginLeft: 8 }}
-                            >
-                              {enviando === correo ? 'Aplicando…' : '🗑️ Revocar'}
-                            </button>
-                            <button
-                              className="btn-rechazar"
-                              onClick={() => eliminarSolicitud(correo)}
-                              disabled={enviando === correo}
-                              title="Eliminar solicitud (DynamoDB)"
-                              style={{ marginLeft: 8 }}
-                            >
-                              {enviando === correo ? 'Eliminando…' : '🗑️ Eliminar'}
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    )}
+          {cargando ? (
+            <div className="spinner">Cargando solicitudes…</div>
+          ) : error ? (
+            <div className="error-box">{error}</div>
+          ) : solicitudesFiltradas.length === 0 ? (
+            <p>No hay solicitudes.</p>
+          ) : (
+            <div className="tabla-solicitudes">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Correo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {solicitudesFiltradas.map((s) => {
+                    const estado = (s.estado || 'pendiente').toLowerCase();
+                    const correo = s.correo;
+                    const protegido = correo === ADMIN_EMAIL;
+
+                    return (
+                      <tr key={correo}>
+                        <td>{correo}</td>
+                        <td>
+                          <span className={`badge-estado ${estado}`}>
+                            {estado.replace(/^./, (c) => c.toUpperCase())}
+                          </span>
+                        </td>
+                        <td className="col-acciones">
+                          {protegido ? (
+                            <span className="chip-protegido">🔒 Protegido</span>
+                          ) : (
+                            <>
+                              <button
+                                className="btn-aprobar"
+                                onClick={() => accionSolicitud(correo, 'aprobar')}
+                                disabled={enviando === correo}
+                                title="Aprobar"
+                              >
+                                {enviando === correo ? 'Aplicando…' : '✅ Aprobar'}
+                              </button>
+                              <button
+                                className="btn-rechazar"
+                                onClick={() => accionSolicitud(correo, 'rechazar')}
+                                disabled={enviando === correo}
+                                title="Rechazar"
+                              >
+                                {enviando === correo ? 'Aplicando…' : '❌ Rechazar'}
+                              </button>
+                              <button
+                                className="btn-rechazar"
+                                onClick={() => accionSolicitud(correo, 'revocar')}
+                                disabled={enviando === correo}
+                                title="Revocar rol"
+                                style={{ marginLeft: 8 }}
+                              >
+                                {enviando === correo ? 'Aplicando…' : '🗑️ Revocar'}
+                              </button>
+                              <button
+                                className="btn-rechazar"
+                                onClick={() => eliminarSolicitud(correo)}
+                                disabled={enviando === correo}
+                                title="Eliminar solicitud (DynamoDB)"
+                                style={{ marginLeft: 8 }}
+                              >
+                                {enviando === correo ? 'Eliminando…' : '🗑️ Eliminar'}
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
 
 export default AdminPage;
-
 
