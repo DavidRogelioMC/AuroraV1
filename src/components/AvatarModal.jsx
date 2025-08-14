@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { Auth, Hub } from "aws-amplify";
 
-const API = import.meta.env.VITE_API_GATEWAY_URL; // ← viene de tus variables de entorno
+// ⚠️ Debe apuntar a la URL base de tu API *incluyendo el stage* (ej. .../dev2) y sin '/' final
+const API_BASE = String(import.meta.env.VITE_API_GATEWAY_URL || "").replace(/\/+$/, "");
 
 export default function AvatarModal({ isOpen, onClose }) {
   // Estados
@@ -51,8 +52,11 @@ export default function AvatarModal({ isOpen, onClose }) {
       setLoading(true);
       setError("");
       try {
-        const r = await fetch(`${API}/avatars`, {
+        // Enviamos Authorization solo si hay id_token (por si tu API está protegida con Cognito)
+        const token = localStorage.getItem("id_token");
+        const r = await fetch(`${API_BASE}/avatars`, {
           method: "GET",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
           credentials: "omit",
         });
         if (!r.ok) throw new Error("No pude cargar avatares");
@@ -172,3 +176,4 @@ export default function AvatarModal({ isOpen, onClose }) {
     </div>
   );
 }
+
