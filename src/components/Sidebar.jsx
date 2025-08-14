@@ -1,4 +1,3 @@
-// src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
@@ -12,17 +11,7 @@ const DOMINIOS_PERMITIDOS = new Set([
   'netec.com.pe','netec.com.cl','netec.com.es','netec.com.pr'
 ]);
 
-const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
-
-/** Igual que en App.jsx: devuelve un rol único válido */
-const normalizarRol = (raw) => {
-  if (!raw) return '';
-  const parts = String(raw).toLowerCase().split(/[,\s]+/).filter(Boolean);
-  if (parts.includes('creador')) return 'creador';
-  if (parts.includes('admin')) return 'admin';
-  if (parts.includes('participant')) return 'participant';
-  return parts[0] || '';
-};
+const ADMIN_EMAIL_ROOT = 'anette.flores@netec.com.mx';
 
 export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [avatar, setAvatar] = useState(null);
@@ -43,14 +32,9 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
-  const esRoot = email === ADMIN_EMAIL;
 
-  // Normaliza grupo recibido
-  const rolNormalizado = esRoot && !grupo ? 'admin' : normalizarRol(grupo);
-
-  // ⚠️ Mostrar botón si es dominio netec y NO es creador,
-  // y NUNCA mostrarlo para la superadmin
-  const mostrarBoton = esNetec && (rolNormalizado !== 'creador') && !esRoot;
+  // Mostrar botón de solicitar si es dominio netec y NO es creador
+  const mostrarBoton = esNetec && (grupo !== 'creador');
 
   const authHeader = useMemo(() => {
     if (!token) return {};
@@ -105,15 +89,16 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   };
 
   const rolTexto =
-    rolNormalizado === 'admin' ? 'Administrador' :
-    rolNormalizado === 'creador' ? 'Creador' :
-    rolNormalizado === 'participant' ? 'Participante' :
+    grupo === 'admin' ? 'Administrador' :
+    grupo === 'creador' ? 'Creador' :
+    grupo === 'participant' ? 'Participante' :
     'Sin grupo';
 
-  const puedeVerAdmin = esRoot; // Solo Anette ve el panel admin
+  // ✅ Cualquier admin (o correo netec con rol admin) verá el botón "Admin"
+  const esAdmin = grupo === 'admin' || esNetec;
+  const puedeVerAdmin = esAdmin;
 
-  const disabled =
-    estado === 'pendiente' || estado === 'aprobado' || enviando;
+  const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
 
   const label =
     estado === 'aprobado'  ? '✅ Ya eres Creador'
@@ -179,6 +164,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           </div>
         </Link>
 
+        {/* ✅ Ahora cualquier admin verá el botón Admin */}
         {puedeVerAdmin && (
           <Link to="/admin" className="nav-link">
             <div className="step">
