@@ -5,20 +5,38 @@ import { Amplify } from 'aws-amplify';
 import App from './App.jsx';
 import './index.css';
 
-// Si ya tienes aws-exports puedes ignorarlo; aquí configuramos directo con VITE_*
+// ⚠️ Config explícito SOLO con VITE_*. No usamos aws-exports.js.
+const REGION = import.meta.env.VITE_AWS_REGION || 'us-east-1';
+const USER_POOL_ID = import.meta.env.VITE_COGNITO_USER_POOL_ID;      // ej: us-east-1_AbCdEf123
+const CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID;            // app client id
+const DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || '')           // ej: https://xxx.auth.us-east-1.amazoncognito.com
+  .replace(/^https?:\/\//, '')
+  .replace(/\/$/, '');
+const REDIRECT = import.meta.env.VITE_REDIRECT_URI_TESTING           // ej: http://localhost:5173/ o tu Amplify URL
+  || window.location.origin + '/';
+
+// 🔒 Si falta algo crítico, lanza un error visible en consola
+if (!USER_POOL_ID || !CLIENT_ID || !DOMAIN || !REDIRECT) {
+  console.error('[Amplify] Faltan variables VITE_ requeridas:', {
+    VITE_AWS_REGION: REGION,
+    VITE_COGNITO_USER_POOL_ID: USER_POOL_ID,
+    VITE_COGNITO_CLIENT_ID: CLIENT_ID,
+    VITE_COGNITO_DOMAIN: DOMAIN,
+    VITE_REDIRECT_URI_TESTING: REDIRECT,
+  });
+}
+
 Amplify.configure({
   Auth: {
-    region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
-    userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,        // ej: us-east-1_XXXXXXXXX
-    userPoolWebClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,  // App client ID
+    region: REGION,
+    userPoolId: USER_POOL_ID,
+    userPoolWebClientId: CLIENT_ID,
     oauth: {
-      domain: (import.meta.env.VITE_COGNITO_DOMAIN || '')
-        .replace(/^https?:\/\//, '')
-        .replace(/\/$/, ''), // sin https:// ni / final
+      domain: DOMAIN,                 // sin https://
       scope: ['email', 'openid', 'profile'],
-      redirectSignIn: import.meta.env.VITE_REDIRECT_URI,   // debe coincidir EXACTO con Cognito
-      redirectSignOut: import.meta.env.VITE_REDIRECT_URI,  // lo mismo
-      responseType: 'token', // usa 'code' si tienes PKCE habilitado en el App client
+      redirectSignIn: REDIRECT,       // DEBE coincidir EXACTO con Cognito (incluye / final si así está)
+      redirectSignOut: REDIRECT,
+      responseType: 'token',          // usa 'code' si tu App Client tiene PKCE habilitado
     },
     storage: window.localStorage,
   },
@@ -29,5 +47,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>
 );
+
 
 
