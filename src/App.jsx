@@ -1,8 +1,8 @@
 // src/App.jsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { Auth } from 'aws-amplify'; // Para refrescar atributos reales
+import { Auth } from 'aws-amplify';
 
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
@@ -43,40 +43,49 @@ function App() {
   const [email, setEmail] = useState('');
   const [rol, setRol] = useState(''); // "admin" | "creador" | "participant" | ""
 
-  // ⚙️ Cognito env vars
-  const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  const domain = import.meta.env.VITE_COGNITO_DOMAIN; // Ej: https://us-xxx.auth.us-east-1.amazoncognito.com
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
+  // --------- LOGIN/LOGOUT con Hosted UI ----------
+  const handleLogin = () => Auth.federatedSignIn();
 
-  const loginUrl = useMemo(() => {
-    const u = new URL(`${domain}/login`);
-    u.searchParams.append('response_type', 'token');
-    u.searchParams.append('client_id', clientId);
-    u.searchParams.append('redirect_uri', redirectUri);
-    return u.toString();
-  }, [clientId, domain, redirectUri]);
-
-  // 1) Captura id_token en el hash al volver de Cognito
-  useEffect(() => {
-    const { hash } = window.location;
-    if (hash.includes('id_token=')) {
-      const newToken = new URLSearchParams(hash.slice(1)).get('id_token');
-      if (newToken) {
-        localStorage.setItem('id_token', newToken);
-        setToken(newToken);
-      }
-      // Limpia el hash de la URL
-      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+  const handleLogout = async () => {
+    // limpias tu copia local del token y sales con Hosted UI
+    localStorage.removeItem('id_token');
+    try {
+      await Auth.signOut();
+    } catch (e) {
+      console.log('SignOut Amplify falló, ignorable:', e?.message || e);
     }
+  };
+
+  // 1) Bootstrap de sesión con Amplify (cuando vuelves del Hosted UI)
+  useEffect(() => {
+    (async () => {
+      try {
+        const session = await Auth.currentSession(); // si no hay sesión, lanza error
+        const idt = session.getIdToken().getJwtToken();
+        localStorage.setItem('id_token', idt);
+        setToken(idt);
+
+        const u = await Auth.currentAuthenticatedUser({ bypassCache: true });
+        const freshEmail = u?.attributes?.email || '';
+        const freshRol = normalizarRol(u?.attributes?.['custom:rol'] || '');
+        setEmail(freshEmail);
+        setRol(freshRol || (freshEmail === ADMIN_EMAIL ? 'admin' : ''));
+      } catch {
+        // Sin sesión → pantalla pública
+        setToken('');
+        setEmail('');
+        setRol('');
+      }
+    })();
   }, []);
 
-  // 2) Decodifica token (rápido) para email y rol inicial
+  // 2) Decodifica token (rápido) para email/rol inicial (luego se refresca con Cognito real)
   useEffect(() => {
     if (!token) return;
     try {
       const decoded = jwtDecode(token);
-      setEmail(decoded?.email || '');
-      setRol(normalizarRol(decoded?.['custom:rol']));
+      setEmail((prev) => prev || decoded?.email || '');
+      setRol((prev) => prev || normalizarRol(decoded?.['custom:rol']));
     } catch (err) {
       console.error('❌ Error al decodificar token:', err);
       setEmail('');
@@ -84,7 +93,7 @@ function App() {
     }
   }, [token]);
 
-  // 3) 🔄 REFRESCAR ROL REAL desde Cognito (bypass cache) + “banderita” force_attr_refresh
+  // 3) 🔄 Refresco suave de atributos desde Cognito
   useEffect(() => {
     if (!token) return;
 
@@ -146,15 +155,6 @@ function App() {
     if (email === ADMIN_EMAIL && !rol) setRol('admin');
   }, [email, rol]);
 
-  // 4) Cerrar sesión
-  const handleLogout = () => {
-    localStorage.removeItem('id_token');
-    const u = new URL(`${domain}/logout`);
-    u.searchParams.append('client_id', clientId);
-    u.searchParams.append('logout_uri', redirectUri);
-    window.location.href = u.toString();
-  };
-
   // 🔒 Solo esta persona puede ver/rutear a /admin
   const adminAllowed = email === ADMIN_EMAIL;
 
@@ -171,7 +171,7 @@ function App() {
               <div className="illustration-centered">
                 <img src={previewImg} alt="Ilustración" className="preview-image" />
               </div>
-              <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
+              <button className="login-button" onClick={handleLogin}>
                 🚀 Comenzar Ahora
               </button>
               <div className="country-flags">
@@ -230,5 +230,4 @@ function App() {
 }
 
 export default App;
-
 
