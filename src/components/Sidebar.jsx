@@ -1,14 +1,13 @@
+// src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
 import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
 import AvatarModal from './AvatarModal';
+import { getApiBase } from '../lib/apiBase';
 
-const API_BASE =
-  (import.meta.env.VITE_API_GATEWAY_URL &&
-    String(import.meta.env.VITE_API_GATEWAY_URL).replace(/\/+$/, "")) ||
-  'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
+const API_BASE = getApiBase();
 
 const DOMINIOS_PERMITIDOS = new Set([
   'netec.com', 'netec.com.mx', 'netec.com.co',
@@ -20,12 +19,11 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estados del botón / estado persistente de solicitud (si usas tus endpoints de roles)
   const [enviando, setEnviando] = useState(false);
-  const [estado, setEstado] = useState(''); // '', 'pendiente', 'aprobado', 'rechazado'
+  const [estado, setEstado] = useState('');
   const [error, setError] = useState('');
 
-  // 🔔 Cargar foto de perfil (Cognito.picture si es URL; si no, GET /perfil)
+  // Cargar foto de perfil (Cognito.picture si es URL; si no, GET /perfil)
   useEffect(() => {
     let cancelled = false;
 
@@ -40,6 +38,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       } catch {}
 
       try {
+        if (!API_BASE) return;
         const idt = localStorage.getItem('id_token');
         if (!idt) return;
         const r = await fetch(`${API_BASE}/perfil`, {
@@ -53,7 +52,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
     pintarFoto();
 
-    // Se actualiza al instante cuando el modal guarda
     const onUpd = (e) => {
       const url = e.detail?.photoUrl;
       if (url) setAvatar(url);
@@ -69,7 +67,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
 
-  // Mostrar botón de solicitar si es dominio netec y NO es creador
   const mostrarBoton = esNetec && (grupo !== 'creador');
 
   const authHeader = useMemo(() => {
@@ -80,7 +77,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
   // (Opcional) Estado de solicitud de rol desde tu backend
   useEffect(() => {
-    if (!email || !esNetec) return;
+    if (!API_BASE || !email || !esNetec) return;
 
     const fetchEstado = async () => {
       setError('');
@@ -104,7 +101,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const toggle = () => setColapsado(v => !v);
 
   const enviarSolicitud = async () => {
-    if (!email) return;
+    if (!API_BASE || !email) return;
     setEnviando(true);
     setError('');
     try {
@@ -179,43 +176,23 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
       <div id="caminito" className="caminito">
         <Link to="/resumenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🧠</div>
-            {!colapsado && <span>Resúmenes</span>}
-          </div>
+          <div className="step"><div className="circle">🧠</div>{!colapsado && <span>Resúmenes</span>}</div>
         </Link>
-
         <Link to="/actividades" className="nav-link">
-          <div className="step">
-            <div className="circle">📘</div>
-            {!colapsado && <span>Actividades</span>}
-          </div>
+          <div className="step"><div className="circle">📘</div>{!colapsado && <span>Actividades</span>}</div>
         </Link>
-
         <Link to="/examenes" className="nav-link">
-          <div className="step">
-            <div className="circle">🔬</div>
-            {!colapsado && <span>Examen</span>}
-          </div>
+          <div className="step"><div className="circle">🔬</div>{!colapsado && <span>Examen</span>}</div>
         </Link>
-
         {puedeVerAdmin && (
           <Link to="/admin" className="nav-link" title="Panel de administración">
-            <div className="step">
-              <div className="circle">⚙️</div>
-              {!colapsado && <span>Admin</span>}
-            </div>
+            <div className="step"><div className="circle">⚙️</div>{!colapsado && <span>Admin</span>}</div>
           </Link>
         )}
-
         <Link to="/usuarios" className="nav-link">
-          <div className="step">
-            <div className="circle">👥</div>
-            {!colapsado && <span>Usuarios</span>}
-          </div>
+          <div className="step"><div className="circle">👥</div>{!colapsado && <span>Usuarios</span>}</div>
         </Link>
       </div>
     </div>
   );
 }
-
