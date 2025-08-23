@@ -20,7 +20,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
-  // Estados del botón / estado persistente de solicitud
+  // Estados del botón / estado persistente de solicitud (si usas tus endpoints de roles)
   const [enviando, setEnviando] = useState(false);
   const [estado, setEstado] = useState(''); // '', 'pendiente', 'aprobado', 'rechazado'
   const [error, setError] = useState('');
@@ -53,7 +53,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
     pintarFoto();
 
-    // escucha del modal
+    // Se actualiza al instante cuando el modal guarda
     const onUpd = (e) => {
       const url = e.detail?.photoUrl;
       if (url) setAvatar(url);
@@ -78,7 +78,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     return { Authorization: v };
   }, [token]);
 
-  // Trae el estado real desde Dynamo para que persista tras recargar
+  // (Opcional) Estado de solicitud de rol desde tu backend
   useEffect(() => {
     if (!email || !esNetec) return;
 
@@ -131,7 +131,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     'Sin grupo';
 
   const puedeVerAdmin = (grupo === 'admin');
-
   const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
 
   const label =
@@ -146,7 +145,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       </button>
 
       <div className="perfilSidebar">
-        <div className="avatar-wrap" onClick={() => setIsModalOpen(true)}>
+        <div className="avatar-wrap" onClick={() => setIsModalOpen(true)} title="Cambiar foto">
           <img src={avatar || defaultFoto} alt="Avatar" className="avatar-img"/>
         </div>
 
@@ -219,3 +218,4 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     </div>
   );
 }
+
