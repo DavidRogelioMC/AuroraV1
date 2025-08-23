@@ -1,354 +1,135 @@
-// src/components/AdminPage.jsx
-import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import './AdminPage.css';
+import { useState, useEffect } from "react";
 
-const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
-const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
+// Usa .env si existe; si no, cae a tu API real. Sin "/" final.
+const API_BASE =
+  (import.meta.env.VITE_API_GATEWAY_URL &&
+    String(import.meta.env.VITE_API_GATEWAY_URL).replace(/\/+$/, "")) ||
+  "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2";
 
-function AdminPage() {
-  // 🔒 Evitar render fuera de /admin
-  const { pathname } = useLocation();
-  if (!pathname.startsWith('/admin')) return null;
+export default function AvatarModal({ isOpen, onClose }) {
+  const [avatars, setAvatars] = useState([]);     // [{ key, url }]
+  const [selected, setSelected] = useState(null); // { key, url }
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [email, setEmail] = useState('');
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState('');
-  const [enviando, setEnviando] = useState(''); // correo en proceso
-
-  // Filtros y “vista” de rol (solo visible para la administradora autorizada)
-  const [filtroTexto, setFiltroTexto] = useState('');
-  const [filtroEstado, setFiltroEstado] = useState('all'); // all | pendiente | aprobado | rechazado
-  const [vistaRol, setVistaRol] = useState(
-    () => localStorage.getItem('ui_role_preview') || 'Administrador'
-  );
-
-  const token = localStorage.getItem('id_token');
-
-  // auth header
-  const authHeader = useMemo(() => {
-    if (!token) return {};
-    // Tu backend acepta el raw token
-    return { Authorization: token };
-  }, [token]);
-
-  // Decodificar token simple para email
+  // Cargar avatares al abrir
   useEffect(() => {
-    if (!token) return;
-    try {
-      const payload = JSON.parse(
-        atob((token.split('.')[1] || '').replace(/-/g, '+').replace(/_/g, '/'))
-      );
-      setEmail(payload?.email || '');
-    } catch (e) {
-      console.error('Error al decodificar token', e);
+    if (!isOpen) return;
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const token = localStorage.getItem("id_token");
+        const r = await fetch(`${API_BASE}/avatars`, {
+          method: "GET",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const payload = await r.json();
+        const list = Array.isArray(payload) ? payload : payload.avatars || [];
+        if (!cancelled) setAvatars(list);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) setError("Error cargando avatares");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [isOpen]);
+
+  // Guardar → POST /perfil/avatar (devuelve photoUrl firmada)
+  const handleSave = async () => {
+    if (!selected) {
+      setError("⚠️ Selecciona un avatar primero.");
+      return;
     }
-  }, [token]);
-
-  const cargarSolicitudes = async () => {
-    setCargando(true);
-    setError('');
+    setSaving(true); setError("");
     try {
-      const res = await fetch(`${API_BASE}/obtener-solicitudes-rol`, {
-        method: 'GET',
-        headers: { ...authHeader },
-      });
-      const data = await res.json().catch(() => ({}));
-      setSolicitudes(Array.isArray(data?.solicitudes) ? data.solicitudes : []);
-    } catch (e) {
-      console.error(e);
-      setError('No se pudieron cargar las solicitudes.');
-    } finally {
-      setCargando(false);
-    }
-  };
+      const token = localStorage.getItem("id_token");
+      if (!token) throw new Error("Sin sesión");
 
-  useEffect(() => {
-    cargarSolicitudes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
-  const puedeGestionar = email === ADMIN_EMAIL;
-
-  // helper para forzar refresh de atributos en los clientes
-  const pokeClientsToRefresh = () => {
-    try {
-      localStorage.setItem('force_attr_refresh', '1');
-    } catch {}
-  };
-
-  const accionSolicitud = async (correo, accion) => {
-    setEnviando(correo);
-    setError('');
-    try {
-      const res = await fetch(`${API_BASE}/aprobar-rol`, {
-        method: 'POST',
+      const res = await fetch(`${API_BASE}/perfil/avatar`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...authHeader,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ correo, accion }), // 'aprobar' | 'rechazar' | 'revocar'
+        body: JSON.stringify({ avatarKey: selected.key }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Error en la acción');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const photoUrl = data?.photoUrl || selected.url;
 
-      // Refrescar clientes
-      pokeClientsToRefresh();
-
-      setSolicitudes((prev) =>
-        prev.map((s) =>
-          s.correo === correo
-            ? { ...s, estado: accion === 'aprobar' ? 'aprobado' : 'rechazado' }
-            : s
-        )
-      );
-      alert(`✅ Acción ${accion} aplicada para ${correo}.`);
+      // Notifica al Sidebar para refrescar la imagen al instante
+      window.dispatchEvent(new CustomEvent("profilePhotoUpdated", { detail: { photoUrl } }));
+      alert("✅ Avatar actualizado");
+      onClose?.();
     } catch (e) {
       console.error(e);
-      setError(`No se pudo ${accion} la solicitud.`);
+      setError("No se pudo guardar el avatar. Vuelve a iniciar sesión e intenta de nuevo.");
     } finally {
-      setEnviando('');
+      setSaving(false);
     }
   };
 
-  const eliminarSolicitud = async (correo) => {
-    setEnviando(correo);
-    setError('');
-    try {
-      const res = await fetch(`${API_BASE}/eliminar-solicitud`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader,
-        },
-        body: JSON.stringify({ correo }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Error al eliminar');
-
-      // Forzar refresh en clientes (revierte a rol base por dominio y quita del grupo)
-      pokeClientsToRefresh();
-
-      setSolicitudes((prev) => prev.filter((s) => s.correo !== correo));
-      alert(`🗑️ Solicitud de ${correo} eliminada.`);
-    } catch (e) {
-      console.error(e);
-      setError('No se pudo eliminar la solicitud.');
-    } finally {
-      setEnviando('');
-    }
-  };
-
-  // Filtrado en memoria (para la administradora autorizada)
-  const solicitudesFiltradas = useMemo(() => {
-    const txt = filtroTexto.trim().toLowerCase();
-    return solicitudes.filter((s) => {
-      const estado = (s.estado || 'pendiente').toLowerCase();
-      const correo = (s.correo || '').toLowerCase();
-      const pasaTexto = !txt || correo.includes(txt);
-      const pasaEstado = filtroEstado === 'all' || estado === filtroEstado;
-      return pasaTexto && pasaEstado;
-    });
-  }, [solicitudes, filtroTexto, filtroEstado]);
-
-  // Guardar "vista" de rol demo
-  useEffect(() => {
-    localStorage.setItem('ui_role_preview', vistaRol);
-  }, [vistaRol]);
-
-  // === Mi solicitud (para usuarios NO autorizados) ===
-  const miSolicitud = useMemo(() => {
-    if (!email) return null;
-    return solicitudes.find(
-      (s) => (s.correo || '').toLowerCase() === email.toLowerCase()
-    );
-  }, [solicitudes, email]);
-
-  const estadoMiSolicitud = (miSolicitud?.estado || '').toLowerCase();
-  const etiquetaMiSolicitud =
-    estadoMiSolicitud === 'pendiente'
-      ? 'Pendiente'
-      : estadoMiSolicitud === 'aprobado'
-      ? 'Aprobado'
-      : estadoMiSolicitud === 'rechazado'
-      ? 'Rechazado'
-      : 'No registrada';
-  const claseBadgeMiSolicitud =
-    estadoMiSolicitud === 'pendiente' ||
-    estadoMiSolicitud === 'aprobado' ||
-    estadoMiSolicitud === 'rechazado'
-      ? `badge-estado ${estadoMiSolicitud}`
-      : 'badge-estado'; // sin estado => neutro
+  if (!isOpen) return null;
 
   return (
-    <div className="pagina-admin">
-      <h1>Panel de Administración</h1>
-      <p>Desde aquí puedes revisar solicitudes para otorgar el rol "creador".</p>
+    <div className="modal" style={{ padding: 16 }}>
+      <h2>Elige tu avatar</h2>
 
-      {!puedeGestionar && (
-        <>
-          <p className="solo-autorizado">
-            🚫 Solo la administradora autorizada puede aprobar/rechazar/revocar/eliminar.
-          </p>
+      {error && <p style={{ color: "crimson", margin: "8px 0" }}>{error}</p>}
 
-          {/* Tarjeta: Mi solicitud (solo informativa) */}
-          <div className="mi-solicitud" style={{ marginTop: 12 }}>
-            <div className="mi-solicitud__fila">
-              <div>
-                <div className="mi-solicitud__correo">{email}</div>
-                <div style={{ marginTop: 6 }}>
-                  Estado:&nbsp;
-                  <span className={claseBadgeMiSolicitud}>{etiquetaMiSolicitud}</span>
-                </div>
-              </div>
-              <button
-                className="btn-recargar"
-                onClick={cargarSolicitudes}
-                disabled={cargando}
-                title="Actualizar estado"
-              >
-                {cargando ? 'Actualizando…' : '↻ Actualizar'}
-              </button>
-            </div>
-            {etiquetaMiSolicitud === 'No registrada' && (
-              <p style={{ marginTop: 10, color: '#6b7280' }}>
-                No encontramos una solicitud registrada con tu correo.
-              </p>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Filtros y tabla SOLO para la administradora autorizada */}
-      {puedeGestionar && (
-        <>
-          {/* Filtros */}
-          <div className="filtros">
-            <input
-              type="text"
-              className="buscar-correo"
-              placeholder="Buscar por correo…"
-              value={filtroTexto}
-              onChange={(e) => setFiltroTexto(e.target.value)}
-            />
-
-            <select
-              className="select-estado"
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              title="Filtrar por estado"
+      {loading ? (
+        <div style={{ opacity: 0.8 }}>Cargando avatares…</div>
+      ) : (
+        <div
+          className="avatar-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 80px)",
+            gap: 12,
+            margin: "12px 0",
+          }}
+        >
+          {avatars.map(({ key, url }) => (
+            <button
+              key={key}
+              onClick={() => setSelected({ key, url })}
+              title={key}
+              style={{
+                width: 80,
+                height: 80,
+                padding: 0,
+                borderRadius: "50%",
+                border: selected?.key === key ? "3px solid #1e90ff" : "2px solid #999",
+                overflow: "hidden",
+                cursor: "pointer",
+                background: "transparent",
+              }}
             >
-              <option value="all">Todos los estados</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="aprobado">Aprobado</option>
-              <option value="rechazado">Rechazado</option>
-            </select>
-
-            <button className="btn-recargar" onClick={cargarSolicitudes} disabled={cargando}>
-              {cargando ? 'Actualizando…' : '↻ Actualizar'}
+              <img
+                src={url}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
             </button>
-          </div>
-
-          {/* Vista de rol (solo UI) */}
-          <div className="rol-preview">
-            <label>Tu rol activo:&nbsp;</label>
-            <select
-              className="select-rol"
-              value={vistaRol}
-              onChange={(e) => setVistaRol(e.target.value)}
-            >
-              <option>Administrador</option>
-              <option>Creador</option>
-              <option>Participante</option>
-            </select>
-            <span className="hint">(tras cambiar, vuelve a iniciar sesión)</span>
-          </div>
-
-          {cargando ? (
-            <div className="spinner">Cargando solicitudes…</div>
-          ) : error ? (
-            <div className="error-box">{error}</div>
-          ) : solicitudesFiltradas.length === 0 ? (
-            <p>No hay solicitudes.</p>
-          ) : (
-            <div className="tabla-solicitudes">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Correo</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {solicitudesFiltradas.map((s) => {
-                    const estado = (s.estado || 'pendiente').toLowerCase();
-                    const correo = s.correo;
-                    const protegido = correo === ADMIN_EMAIL;
-
-                    return (
-                      <tr key={correo}>
-                        <td>{correo}</td>
-                        <td>
-                          <span className={`badge-estado ${estado}`}>
-                            {estado.replace(/^./, (c) => c.toUpperCase())}
-                          </span>
-                        </td>
-                        <td className="col-acciones">
-                          {protegido ? (
-                            <span className="chip-protegido">🔒 Protegido</span>
-                          ) : (
-                            <>
-                              <button
-                                className="btn-aprobar"
-                                onClick={() => accionSolicitud(correo, 'aprobar')}
-                                disabled={enviando === correo}
-                                title="Aprobar"
-                              >
-                                {enviando === correo ? 'Aplicando…' : '✅ Aprobar'}
-                              </button>
-                              <button
-                                className="btn-rechazar"
-                                onClick={() => accionSolicitud(correo, 'rechazar')}
-                                disabled={enviando === correo}
-                                title="Rechazar"
-                              >
-                                {enviando === correo ? 'Aplicando…' : '❌ Rechazar'}
-                              </button>
-                              <button
-                                className="btn-rechazar"
-                                onClick={() => accionSolicitud(correo, 'revocar')}
-                                disabled={enviando === correo}
-                                title="Revocar rol"
-                                style={{ marginLeft: 8 }}
-                              >
-                                {enviando === correo ? 'Aplicando…' : '🗑️ Revocar'}
-                              </button>
-                              <button
-                                className="btn-rechazar"
-                                onClick={() => eliminarSolicitud(correo)}
-                                disabled={enviando === correo}
-                                title="Eliminar solicitud (DynamoDB)"
-                                style={{ marginLeft: 8 }}
-                              >
-                                {enviando === correo ? 'Eliminando…' : '🗑️ Eliminar'}
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={handleSave} disabled={!selected || saving}>
+          {saving ? "Guardando…" : "Guardar"}
+        </button>
+        <button onClick={onClose}>Cerrar</button>
+      </div>
     </div>
   );
 }
-
-export default AdminPage;
 
