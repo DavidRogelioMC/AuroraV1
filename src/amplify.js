@@ -1,31 +1,63 @@
 // src/amplify.js
 import { Amplify } from 'aws-amplify';
 
-const cfg = {
-  region: import.meta.env.VITE_AWS_REGION,
-  userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
-  userPoolWebClientId: import.meta.env.VITE_COGNITO_APP_CLIENT_ID,
-  oauth: {
-    domain: (import.meta.env.VITE_COGNITO_DOMAIN || '').replace(/^https?:\/\//, ''),
-    scope: ['openid', 'email', 'profile'],
-    redirectSignIn: import.meta.env.VITE_REDIRECT_SIGN_IN || `${window.location.origin}/`,
-    redirectSignOut: import.meta.env.VITE_REDIRECT_SIGN_OUT || `${window.location.origin}/`,
-    responseType: 'code',
-  },
-};
+// TUS variables actuales (no cambies nombres en el panel):
+const domainRaw  = import.meta.env.VITE_COGNITO_DOMAIN || '';          // puede venir con https://
+const clientId   = import.meta.env.VITE_COGNITO_CLIENT_ID || '';       // tu nombre actual
+const userPoolId =
+  import.meta.env.VITE_COGNITO_USER_POOL_ID ||                         // si la tienes, mejor
+  import.meta.env.VITE_USER_POOL_ID ||                                 // alternos por si existen
+  '';
 
-const missing = Object.entries({
-  VITE_AWS_REGION: cfg.region,
-  VITE_COGNITO_USER_POOL_ID: cfg.userPoolId,
-  VITE_COGNITO_APP_CLIENT_ID: cfg.userPoolWebClientId,
-  VITE_COGNITO_DOMAIN: cfg.oauth.domain,
-}).filter(([, v]) => !v).map(([k]) => k);
+// Deriva región del dominio (foo.auth.us-east-1.amazoncognito.com → us-east-1)
+const derivedRegion = (() => {
+  const m = String(domainRaw).match(/auth\.([a-z0-9-]+)\.amazoncognito\.com/i);
+  return m ? m[1] : undefined;
+})();
+const region = import.meta.env.VITE_AWS_REGION || derivedRegion || 'us-east-1';
+
+// Redirects (usa testing si hostname incluye "test")
+const redirectSignIn =
+  (location.hostname.includes('test') && import.meta.env.VITE_REDIRECT_URI_TESTING) ||
+  import.meta.env.VITE_REDIRECT_URI ||
+  `${window.location.origin}/`;
+const redirectSignOut = redirectSignIn;
+
+// Normaliza dominio (sin protocolo)
+const domain = String(domainRaw).replace(/^https?:\/\//, '');
+
+// Validación suave (no rompe la app; el botón hará fallback manual)
+const missing = [];
+if (!domain)    missing.push('VITE_COGNITO_DOMAIN');
+if (!clientId)  missing.push('VITE_COGNITO_CLIENT_ID');
+if (!userPoolId) missing.push('VITE_COGNITO_USER_POOL_ID (recomendado)');
 
 if (missing.length) {
-  // No detengas la app; solo avisa y permite el fallback manual del botón
-  console.error('[Amplify] Faltan variables VITE_ requeridas: ', missing);
+  console.error('[Amplify] Faltan variables VITE_ requeridas/útiles:', missing);
 } else {
-  Amplify.configure({ Auth: cfg });
+  Amplify.configure({
+    Auth: {
+      region,
+      userPoolId,
+      userPoolWebClientId: clientId,
+      oauth: {
+        domain,
+        scope: ['openid', 'email', 'profile'],
+        redirectSignIn,
+        redirectSignOut,
+        responseType: 'code',
+      },
+    },
+  });
+}
+
+// Exporta una URL de Hosted UI para el fallback manual del botón
+export function hostedUiAuthorizeUrl() {
+  if (!domain || !clientId) return null;
+  const redirect = encodeURIComponent(redirectSignIn);
+  const scope = encodeURIComponent('openid email profile');
+  return `https://${domain}/oauth2/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirect}&scope=${scope}`;
 }
 
 export default Amplify;
+
