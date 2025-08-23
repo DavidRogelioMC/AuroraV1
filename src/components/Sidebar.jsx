@@ -4,7 +4,7 @@ import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
 import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
-import AvatarModal from './AvatarModal';
+
 
 // ⬇️ Helper inline (reemplaza al archivo apiBase.js)
 function getApiBase() {
