@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
+import { getApiBase } from "../lib/apiBase";
 
-// 🔧 usa .env si existe; si no, cae a tu API real. Sin "/" final.
-const API_BASE =
-  (import.meta.env.VITE_API_GATEWAY_URL &&
-    String(import.meta.env.VITE_API_GATEWAY_URL).replace(/\/+$/, "")) ||
-  "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2";
+const API_BASE = getApiBase(); // resuelto desde tus variables
 
 export default function AvatarModal({ isOpen, onClose }) {
   const [avatars, setAvatars] = useState([]);     // [{ key, url }]
@@ -13,7 +10,6 @@ export default function AvatarModal({ isOpen, onClose }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // cargar avatares al abrir
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -22,6 +18,7 @@ export default function AvatarModal({ isOpen, onClose }) {
       setLoading(true);
       setError("");
       try {
+        if (!API_BASE) throw new Error("API base no configurada");
         const token = localStorage.getItem("id_token");
         const r = await fetch(`${API_BASE}/avatars`, {
           method: "GET",
@@ -42,15 +39,14 @@ export default function AvatarModal({ isOpen, onClose }) {
     return () => { cancelled = true; };
   }, [isOpen]);
 
-  // guardar → POST /perfil/avatar (devuelve photoUrl firmada)
   const handleSave = async () => {
     if (!selected) {
       setError("⚠️ Selecciona un avatar primero.");
       return;
     }
-    setSaving(true);
-    setError("");
+    setSaving(true); setError("");
     try {
+      if (!API_BASE) throw new Error("API base no configurada");
       const token = localStorage.getItem("id_token");
       if (!token) throw new Error("Sin sesión");
 
@@ -66,16 +62,13 @@ export default function AvatarModal({ isOpen, onClose }) {
       const data = await res.json();
       const photoUrl = data?.photoUrl || selected.url;
 
-      // notifica al sidebar
-      window.dispatchEvent(
-        new CustomEvent("profilePhotoUpdated", { detail: { photoUrl } })
-      );
-
+      // Notifica al Sidebar para refrescar al instante
+      window.dispatchEvent(new CustomEvent("profilePhotoUpdated", { detail: { photoUrl } }));
       alert("✅ Avatar actualizado");
       onClose?.();
     } catch (e) {
       console.error(e);
-      setError("No se pudo guardar el avatar. Inicia sesión de nuevo e inténtalo otra vez.");
+      setError("No se pudo guardar el avatar. Vuelve a iniciar sesión e intenta de nuevo.");
     } finally {
       setSaving(false);
     }
@@ -107,21 +100,13 @@ export default function AvatarModal({ isOpen, onClose }) {
               onClick={() => setSelected({ key, url })}
               title={key}
               style={{
-                width: 80,
-                height: 80,
-                padding: 0,
+                width: 80, height: 80, padding: 0,
                 borderRadius: "50%",
                 border: selected?.key === key ? "3px solid #1e90ff" : "2px solid #999",
-                overflow: "hidden",
-                cursor: "pointer",
-                background: "transparent",
+                overflow: "hidden", cursor: "pointer", background: "transparent",
               }}
             >
-              <img
-                src={url}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
+              <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </button>
           ))}
         </div>
@@ -136,3 +121,4 @@ export default function AvatarModal({ isOpen, onClose }) {
     </div>
   );
 }
+
