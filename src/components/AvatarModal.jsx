@@ -1,20 +1,19 @@
-// src/components/AvatarModal.jsx
 import { useState, useEffect } from "react";
 
-// 🔧 Usa .env si existe; si no, cae a tu API real (incluye /dev2 y sin "/" final)
+// 🔧 usa .env si existe; si no, cae a tu API real. Sin "/" final.
 const API_BASE =
   (import.meta.env.VITE_API_GATEWAY_URL &&
     String(import.meta.env.VITE_API_GATEWAY_URL).replace(/\/+$/, "")) ||
   "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2";
 
 export default function AvatarModal({ isOpen, onClose }) {
-  const [avatars, setAvatars] = useState([]);       // [{ key, url }]
-  const [selected, setSelected] = useState(null);   // { key, url }
+  const [avatars, setAvatars] = useState([]);     // [{ key, url }]
+  const [selected, setSelected] = useState(null); // { key, url }
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Cargar lista de avatares cuando se abre
+  // cargar avatares al abrir
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -43,7 +42,7 @@ export default function AvatarModal({ isOpen, onClose }) {
     return () => { cancelled = true; };
   }, [isOpen]);
 
-  // Guardar elección → POST /perfil/avatar (devuelve photoUrl firmada)
+  // guardar → POST /perfil/avatar (devuelve photoUrl firmada)
   const handleSave = async () => {
     if (!selected) {
       setError("⚠️ Selecciona un avatar primero.");
@@ -67,7 +66,7 @@ export default function AvatarModal({ isOpen, onClose }) {
       const data = await res.json();
       const photoUrl = data?.photoUrl || selected.url;
 
-      // Notifica al Sidebar para actualizar la imagen al instante
+      // notifica al sidebar
       window.dispatchEvent(
         new CustomEvent("profilePhotoUpdated", { detail: { photoUrl } })
       );
@@ -76,7 +75,7 @@ export default function AvatarModal({ isOpen, onClose }) {
       onClose?.();
     } catch (e) {
       console.error(e);
-      setError("No se pudo guardar el avatar. Vuelve a iniciar sesión e intenta de nuevo.");
+      setError("No se pudo guardar el avatar. Inicia sesión de nuevo e inténtalo otra vez.");
     } finally {
       setSaving(false);
     }
