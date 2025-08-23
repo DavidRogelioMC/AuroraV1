@@ -1,10 +1,11 @@
+
 // src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
 import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
-import AvatarModal from './AvatarModal';
+import AvatarPicker from './AvatarPicker';              // ⬅️ reemplaza AvatarModal por AvatarPicker
 import { getApiBase } from '../lib/apiBase';
 
 const API_BASE = getApiBase();
@@ -14,47 +15,60 @@ const DOMINIOS_PERMITIDOS = new Set([
   'netec.com.pe', 'netec.com.cl', 'netec.com.es', 'netec.com.pr'
 ]);
 
+// Guardamos el avatar local por usuario (email)
+const storageKey = (email) => `app_avatar_url:${email || 'anon'}`;
+
 export default function Sidebar({ email = '', nombre, grupo = '', token }) {
-  const [avatar, setAvatar] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState('');       // ⬅️ antes era `avatar`
+  const [isPickerOpen, setIsPickerOpen] = useState(false); // ⬅️ antes era `isModalOpen`
   const [colapsado, setColapsado] = useState(false);
 
   const [enviando, setEnviando] = useState(false);
   const [estado, setEstado] = useState('');
   const [error, setError] = useState('');
 
-  // Cargar foto de perfil (Cognito.picture si es URL; si no, GET /perfil)
+  // ──────────────────────────────────────────────────────────────
+  // FOTO DE PERFIL (SIN LAMBDA): localStorage → Cognito.picture → default
+  // ──────────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
 
-    async function pintarFoto() {
+    (async () => {
       try {
-        const u = await Auth.currentAuthenticatedUser({ bypassCache: true });
-        const pic = u?.attributes?.picture || '';
-        if (/^https?:\/\//i.test(pic)) {
-          if (!cancelled) setAvatar(pic);
-          return;
+        // 1) Preferimos lo guardado localmente para este usuario
+        const local = localStorage.getItem(storageKey(email)) || '';
+        if (!cancelled && local) {
+          setAvatarUrl(local);
+        }
+
+        // 2) Intento opcional: traer `picture` de Cognito (no requiere Lambda)
+        //    Si existe y es una URL (http/https) o ruta /assets/... la usamos
+        try {
+          const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+          const pic = user?.attributes?.picture || '';
+
+          const looksLikeUrl =
+            /^https?:\/\//i.test(pic) || pic.startsWith('/'); // Vite genera /assets/...
+
+          if (!cancelled && looksLikeUrl) {
+            if (pic !== local) {
+              setAvatarUrl(pic);
+              localStorage.setItem(storageKey(email), pic); // cache local
+            }
+          }
+        } catch {
+          // No hay sesión o Amplify no está listo: ignoramos, seguimos con local
         }
       } catch {}
+    })();
 
-      try {
-        if (!API_BASE) return;
-        const idt = localStorage.getItem('id_token');
-        if (!idt) return;
-        const r = await fetch(`${API_BASE}/perfil`, {
-          headers: { Authorization: `Bearer ${idt}` },
-        });
-        if (!r.ok) return;
-        const d = await r.json();
-        if (!cancelled && d?.photoUrl) setAvatar(d.photoUrl);
-      } catch {}
-    }
-
-    pintarFoto();
-
+    // Compatibilidad: escuchar un evento externo si quieres notificar cambios
     const onUpd = (e) => {
       const url = e.detail?.photoUrl;
-      if (url) setAvatar(url);
+      if (url) {
+        setAvatarUrl(url);
+        try { localStorage.setItem(storageKey(email), url); } catch {}
+      }
     };
     window.addEventListener('profilePhotoUpdated', onUpd);
 
@@ -62,11 +76,13 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       cancelled = true;
       window.removeEventListener('profilePhotoUpdated', onUpd);
     };
-  }, []);
+  }, [email]);
 
+  // ──────────────────────────────────────────────────────────────
+  // (EL RESTO SIGUE IGUAL) Dominio/rol/solicitudes con tu backend
+  // ──────────────────────────────────────────────────────────────
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
-
   const mostrarBoton = esNetec && (grupo !== 'creador');
 
   const authHeader = useMemo(() => {
@@ -75,7 +91,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     return { Authorization: v };
   }, [token]);
 
-  // (Opcional) Estado de solicitud de rol desde tu backend
   useEffect(() => {
     if (!API_BASE || !email || !esNetec) return;
 
@@ -142,8 +157,12 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       </button>
 
       <div className="perfilSidebar">
-        <div className="avatar-wrap" onClick={() => setIsModalOpen(true)} title="Cambiar foto">
-          <img src={avatar || defaultFoto} alt="Avatar" className="avatar-img"/>
+        <div
+          className="avatar-wrap"
+          onClick={() => setIsPickerOpen(true)}
+          title="Cambiar foto"
+        >
+          <img src={avatarUrl || defaultFoto} alt="Avatar" className="avatar-img"/>
         </div>
 
         {!colapsado && <>
@@ -172,7 +191,19 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         </>}
       </div>
 
-      <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* ⬇️ Nuevo: AvatarPicker SIN LAMBDA */}
+      <AvatarPicker
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        email={email}
+        onSaved={(url) => {
+          setAvatarUrl(url);
+          // Compat: notificar a otros componentes si lo usan
+          try {
+            window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { photoUrl: url } }));
+          } catch {}
+        }}
+      />
 
       <div id="caminito" className="caminito">
         <Link to="/resumenes" className="nav-link">
