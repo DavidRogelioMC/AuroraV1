@@ -1,3 +1,4 @@
+// src/components/AvatarModal.jsx
 import { useState, useEffect } from "react";
 import { getApiBase } from "../lib/apiBase";
 
@@ -121,4 +122,5 @@ export default function AvatarModal({ isOpen, onClose }) {
     </div>
   );
 }
+
 
