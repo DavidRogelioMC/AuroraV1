@@ -4,20 +4,7 @@ import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
 import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
-
-
-// ⬇️ Helper inline (reemplaza al archivo apiBase.js)
-function getApiBase() {
-  const candidates = [
-    import.meta?.env?.VITE_APP_API_BASE,
-    import.meta?.env?.VITE_API_BASE,
-    import.meta?.env?.VITE_API_GATEWAY_URL,
-    typeof window !== 'undefined' ? window.__API_BASE__ : ''
-  ];
-  let base = (candidates.find(Boolean) || '').toString().trim();
-  if (base) base = base.replace(/\/+$/, ''); // sin slash final
-  return base;
-}
+import { getApiBase } from '../lib/apiBase';
 
 const API_BASE = getApiBase();
 
@@ -28,14 +15,13 @@ const DOMINIOS_PERMITIDOS = new Set([
 
 export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [avatar, setAvatar] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [colapsado, setColapsado] = useState(false);
 
   const [enviando, setEnviando] = useState(false);
   const [estado, setEstado] = useState('');
   const [error, setError] = useState('');
 
-  // Cargar foto de perfil (Cognito.picture si es URL; si no, GET /perfil si hay API_BASE)
+  // Cargar foto de perfil (Cognito.picture si es URL; si no, GET /perfil)
   useEffect(() => {
     let cancelled = false;
 
@@ -50,7 +36,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       } catch {}
 
       try {
-        if (!API_BASE) return; // sin backend, nos quedamos con default
+        if (!API_BASE) return;
         const idt = localStorage.getItem('id_token');
         if (!idt) return;
         const r = await fetch(`${API_BASE}/perfil`, {
@@ -78,7 +64,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
-
   const mostrarBoton = esNetec && (grupo !== 'creador');
 
   const authHeader = useMemo(() => {
@@ -87,7 +72,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     return { Authorization: v };
   }, [token]);
 
-  // Estado de solicitud de rol desde tu backend (solo si hay API_BASE)
   useEffect(() => {
     if (!API_BASE || !email || !esNetec) return;
 
@@ -154,7 +138,8 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       </button>
 
       <div className="perfilSidebar">
-        <div className="avatar-wrap" onClick={() => setIsModalOpen(true)} title="Cambiar foto">
+        {/* sin onClick (no hay modal) */}
+        <div className="avatar-wrap" title="Foto de perfil">
           <img src={avatar || defaultFoto} alt="Avatar" className="avatar-img"/>
         </div>
 
@@ -163,7 +148,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           <div className="email">{email}</div>
           <div className="grupo">🎖️ Rol: {rolTexto}</div>
 
-          {API_BASE && mostrarBoton && (
+          {mostrarBoton && (
             <div className="solicitar-creador-card">
               <button
                 className="solicitar-creador-btn"
@@ -183,8 +168,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           )}
         </>}
       </div>
-
-      <AvatarModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       <div id="caminito" className="caminito">
         <Link to="/resumenes" className="nav-link">
@@ -208,3 +191,4 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     </div>
   );
 }
+
