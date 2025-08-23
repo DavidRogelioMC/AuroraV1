@@ -1,4 +1,5 @@
 // src/App.jsx
+import './amplify'; // <<— esta línea DEBE cargarse antes de usar Auth
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
