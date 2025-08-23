@@ -1,5 +1,6 @@
 // src/App.jsx
-import './amplify'; // <<— esta línea DEBE cargarse antes de usar Auth
+import './amplify'; // DEBE cargarse antes de usar Auth
+import { hostedUiAuthorizeUrl } from './amplify';
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -26,10 +27,6 @@ import espanaFlag from './assets/espana.png';
 
 const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
-/** Normaliza cualquier string de rol:
- *  - acepta "admin,creador" y devuelve uno solo.
- *  - prioridad: creador > admin > participant
- */
 const normalizarRol = (raw) => {
   if (!raw) return '';
   const parts = String(raw).toLowerCase().split(/[,\s]+/).filter(Boolean);
@@ -45,16 +42,27 @@ function App() {
   const [rol, setRol] = useState(''); // "admin" | "creador" | "participant" | ""
 
   // --------- LOGIN/LOGOUT con Hosted UI ----------
-  const handleLogin = () => Auth.federatedSignIn();
+  const handleLogin = async () => {
+    try {
+      await Auth.federatedSignIn();
+    } catch (e) {
+      console.error('Amplify/Auth incompleto, usando fallback Hosted UI:', e?.message || e);
+      const url = hostedUiAuthorizeUrl();
+      if (url) {
+        window.location.assign(url);
+      } else {
+        alert(
+          'Falta configurar Cognito para login:\n' +
+          '- VITE_COGNITO_DOMAIN\n- VITE_COGNITO_CLIENT_ID\n' +
+          '(opcional) VITE_COGNITO_USER_POOL_ID'
+        );
+      }
+    }
+  };
 
   const handleLogout = async () => {
-    // limpias tu copia local del token y sales con Hosted UI
     localStorage.removeItem('id_token');
-    try {
-      await Auth.signOut();
-    } catch (e) {
-      console.log('SignOut Amplify falló, ignorable:', e?.message || e);
-    }
+    try { await Auth.signOut(); } catch (e) { console.log('SignOut Amplify falló:', e?.message || e); }
   };
 
   // 1) Bootstrap de sesión con Amplify (cuando vuelves del Hosted UI)
@@ -80,7 +88,7 @@ function App() {
     })();
   }, []);
 
-  // 2) Decodifica token (rápido) para email/rol inicial (luego se refresca con Cognito real)
+  // 2) Decodifica token (rápido) para email/rol inicial
   useEffect(() => {
     if (!token) return;
     try {
@@ -108,14 +116,9 @@ function App() {
           const freshEmail = u?.attributes?.email || '';
           if (freshEmail && freshEmail !== email) setEmail(freshEmail);
           if (freshRol && freshRol !== rol) setRol(freshRol);
-
-          // Fallback para la superadmin: si viene vacío, tratamos como admin
-          if (freshEmail === ADMIN_EMAIL && !freshRol) {
-            setRol('admin');
-          }
+          if (freshEmail === ADMIN_EMAIL && !freshRol) setRol('admin');
         })
         .catch(err => {
-          // Si el usuario no está autenticado vía Amplify, no pasa nada.
           console.log('No se pudo refrescar atributos de Cognito', err?.message || err);
         })
         .finally(() => {
@@ -125,22 +128,13 @@ function App() {
         });
     };
 
-    // a) Al montar / tener token (y si hay bandera de refresco)
     refreshFromCognito();
-
-    // b) Cada vez que la ventana recupera foco
     const onFocus = () => refreshFromCognito();
     window.addEventListener('focus', onFocus);
-
-    // c) Escucha del storage para refresco inmediato (set desde AdminPage)
     const onStorage = (e) => {
-      if (e.key === 'force_attr_refresh' && e.newValue === '1') {
-        refreshFromCognito();
-      }
+      if (e.key === 'force_attr_refresh' && e.newValue === '1') refreshFromCognito();
     };
     window.addEventListener('storage', onStorage);
-
-    // d) Refresco periódico suave (60s)
     const iv = setInterval(refreshFromCognito, 60_000);
 
     return () => {
@@ -151,12 +145,10 @@ function App() {
     };
   }, [token, email, rol]);
 
-  // 3.1) Fallback adicional: si es Anette y por alguna razón rol está vacío, muéstrala como admin
   useEffect(() => {
     if (email === ADMIN_EMAIL && !rol) setRol('admin');
   }, [email, rol]);
 
-  // 🔒 Solo esta persona puede ver/rutear a /admin
   const adminAllowed = email === ADMIN_EMAIL;
 
   return (
@@ -196,7 +188,6 @@ function App() {
         // ---------- App privada ----------
         <Router>
           <div id="contenidoPrincipal">
-            {/* Pasamos el rol FRESCO a la barra lateral */}
             <Sidebar email={email} grupo={rol} token={token} />
 
             <ProfileModal token={token} />
@@ -205,19 +196,13 @@ function App() {
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
-                {/* ✅ Actividades: siempre tu generador */}
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
-
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
-
-                {/* 🔒 Admin SOLO para anette */}
                 <Route
                   path="/admin"
                   element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />}
                 />
-
-                {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
@@ -231,4 +216,5 @@ function App() {
 }
 
 export default App;
+
 
