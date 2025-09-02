@@ -170,7 +170,6 @@ function App() {
             <Sidebar email={email} grupo={rol} token={token} />
             <ProfileModal token={token} />
             <ChatModal token={token} />
-           // En el return de tu App.jsx
 
             <main className="main-content-area">
               <Routes>
