@@ -19,7 +19,7 @@ function GeneradorTemarios() {
   });
 
   // URL de tu API Gateway que invoca la Lambda de temarios
-  const apiUrl = "URL_DE_TU_API_GATEWAY_PARA_TEMARIOS"; // <-- REEMPLAZA ESTO
+  const apiUrl = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/PruebaTEM"; // <-- REEMPLAZA ESTO
 
   const handleParamChange = (e) => {
     const { name, value } = e.target;
