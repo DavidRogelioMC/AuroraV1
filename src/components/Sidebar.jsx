@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
 import { getApiBase } from '../lib/apiBase';
 
-const API_BASE = getApiBase();
+const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
 const DOMINIOS_PERMITIDOS = new Set([
   'netec.com', 'netec.com.mx', 'netec.com.co',
