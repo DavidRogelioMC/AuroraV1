@@ -1,4 +1,5 @@
-// src/App.jsx
+// src/App.jsx (CÓDIGO COMPLETO Y MODIFICADO)
+
 import './amplify'; // DEBE cargarse antes de usar Auth
 import { hostedUiAuthorizeUrl } from './amplify';
 import { useEffect, useState } from 'react';
@@ -15,6 +16,7 @@ import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
 import AdminPage from './components/AdminPage';
+import GeneradorContenidosPage from './components/GeneradorContenidosPage'; // <-- IMPORTAMOS LA NUEVA PÁGINA
 
 import './index.css';
 import logo from './assets/Netec.png';
@@ -39,9 +41,8 @@ const normalizarRol = (raw) => {
 function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token') || '');
   const [email, setEmail] = useState('');
-  const [rol, setRol] = useState(''); // "admin" | "creador" | "participant" | ""
+  const [rol, setRol] = useState('');
 
-  // --------- LOGIN/LOGOUT con Hosted UI ----------
   const handleLogin = async () => {
     try {
       await Auth.federatedSignIn();
@@ -65,11 +66,10 @@ function App() {
     try { await Auth.signOut(); } catch (e) { console.log('SignOut Amplify falló:', e?.message || e); }
   };
 
-  // 1) Bootstrap de sesión con Amplify (cuando vuelves del Hosted UI)
   useEffect(() => {
     (async () => {
       try {
-        const session = await Auth.currentSession(); // si no hay sesión, lanza error
+        const session = await Auth.currentSession();
         const idt = session.getIdToken().getJwtToken();
         localStorage.setItem('id_token', idt);
         setToken(idt);
@@ -80,7 +80,6 @@ function App() {
         setEmail(freshEmail);
         setRol(freshRol || (freshEmail === ADMIN_EMAIL ? 'admin' : ''));
       } catch {
-        // Sin sesión → pantalla pública
         setToken('');
         setEmail('');
         setRol('');
@@ -88,7 +87,6 @@ function App() {
     })();
   }, []);
 
-  // 2) Decodifica token (rápido) para email/rol inicial
   useEffect(() => {
     if (!token) return;
     try {
@@ -102,12 +100,9 @@ function App() {
     }
   }, [token]);
 
-  // 3) 🔄 Refresco suave de atributos desde Cognito
   useEffect(() => {
     if (!token) return;
-
     let cancelled = false;
-
     const refreshFromCognito = () => {
       Auth.currentAuthenticatedUser({ bypassCache: true })
         .then(u => {
@@ -127,7 +122,6 @@ function App() {
           }
         });
     };
-
     refreshFromCognito();
     const onFocus = () => refreshFromCognito();
     window.addEventListener('focus', onFocus);
@@ -136,7 +130,6 @@ function App() {
     };
     window.addEventListener('storage', onStorage);
     const iv = setInterval(refreshFromCognito, 60_000);
-
     return () => {
       cancelled = true;
       window.removeEventListener('focus', onFocus);
@@ -154,7 +147,6 @@ function App() {
   return (
     <>
       {!token ? (
-        // ---------- Pantalla de acceso ----------
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -185,28 +177,22 @@ function App() {
           </div>
         </div>
       ) : (
-        // ---------- App privada ----------
         <Router>
           <div id="contenidoPrincipal">
             <Sidebar email={email} grupo={rol} token={token} />
-
             <ProfileModal token={token} />
             <ChatModal token={token} />
-
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
-                <Route
-                  path="/admin"
-                  element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />}
-                />
+                <Route path="/generador-contenidos" element={<GeneradorContenidosPage />} />
+                <Route path="/admin" element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
-
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </Router>
@@ -216,5 +202,3 @@ function App() {
 }
 
 export default App;
-
-
