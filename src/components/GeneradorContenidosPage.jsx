@@ -46,7 +46,5 @@ function GeneradorContenidosPage() {
     </div>
   );
 }
-export default GeneradorContenidosPage;
-}
 
 export default GeneradorContenidosPage;
