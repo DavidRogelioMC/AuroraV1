@@ -1,4 +1,5 @@
-// src/components/Sidebar.jsx
+// src/components/Sidebar.jsx (CÓDIGO COMPLETO Y MODIFICADO)
+
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
@@ -16,15 +17,12 @@ const DOMINIOS_PERMITIDOS = new Set([
 export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [avatar, setAvatar] = useState(null);
   const [colapsado, setColapsado] = useState(false);
-
   const [enviando, setEnviando] = useState(false);
   const [estado, setEstado] = useState('');
   const [error, setError] = useState('');
 
-  // Cargar foto de perfil (Cognito.picture si es URL; si no, GET /perfil)
   useEffect(() => {
     let cancelled = false;
-
     async function pintarFoto() {
       try {
         const u = await Auth.currentAuthenticatedUser({ bypassCache: true });
@@ -34,28 +32,22 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           return;
         }
       } catch {}
-
       try {
         if (!API_BASE) return;
         const idt = localStorage.getItem('id_token');
         if (!idt) return;
-        const r = await fetch(`${API_BASE}/perfil`, {
-          headers: { Authorization: `Bearer ${idt}` },
-        });
+        const r = await fetch(`${API_BASE}/perfil`, { headers: { Authorization: `Bearer ${idt}` } });
         if (!r.ok) return;
         const d = await r.json();
         if (!cancelled && d?.photoUrl) setAvatar(d.photoUrl);
       } catch {}
     }
-
     pintarFoto();
-
     const onUpd = (e) => {
       const url = e.detail?.photoUrl;
       if (url) setAvatar(url);
     };
     window.addEventListener('profilePhotoUpdated', onUpd);
-
     return () => {
       cancelled = true;
       window.removeEventListener('profilePhotoUpdated', onUpd);
@@ -74,7 +66,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
   useEffect(() => {
     if (!API_BASE || !email || !esNetec) return;
-
     const fetchEstado = async () => {
       setError('');
       try {
@@ -90,7 +81,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         console.log('No se pudo obtener estado de solicitud', e);
       }
     };
-
     fetchEstado();
   }, [email, esNetec, authHeader]);
 
@@ -123,7 +113,8 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     grupo === 'participant' ? 'Participante' :
     'Sin grupo';
 
-  const puedeVerAdmin = (grupo === 'admin');
+  const esAdmin = (grupo === 'admin');
+  const esCreador = (grupo === 'creador');
   const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
 
   const label =
@@ -136,26 +127,17 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       <button className="collapse-btn" onClick={toggle}>
         {colapsado ? '▸' : '◂'}
       </button>
-
       <div className="perfilSidebar">
-        {/* sin onClick (no hay modal) */}
         <div className="avatar-wrap" title="Foto de perfil">
           <img src={avatar || defaultFoto} alt="Avatar" className="avatar-img"/>
         </div>
-
         {!colapsado && <>
           <div className="nombre">{nombre || 'Usuario conectado'}</div>
           <div className="email">{email}</div>
           <div className="grupo">🎖️ Rol: {rolTexto}</div>
-
           {mostrarBoton && (
             <div className="solicitar-creador-card">
-              <button
-                className="solicitar-creador-btn"
-                onClick={enviarSolicitud}
-                disabled={disabled}
-                title={email}
-              >
+              <button className="solicitar-creador-btn" onClick={enviarSolicitud} disabled={disabled} title={email}>
                 {label}
               </button>
               {!!error && <div className="solicitar-creador-error">❌ {error}</div>}
@@ -179,16 +161,29 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         <Link to="/examenes" className="nav-link">
           <div className="step"><div className="circle">🔬</div>{!colapsado && <span>Examen</span>}</div>
         </Link>
-        {puedeVerAdmin && (
+        
+        {esAdmin && (
           <Link to="/admin" className="nav-link" title="Panel de administración">
             <div className="step"><div className="circle">⚙️</div>{!colapsado && <span>Admin</span>}</div>
           </Link>
         )}
-        <Link to="/usuarios" className="nav-link">
-          <div className="step"><div className="circle">👥</div>{!colapsado && <span>Usuarios</span>}</div>
-        </Link>
+
+        {esCreador ? (
+          <Link to="/generador-contenidos" className="nav-link" title="Generador de Contenidos">
+            <div className="step">
+              <div className="circle">✍️</div>
+              {!colapsado && <span>Contenidos</span>}
+            </div>
+          </Link>
+        ) : (
+          <Link to="/usuarios" className="nav-link">
+            <div className="step">
+              <div className="circle">👥</div>
+              {!colapsado && <span>Usuarios</span>}
+            </div>
+          </Link>
+        )}
       </div>
     </div>
   );
 }
-
