@@ -1,24 +1,34 @@
 // src/components/EditorDeTemario.jsx (CÓDIGO COMPLETO Y FUNCIONAL)
 
 import React, { useState, useEffect } from 'react';
+import VistaPreviaTemario from './VistaPreviaTemario'; // Importa el componente de vista previa
 import './EditorDeTemario.css';
 
 function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   const [temario, setTemario] = useState(temarioInicial);
-  const [vista, setVista] = useState('detallada');
+  const [vista, setVista] = useState('detallada'); // Inicia en la vista editable
   const [mostrarFormRegenerar, setMostrarFormRegenerar] = useState(false);
 
-  // Estado inicial para los parámetros de re-generación
+  // Estado para los parámetros de re-generación. Se inicializa con los datos del temario actual.
   const [params, setParams] = useState({
-    tema_curso: temarioInicial?.tema_curso || '',
+    tema_curso: temarioInicial?.tema_curso || temarioInicial?.nombre_curso || '',
     extension_curso_dias: temarioInicial?.numero_sesiones || 1,
     nivel_dificultad: temarioInicial?.nivel_dificultad || 'basico',
-    objetivos: temarioInicial?.objetivos_usuario || '',
+    objetivos: temarioInicial?.objetivos_usuario || '', // Asume que podrías tener estos campos
     enfoque: temarioInicial?.enfoque || ''
   });
 
+  // Efecto para actualizar el temario si la prop `temarioInicial` cambia
   useEffect(() => {
     setTemario(temarioInicial);
+    // También actualizamos los params por si se regenera
+    setParams({
+      tema_curso: temarioInicial?.tema_curso || temarioInicial?.nombre_curso || '',
+      extension_curso_dias: temarioInicial?.numero_sesiones || 1,
+      nivel_dificultad: temarioInicial?.nivel_dificultad || 'basico',
+      objetivos: temarioInicial?.objetivos_usuario || '',
+      enfoque: temarioInicial?.enfoque || ''
+    });
   }, [temarioInicial]);
 
   // --- MANEJADORES DE EDICIÓN DIRECTA ---
@@ -28,16 +38,21 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   };
 
   const handleTemarioChange = (capIndex, subIndex, value) => {
-    const nuevoTemario = JSON.parse(JSON.stringify(temario)); // Deep copy
+    const nuevoTemario = JSON.parse(JSON.stringify(temario)); // Deep copy para evitar mutaciones
     if (subIndex === null) {
       nuevoTemario.temario[capIndex].capitulo = value;
     } else {
-      nuevoTemario.temario[capIndex].subcapitulos[subIndex] = value;
+      // Maneja ambos formatos de subcapítulos (string u objeto)
+      if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
+        nuevoTemario.temario[capIndex].subcapitulos[subIndex].nombre = value;
+      } else {
+        nuevoTemario.temario[capIndex].subcapitulos[subIndex] = value;
+      }
     }
     setTemario(nuevoTemario);
   };
 
-  // --- MANEJADORES DE RE-GENERACIÓN ---
+  // --- MANEJADORES DE RE-GENERACIÓN Y GUARDADO ---
   const handleParamsChange = (e) => {
     const { name, value } = e.target;
     setParams(prev => ({ ...prev, [name]: value }));
@@ -57,19 +72,27 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   return (
     <div className="editor-container">
       <div className="vista-selector">
-        <button className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`} onClick={() => setVista('detallada')}>
+        <button 
+          className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
+          onClick={() => setVista('detallada')}
+        >
           Vista Detallada (Editable)
         </button>
-        <button className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`} onClick={() => setVista('resumida')}>
+        <button 
+          className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
+          onClick={() => setVista('resumida')}
+        >
           Vista Resumida
         </button>
       </div>
 
       {isLoading ? (
         <div className="spinner-container">
-          <div className="spinner"></div><p>Generando nueva versión...</p>
+          <div className="spinner"></div>
+          <p>Generando nueva versión...</p>
         </div>
       ) : vista === 'detallada' ? (
+        // --- VISTA DETALLADA Y EDITABLE ---
         <div>
           <label className="editor-label">Nombre del Curso</label>
           <textarea name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo" />
@@ -90,23 +113,11 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               </ul>
             </div>
           ))}
+          {/* Aquí puedes añadir más campos editables para objetivos, audiencia, etc. */}
         </div>
       ) : (
-        <div className="vista-resumida">
-          <h1>{temario.nombre_curso}</h1>
-          <div className="seccion-resumen"><h2>Objetivos del Curso</h2><ul>{(temario.objetivos || []).map((obj, i) => <li key={i}>{obj}</li>)}</ul></div>
-          <div className="seccion-resumen"><h2>Descripción</h2><p>{temario.descripcion_general}</p></div>
-          <div className="seccion-resumen"><h2>Audiencia</h2><p>{temario.audiencia}</p></div>
-          <div className="seccion-resumen"><h2>Esquema del Curso</h2>
-            {(temario.temario || []).map((cap, i) => (
-              <div key={i} className="capitulo-resumido"><strong>{cap.capitulo}</strong>
-                <ul>
-                  {(cap.subcapitulos || []).map((sub, j) => <li key={j}>{typeof sub === 'object' ? sub.nombre : sub}</li>)}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
+        // --- VISTA RESUMIDA (DE SOLO LECTURA) ---
+        <VistaPreviaTemario temario={temario} />
       )}
 
       <div className="acciones-footer">
@@ -116,7 +127,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 
       {mostrarFormRegenerar && (
         <div className="regenerar-form">
-          <h4>Regenerar Temario con Nuevos Parámetros</h4>
+          <h4>Regenerar con Nuevos Parámetros</h4>
           <div className="form-group">
             <label>Duración (días):</label>
             <input name="extension_curso_dias" type="number" value={params.extension_curso_dias} onChange={handleParamsChange} />
@@ -124,11 +135,13 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           <div className="form-group">
             <label>Nivel:</label>
             <select name="nivel_dificultad" value={params.nivel_dificultad} onChange={handleParamsChange}>
-              <option value="basico">Básico</option><option value="intermedio">Intermedio</option><option value="avanzado">Avanzado</option>
+              <option value="basico">Básico</option>
+              <option value="intermedio">Intermedio</option>
+              <option value="avanzado">Avanzado</option>
             </select>
           </div>
           <div className="form-group">
-            <label>Enfoque:</label>
+            <label>Enfoque (Opcional):</label>
             <textarea name="enfoque" value={params.enfoque} onChange={handleParamsChange} />
           </div>
           <button onClick={handleRegenerateClick}>Regenerar</button>
