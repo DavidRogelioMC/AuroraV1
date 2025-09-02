@@ -1,0 +1,131 @@
+/* src/components/VistaPreviaTemario.css */
+
+.temario-vista-previa {
+  background-color: #ffffff;
+  padding: 2.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  text-align: left;
+}
+
+.curso-titulo {
+  font-size: 2.2rem;
+  color: #1b5784;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 1rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.descripcion-seccion {
+  margin-bottom: 2rem;
+}
+
+.descripcion-seccion h2 {
+  font-size: 1.4rem;
+  color: #1b5784;
+  margin-bottom: 0.75rem;
+}
+
+.descripcion-seccion ul {
+  padding-left: 20px;
+}
+
+.descripcion-seccion li {
+  margin-bottom: 0.5rem;
+}
+
+.temario-vista-previa > h2 {
+  font-size: 1.8rem;
+  color: #1b5784;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.capitulo-container {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+}
+
+.capitulo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.capitulo-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #343a40;
+}
+
+.capitulo-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.subcapitulos-tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.subcapitulos-tabla th, .subcapitulos-tabla td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.subcapitulos-tabla th {
+  background-color: #e9ecef;
+  font-weight: 600;
+}
+
+.subcapitulos-tabla tr:last-child td {
+  border-bottom: none;
+}
+
+/* Estilo para destacar las actividades prácticas */
+.subcapitulo-practico {
+  background-color: #e3f2fd; /* Un azul claro */
+  font-weight: 500;
+}
+.subcapitulo-practico td:first-child::before {
+  content: '🛠️ '; /* Icono de herramienta */
+  margin-right: 8px;
+}
