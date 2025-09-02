@@ -32,9 +32,15 @@ function VistaPreviaTemario({ temario }) {
       </div>
       <div className="descripcion-seccion">
         <h2>Objetivos</h2>
-        <ul>
-          {Array.isArray(temario.objetivos) && temario.objetivos.map((obj, i) => <li key={i}>{obj}</li>)}
-        </ul>
+        {Array.isArray(temario.objetivos) ? (
+          <ul>
+            {temario.objetivos.map((obj, i) => <li key={i}>{obj}</li>)}
+          </ul>
+        ) : temario.objetivos ? (
+          <div style={{whiteSpace: 'pre-wrap'}}>{temario.objetivos}</div>
+        ) : (
+          <p>N/A</p>
+        )}
       </div>
       <div className="descripcion-seccion">
         <h2>Audiencia</h2><p>{temario.audiencia || "N/A"}</p>
