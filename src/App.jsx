@@ -1,23 +1,22 @@
-// src/App.jsx (CÓDIGO COMPLETO Y MODIFICADO)
+// src/App.jsx (CÓDIGO FINAL Y UNIFICADO)
 
-import './amplify'; // DEBE cargarse antes de usar Auth
-import { hostedUiAuthorizeUrl } from './amplify';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { Auth } from 'aws-amplify';
+import { Auth } from 'aws-amplify'; // Aún se usa para el refresco de atributos
 
+// Componentes
 import Sidebar from './components/Sidebar';
 import ChatModal from './components/ChatModal';
 import ProfileModal from './components/ProfileModal';
-
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
 import AdminPage from './components/AdminPage';
-import GeneradorContenidosPage from './components/GeneradorContenidosPage'; // <-- IMPORTAMOS LA NUEVA PÁGINA
+import GeneradorContenidosPage from './components/GeneradorContenidosPage';
 
+// Estilos y Assets
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
@@ -43,58 +42,56 @@ function App() {
   const [email, setEmail] = useState('');
   const [rol, setRol] = useState('');
 
-  const handleLogin = async () => {
-    try {
-      await Auth.federatedSignIn();
-    } catch (e) {
-      console.error('Amplify/Auth incompleto, usando fallback Hosted UI:', e?.message || e);
-      const url = hostedUiAuthorizeUrl();
-      if (url) {
-        window.location.assign(url);
-      } else {
-        alert(
-          'Falta configurar Cognito para login:\n' +
-          '- VITE_COGNITO_DOMAIN\n- VITE_COGNITO_CLIENT_ID\n' +
-          '(opcional) VITE_COGNITO_USER_POOL_ID'
-        );
-      }
-    }
-  };
+  // --- LÓGICA DE AUTENTICACIÓN MANUAL (DE TU CÓDIGO PREFERIDO) ---
+  const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
 
-  const handleLogout = async () => {
+  const loginUrl = useMemo(() => {
+    if (!domain || !clientId || !redirectUri) return '';
+    const u = new URL(`${domain}/login`);
+    u.searchParams.append('response_type', 'token');
+    u.searchParams.append('client_id', clientId);
+    u.searchParams.append('redirect_uri', redirectUri);
+    return u.toString();
+  }, [clientId, domain, redirectUri]);
+  
+  const handleLogout = () => {
     localStorage.removeItem('id_token');
-    try { await Auth.signOut(); } catch (e) { console.log('SignOut Amplify falló:', e?.message || e); }
+    const u = new URL(`${domain}/logout`);
+    u.searchParams.append('client_id', clientId);
+    u.searchParams.append('logout_uri', redirectUri);
+    window.location.href = u.toString();
   };
-
+  
+  // Captura de token, decodificación y refresco de atributos
   useEffect(() => {
-    (async () => {
-      try {
-        const session = await Auth.currentSession();
-        const idt = session.getIdToken().getJwtToken();
-        localStorage.setItem('id_token', idt);
-        setToken(idt);
-
-        const u = await Auth.currentAuthenticatedUser({ bypassCache: true });
-        const freshEmail = u?.attributes?.email || '';
-        const freshRol = normalizarRol(u?.attributes?.['custom:rol'] || '');
-        setEmail(freshEmail);
-        setRol(freshRol || (freshEmail === ADMIN_EMAIL ? 'admin' : ''));
-      } catch {
-        setToken('');
-        setEmail('');
-        setRol('');
+    const { hash } = window.location;
+    if (hash.includes('id_token=')) {
+      const newToken = new URLSearchParams(hash.slice(1)).get('id_token');
+      if (newToken) {
+        localStorage.setItem('id_token', newToken);
+        setToken(newToken);
       }
-    })();
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    }
   }, []);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setEmail('');
+      setRol('');
+      return;
+    };
     try {
       const decoded = jwtDecode(token);
-      setEmail((prev) => prev || decoded?.email || '');
-      setRol((prev) => prev || normalizarRol(decoded?.['custom:rol']));
+      setEmail(decoded?.email || '');
+      setRol(normalizarRol(decoded?.['custom:rol']));
     } catch (err) {
       console.error('❌ Error al decodificar token:', err);
+      // Si el token es inválido, limpiamos la sesión
+      localStorage.removeItem('id_token');
+      setToken('');
       setEmail('');
       setRol('');
     }
@@ -115,25 +112,12 @@ function App() {
         })
         .catch(err => {
           console.log('No se pudo refrescar atributos de Cognito', err?.message || err);
-        })
-        .finally(() => {
-          if (localStorage.getItem('force_attr_refresh') === '1') {
-            localStorage.removeItem('force_attr_refresh');
-          }
         });
     };
     refreshFromCognito();
-    const onFocus = () => refreshFromCognito();
-    window.addEventListener('focus', onFocus);
-    const onStorage = (e) => {
-      if (e.key === 'force_attr_refresh' && e.newValue === '1') refreshFromCognito();
-    };
-    window.addEventListener('storage', onStorage);
     const iv = setInterval(refreshFromCognito, 60_000);
     return () => {
       cancelled = true;
-      window.removeEventListener('focus', onFocus);
-      window.removeEventListener('storage', onStorage);
       clearInterval(iv);
     };
   }, [token, email, rol]);
@@ -143,10 +127,12 @@ function App() {
   }, [email, rol]);
 
   const adminAllowed = email === ADMIN_EMAIL;
+  // --- FIN DE LA LÓGICA DE AUTENTICACIÓN ---
 
   return (
     <>
       {!token ? (
+        // --- Pantalla de acceso ---
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -156,7 +142,7 @@ function App() {
               <div className="illustration-centered">
                 <img src={previewImg} alt="Ilustración" className="preview-image" />
               </div>
-              <button className="login-button" onClick={handleLogin}>
+              <button className="login-button" onClick={() => { if(loginUrl) window.location.href = loginUrl }}>
                 🚀 Comenzar Ahora
               </button>
               <div className="country-flags">
@@ -177,6 +163,7 @@ function App() {
           </div>
         </div>
       ) : (
+        // --- App privada ---
         <Router>
           <div id="contenidoPrincipal">
             <Sidebar email={email} grupo={rol} token={token} />
@@ -187,7 +174,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<ExamenesPage />} />
+                <Route path="/examenes" element={<ExamenesPage token={token}/>} />
                 <Route path="/generador-contenidos" element={<GeneradorContenidosPage />} />
                 <Route path="/admin" element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
