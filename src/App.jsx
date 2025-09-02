@@ -32,8 +32,9 @@ const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 const normalizarRol = (raw) => {
   if (!raw) return '';
   const parts = String(raw).toLowerCase().split(/[,\s]+/).filter(Boolean);
-  if (parts.includes('creador')) return 'creador';
+  // Priorizar admin sobre otros roles
   if (parts.includes('admin')) return 'admin';
+  if (parts.includes('creador')) return 'creador';
   if (parts.includes('participant')) return 'participant';
   return parts[0] || '';
 };
@@ -86,8 +87,15 @@ function App() {
     };
     try {
       const decoded = jwtDecode(token);
-      setEmail(decoded?.email || '');
-      setRol(normalizarRol(decoded?.['custom:rol']));
+      const decodedEmail = decoded?.email || '';
+      setEmail(decodedEmail);
+      
+      // Forzar rol admin para Anette independientemente del token
+      if (decodedEmail === ADMIN_EMAIL) {
+        setRol('admin');
+      } else {
+        setRol(normalizarRol(decoded?.['custom:rol']));
+      }
     } catch (err) {
       console.error('❌ Error al decodificar token:', err);
       // Si el token es inválido, limpiamos la sesión
@@ -108,8 +116,13 @@ function App() {
           const freshRol = normalizarRol(u?.attributes?.['custom:rol'] || '');
           const freshEmail = u?.attributes?.email || '';
           if (freshEmail && freshEmail !== email) setEmail(freshEmail);
-          if (freshRol && freshRol !== rol) setRol(freshRol);
-          if (freshEmail === ADMIN_EMAIL && !freshRol) setRol('admin');
+          
+          // Forzar rol admin para Anette
+          if (freshEmail === ADMIN_EMAIL) {
+            setRol('admin');
+          } else if (freshRol && freshRol !== rol) {
+            setRol(freshRol);
+          }
         })
         .catch(err => {
           console.log('No se pudo refrescar atributos de Cognito', err?.message || err);
@@ -124,8 +137,8 @@ function App() {
   }, [token, email, rol]);
 
   useEffect(() => {
-    if (email === ADMIN_EMAIL && !rol) setRol('admin');
-  }, [email, rol]);
+    if (email === ADMIN_EMAIL) setRol('admin');
+  }, [email]);
 
   const adminAllowed = email === ADMIN_EMAIL;
   // --- FIN DE LA LÓGICA DE AUTENTICACIÓN ---
