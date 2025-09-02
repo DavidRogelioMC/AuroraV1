@@ -13,8 +13,6 @@ import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
 import AdminPage from './components/AdminPage';
-import GeneradorContenidosPage from './components/GeneradorContenidosPage';
-import GeneradorTemarios from './components/GeneradorTemarios'; // <-- IMPORTA EL NUEVO COMPONENTE
 
 import './index.css';
 import logo from './assets/Netec.png';
@@ -211,9 +209,6 @@ function App() {
 
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage />} />
-                <Route path="/generador-contenidos" element={<GeneradorContenidosPage />}>
-                  {/* Esta ruta ahora está anidada y se renderizará en el <Outlet> */}
-                  <Route path="curso-estandar" element={<GeneradorTemarios />} />
 
                 {/* 🔒 Admin SOLO para anette */}
                 <Route
@@ -235,5 +230,4 @@ function App() {
 }
 
 export default App;
-
 
