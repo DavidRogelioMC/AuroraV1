@@ -56,6 +56,18 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+.vista-info {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.vista-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
 /* --- ESTILOS PARA LA VISTA DETALLADA (EDITABLE) --- */
 .editor-label {
   display: block;
@@ -196,3 +208,143 @@
 .regenerar-form .form-group {
   margin-bottom: 1rem;
 }
+
+/* --- ESTILOS PARA LA VISTA RESUMIDA EDITABLE --- */
+.vista-resumida-editable {
+  background: #fafafa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.input-titulo-resumido {
+  font-size: 1.6rem;
+  font-weight: bold;
+  border: none;
+  border-bottom: 2px solid #eee;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+  background: transparent;
+  transition: border-color 0.3s;
+}
+.input-titulo-resumido:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-item label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.input-info {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.input-info:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.seccion-editable {
+  margin-bottom: 1.5rem;
+}
+
+.seccion-editable h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1b5784;
+  font-size: 1.1rem;
+}
+
+.textarea-resumido {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+}
+.textarea-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.capitulo-resumido {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.input-capitulo-resumido {
+  width: 100%;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  border: none;
+  border-bottom: 2px solid #eee;
+  background: transparent;
+  margin-bottom: 1rem;
+  color: #333;
+}
+.input-capitulo-resumido:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+
+.subcapitulos-resumidos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.5rem;
+}
+
+.input-subcapitulo-resumido {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: #f9f9f9;
+}
+.input-subcapitulo-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+  background: white;
+}
+
+.input-campo {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.input-campo:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
