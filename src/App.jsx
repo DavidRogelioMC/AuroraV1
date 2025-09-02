@@ -44,19 +44,24 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token') || '');
   const [user, setUser] = useState(null); // <-- Estado unificado para el usuario
 
-  const handleLogin = async () => {
-    try {
-      await Auth.federatedSignIn();
-    } catch (e) {
-      console.error('Amplify/Auth incompleto, usando fallback Hosted UI:', e?.message || e);
-      const url = hostedUiAuthorizeUrl();
-      if (url) {
-        window.location.assign(url);
-      } else {
-        alert('Falta configurar Cognito para login.');
-      }
-    }
-  };
+  // En tu App.jsx
+
+// ... (la definición de 'loginUrl' con useMemo se queda igual)
+
+const handleLogin = () => {
+  // Simplemente verificamos si la URL se pudo construir y redirigimos.
+  // Sin 'try...catch', sin 'async/await', sin 'Auth.federatedSignIn'.
+  if (loginUrl) {
+    window.location.href = loginUrl;
+  } else {
+    // Este alert es útil si las variables de entorno no se cargan.
+    alert(
+      'Falta configurar Cognito para login:\n' +
+      '- VITE_COGNITO_DOMAIN\n- VITE_COGNITO_CLIENT_ID\n' +
+      '- VITE_REDIRECT_URI_TESTING'
+    );
+  }
+};
 
   const handleLogout = async () => {
     localStorage.removeItem('id_token');
