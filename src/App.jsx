@@ -1,9 +1,11 @@
-// src/App.jsx (CÓDIGO FINAL Y UNIFICADO)
+// src/App.jsx (CÓDIGO FINAL CON LÓGICA DE ROLES MEJORADA)
 
-import { useEffect, useMemo, useState } from 'react';
+import './amplify';
+import { hostedUiAuthorizeUrl } from './amplify';
+import { useEffect, useState, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { Auth } from 'aws-amplify'; // Aún se usa para el refresco de atributos
+import { Auth } from 'aws-amplify';
 
 // Componentes
 import Sidebar from './components/Sidebar';
@@ -15,7 +17,7 @@ import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
 import AdminPage from './components/AdminPage';
 import GeneradorContenidosPage from './components/GeneradorContenidosPage';
-import GeneradorTemarios from './components/GeneradorTemarios'; // <-- IMPORTA EL NUEVO COMPONENTE
+import GeneradorTemarios from './components/GeneradorTemarios';
 
 // Estilos y Assets
 import './index.css';
@@ -40,100 +42,86 @@ const normalizarRol = (raw) => {
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('id_token') || '');
-  const [email, setEmail] = useState('');
-  const [rol, setRol] = useState('');
+  const [user, setUser] = useState(null); // <-- Estado unificado para el usuario
 
-  // --- LÓGICA DE AUTENTICACIÓN MANUAL (DE TU CÓDIGO PREFERIDO) ---
-  const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
-
-  const loginUrl = useMemo(() => {
-    if (!domain || !clientId || !redirectUri) return '';
-    const u = new URL(`${domain}/login`);
-    u.searchParams.append('response_type', 'token');
-    u.searchParams.append('client_id', clientId);
-    u.searchParams.append('redirect_uri', redirectUri);
-    return u.toString();
-  }, [clientId, domain, redirectUri]);
-  
-  const handleLogout = () => {
-    localStorage.removeItem('id_token');
-    const u = new URL(`${domain}/logout`);
-    u.searchParams.append('client_id', clientId);
-    u.searchParams.append('logout_uri', redirectUri);
-    window.location.href = u.toString();
-  };
-  
-  // Captura de token, decodificación y refresco de atributos
-  useEffect(() => {
-    const { hash } = window.location;
-    if (hash.includes('id_token=')) {
-      const newToken = new URLSearchParams(hash.slice(1)).get('id_token');
-      if (newToken) {
-        localStorage.setItem('id_token', newToken);
-        setToken(newToken);
+  const handleLogin = async () => {
+    try {
+      await Auth.federatedSignIn();
+    } catch (e) {
+      console.error('Amplify/Auth incompleto, usando fallback Hosted UI:', e?.message || e);
+      const url = hostedUiAuthorizeUrl();
+      if (url) {
+        window.location.assign(url);
+      } else {
+        alert('Falta configurar Cognito para login.');
       }
+    }
+  };
+
+  const handleLogout = async () => {
+    localStorage.removeItem('id_token');
+    setToken('');
+    setUser(null);
+    try { await Auth.signOut(); } catch (e) { console.log('SignOut Amplify falló:', e?.message || e); }
+  };
+
+  // --- useEffect PRINCIPAL PARA GESTIONAR LA SESIÓN ---
+  useEffect(() => {
+    let cancelled = false;
+
+    const updateUserSession = async () => {
+      try {
+        const session = await Auth.currentSession();
+        const idToken = session.getIdToken().getJwtToken();
+        const authenticatedUser = await Auth.currentAuthenticatedUser({ bypassCache: true });
+        
+        if (cancelled) return;
+        
+        const decodedToken = jwtDecode(idToken);
+        const email = (authenticatedUser.attributes.email || decodedToken.email || '').toLowerCase();
+        let rol = normalizarRol(authenticatedUser.attributes['custom:rol'] || decodedToken['custom:rol']);
+
+        // Lógica de Admin robusta y centralizada
+        if (email === ADMIN_EMAIL) {
+          rol = 'admin';
+        }
+        
+        setToken(idToken);
+        setUser({
+          email: email,
+          rol: rol,
+          nombre: authenticatedUser.attributes.name || 'Usuario' 
+        });
+        localStorage.setItem('id_token', idToken);
+        
+      } catch (err) {
+        if (cancelled) return;
+        localStorage.removeItem('id_token');
+        setToken('');
+        setUser(null);
+      }
+    };
+
+    const hash = window.location.hash;
+    if (hash.includes("id_token=")) {
       window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
     }
-  }, []);
+    
+    updateUserSession();
 
-  useEffect(() => {
-    if (!token) {
-      setEmail('');
-      setRol('');
-      return;
-    };
-    try {
-      const decoded = jwtDecode(token);
-      setEmail(decoded?.email || '');
-      setRol(normalizarRol(decoded?.['custom:rol']));
-    } catch (err) {
-      console.error('❌ Error al decodificar token:', err);
-      // Si el token es inválido, limpiamos la sesión
-      localStorage.removeItem('id_token');
-      setToken('');
-      setEmail('');
-      setRol('');
-    }
-  }, [token]);
+    window.addEventListener('focus', updateUserSession);
 
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-    const refreshFromCognito = () => {
-      Auth.currentAuthenticatedUser({ bypassCache: true })
-        .then(u => {
-          if (cancelled) return;
-          const freshRol = normalizarRol(u?.attributes?.['custom:rol'] || '');
-          const freshEmail = u?.attributes?.email || '';
-          if (freshEmail && freshEmail !== email) setEmail(freshEmail);
-          if (freshRol && freshRol !== rol) setRol(freshRol);
-          if (freshEmail === ADMIN_EMAIL && !freshRol) setRol('admin');
-        })
-        .catch(err => {
-          console.log('No se pudo refrescar atributos de Cognito', err?.message || err);
-        });
-    };
-    refreshFromCognito();
-    const iv = setInterval(refreshFromCognito, 60_000);
     return () => {
       cancelled = true;
-      clearInterval(iv);
+      window.removeEventListener('focus', updateUserSession);
     };
-  }, [token, email, rol]);
+  }, []);
 
-  useEffect(() => {
-    if (email === ADMIN_EMAIL && !rol) setRol('admin');
-  }, [email, rol]);
-
-  const adminAllowed = email === ADMIN_EMAIL;
-  // --- FIN DE LA LÓGICA DE AUTENTICACIÓN ---
+  const puedeVerAdmin = user?.rol === 'admin';
 
   return (
     <>
       {!token ? (
-        // --- Pantalla de acceso ---
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -143,7 +131,7 @@ function App() {
               <div className="illustration-centered">
                 <img src={previewImg} alt="Ilustración" className="preview-image" />
               </div>
-              <button className="login-button" onClick={() => { if(loginUrl) window.location.href = loginUrl }}>
+              <button className="login-button" onClick={handleLogin}>
                 🚀 Comenzar Ahora
               </button>
               <div className="country-flags">
@@ -164,28 +152,29 @@ function App() {
           </div>
         </div>
       ) : (
-        // --- App privada ---
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar email={email} grupo={rol} token={token} />
+            <Sidebar 
+              email={user?.email || ''} 
+              nombre={user?.nombre || ''}
+              grupo={user?.rol || ''} 
+              token={token} 
+            />
             <ProfileModal token={token} />
             <ChatModal token={token} />
-
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<ExamenesPage token={token}/>} />
-                <Route path="/admin" element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />} />
-                
-                {/* --- INICIO DE LA CORRECCIÓN --- */}
+                <Route path="/examenes" element={<ExamenesPage />} />
                 <Route path="/generador-contenidos" element={<GeneradorContenidosPage />}>
-                  {/* Esta ruta ahora está anidada y se renderizará en el <Outlet> */}
                   <Route path="curso-estandar" element={<GeneradorTemarios />} />
                 </Route>
-                {/* --- FIN DE LA CORRECCIÓN --- */}
-                
+                <Route
+                  path="/admin"
+                  element={puedeVerAdmin ? <AdminPage /> : <Navigate to="/" replace />}
+                />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
