@@ -170,17 +170,24 @@ function App() {
             <Sidebar email={email} grupo={rol} token={token} />
             <ProfileModal token={token} />
             <ChatModal token={token} />
+           // En el return de tu App.jsx
+
             <main className="main-content-area">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage token={token}/>} />
-                <Route path="/generador-contenidos" element={<GeneradorContenidosPage />} />
-                <Route path="curso-estandar" element={<GeneradorTemarios />} />
                 <Route path="/admin" element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
                 
+                {/* --- INICIO DE LA CORRECCIÓN --- */}
+                <Route path="/generador-contenidos" element={<GeneradorContenidosPage />}>
+                  {/* Esta ruta ahora está anidada y se renderizará en el <Outlet> */}
+                  <Route path="curso-estandar" element={<GeneradorTemarios />} />
+                </Route>
+                {/* --- FIN DE LA CORRECCIÓN --- */}
+                
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
