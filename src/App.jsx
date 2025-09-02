@@ -15,6 +15,7 @@ import ResumenesPage from './components/ResumenesPage';
 import ExamenesPage from './components/ExamenesPage';
 import AdminPage from './components/AdminPage';
 import GeneradorContenidosPage from './components/GeneradorContenidosPage';
+import GeneradorTemarios from './components/GeneradorTemarios'; // <-- IMPORTA EL NUEVO COMPONENTE
 
 // Estilos y Assets
 import './index.css';
@@ -176,8 +177,10 @@ function App() {
                 <Route path="/resumenes" element={<ResumenesPage />} />
                 <Route path="/examenes" element={<ExamenesPage token={token}/>} />
                 <Route path="/generador-contenidos" element={<GeneradorContenidosPage />} />
+                <Route path="curso-estandar" element={<GeneradorTemarios />} />
                 <Route path="/admin" element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
+                
               </Routes>
             </main>
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
