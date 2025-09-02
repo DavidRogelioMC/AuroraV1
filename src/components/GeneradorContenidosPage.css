@@ -55,3 +55,23 @@
 .contenido-generador {
   margin-top: 1rem;
 }
+/* En GeneradorContenidosPage.css */
+
+.btn-regresar-menu {
+  background: none;
+  border: 1px solid #ccc;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  align-self: flex-start; /* Se alinea a la izquierda */
+  transition: all 0.2s ease;
+}
+
+.btn-regresar-menu:hover {
+  background-color: #f0f0f0;
+  border-color: #aaa;
+}
