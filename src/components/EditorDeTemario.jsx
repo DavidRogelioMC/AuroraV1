@@ -161,6 +161,10 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               <label>EOL:</label>
               <input name="EOL" value={temario.EOL || ''} onChange={handleInputChange} className="input-info" />
             </div>
+            <div className="info-item">
+              <label>Distribución General:</label>
+              <input name="porcentaje_teoria_practica_general" value={temario.porcentaje_teoria_practica_general || ''} onChange={handleInputChange} className="input-info" placeholder="60% Teoría / 40% Práctica" />
+            </div>
           </div>
 
           <div className="seccion-editable">
@@ -187,15 +191,86 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           {(temario.temario || []).map((cap, capIndex) => (
             <div key={capIndex} className="capitulo-resumido">
               <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
+              
+              {/* Grid de información del capítulo */}
+              <div className="info-grid-capitulo">
+                <div className="info-item">
+                  <label>Duración (min):</label>
+                  <input 
+                    type="number" 
+                    value={cap.tiempo_capitulo_min || ''} 
+                    onChange={(e) => {
+                      const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                      nuevoTemario.temario[capIndex].tiempo_capitulo_min = parseInt(e.target.value) || 0;
+                      setTemario(nuevoTemario);
+                    }}
+                    className="input-info-small" 
+                    placeholder="120"
+                  />
+                </div>
+                <div className="info-item">
+                  <label>Distribución:</label>
+                  <input 
+                    value={cap.porcentaje_teoria_practica_capitulo || ''} 
+                    onChange={(e) => {
+                      const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                      nuevoTemario.temario[capIndex].porcentaje_teoria_practica_capitulo = e.target.value;
+                      setTemario(nuevoTemario);
+                    }}
+                    className="input-info-small" 
+                    placeholder="70% Teoría / 30% Práctica"
+                  />
+                </div>
+              </div>
+
               <div className="subcapitulos-resumidos">
                 {(cap.subcapitulos || []).map((sub, subIndex) => (
-                  <input
-                    key={subIndex}
-                    value={typeof sub === 'object' ? sub.nombre : sub}
-                    onChange={(e) => handleTemarioChange(capIndex, subIndex, e.target.value)}
-                    className="input-subcapitulo-resumido"
-                    placeholder="Subcapítulo"
-                  />
+                  <div key={subIndex} className="subcapitulo-item">
+                    <input
+                      value={typeof sub === 'object' ? sub.nombre : sub}
+                      onChange={(e) => handleTemarioChange(capIndex, subIndex, e.target.value)}
+                      className="input-subcapitulo-resumido"
+                      placeholder="Subcapítulo"
+                    />
+                    <div className="subcapitulo-tiempos">
+                      <input
+                        type="number"
+                        value={typeof sub === 'object' ? sub.tiempo_subcapitulo_min || '' : ''}
+                        onChange={(e) => {
+                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                          if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
+                            nuevoTemario.temario[capIndex].subcapitulos[subIndex].tiempo_subcapitulo_min = parseInt(e.target.value) || 0;
+                          } else {
+                            nuevoTemario.temario[capIndex].subcapitulos[subIndex] = {
+                              nombre: nuevoTemario.temario[capIndex].subcapitulos[subIndex],
+                              tiempo_subcapitulo_min: parseInt(e.target.value) || 0
+                            };
+                          }
+                          setTemario(nuevoTemario);
+                        }}
+                        className="input-tiempo-sub"
+                        placeholder="min"
+                      />
+                      <input
+                        type="number"
+                        value={typeof sub === 'object' ? sub.sesion || '' : ''}
+                        onChange={(e) => {
+                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                          if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
+                            nuevoTemario.temario[capIndex].subcapitulos[subIndex].sesion = parseInt(e.target.value) || 0;
+                          } else {
+                            nuevoTemario.temario[capIndex].subcapitulos[subIndex] = {
+                              nombre: nuevoTemario.temario[capIndex].subcapitulos[subIndex],
+                              sesion: parseInt(e.target.value) || 0
+                            };
+                          }
+                          setTemario(nuevoTemario);
+                        }}
+                        className="input-sesion-sub"
+                        placeholder="sesión"
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -239,3 +314,4 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
+
