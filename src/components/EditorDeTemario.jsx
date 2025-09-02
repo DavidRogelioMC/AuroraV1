@@ -1,7 +1,6 @@
 // src/components/EditorDeTemario.jsx (CÓDIGO COMPLETO Y FUNCIONAL)
 
 import React, { useState, useEffect } from 'react';
-import VistaPreviaTemario from './VistaPreviaTemario'; // Importa el componente de vista previa
 import './EditorDeTemario.css';
 
 function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
@@ -14,7 +13,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     tema_curso: temarioInicial?.tema_curso || temarioInicial?.nombre_curso || '',
     extension_curso_dias: temarioInicial?.numero_sesiones || 1,
     nivel_dificultad: temarioInicial?.nivel_dificultad || 'basico',
-    objetivos: temarioInicial?.objetivos_usuario || '', // Asume que podrías tener estos campos
+    objetivos: temarioInicial?.objetivos || '', // Ahora usa objetivos directamente
     enfoque: temarioInicial?.enfoque || ''
   });
 
@@ -26,7 +25,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       tema_curso: temarioInicial?.tema_curso || temarioInicial?.nombre_curso || '',
       extension_curso_dias: temarioInicial?.numero_sesiones || 1,
       nivel_dificultad: temarioInicial?.nivel_dificultad || 'basico',
-      objetivos: temarioInicial?.objetivos_usuario || '',
+      objetivos: temarioInicial?.objetivos || '',
       enfoque: temarioInicial?.enfoque || ''
     });
   }, [temarioInicial]);
@@ -76,7 +75,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
           onClick={() => setVista('detallada')}
         >
-          Vista Detallada (Editable)
+          Vista Detallada
         </button>
         <button 
           className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
@@ -84,6 +83,14 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         >
           Vista Resumida
         </button>
+      </div>
+      
+      <div className="vista-info">
+        {vista === 'detallada' ? (
+          <p>📝 Vista completa con todos los campos editables organizados verticalmente</p>
+        ) : (
+          <p>📋 Vista compacta con campos organizados en grillas para edición rápida</p>
+        )}
       </div>
 
       {isLoading ? (
@@ -97,8 +104,26 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           <label className="editor-label">Nombre del Curso</label>
           <textarea name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo" />
           
+          <label className="editor-label">Versión de la Tecnología</label>
+          <input name="version_tecnologia" value={temario.version_tecnologia || ''} onChange={handleInputChange} className="input-campo" />
+          
+          <label className="editor-label">Horas Totales</label>
+          <input name="horas_totales" type="number" value={temario.horas_totales || ''} onChange={handleInputChange} className="input-campo" />
+          
+          <label className="editor-label">Número de Sesiones</label>
+          <input name="numero_sesiones" type="number" value={temario.numero_sesiones || ''} onChange={handleInputChange} className="input-campo" />
+          
           <label className="editor-label">Descripción General</label>
           <textarea name="descripcion_general" value={temario.descripcion_general || ''} onChange={handleInputChange} className="textarea-descripcion" />
+          
+          <label className="editor-label">Audiencia</label>
+          <textarea name="audiencia" value={temario.audiencia || ''} onChange={handleInputChange} className="textarea-descripcion" />
+          
+          <label className="editor-label">Prerrequisitos</label>
+          <textarea name="prerrequisitos" value={temario.prerrequisitos || ''} onChange={handleInputChange} className="textarea-descripcion" />
+          
+          <label className="editor-label">Objetivos</label>
+          <textarea name="objetivos" value={temario.objetivos || ''} onChange={handleInputChange} className="textarea-descripcion" placeholder="Lista los objetivos principales del curso, separados por líneas" />
 
           <h3>Temario Detallado</h3>
           {(temario.temario || []).map((cap, capIndex) => (
@@ -113,11 +138,69 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               </ul>
             </div>
           ))}
-          {/* Aquí puedes añadir más campos editables para objetivos, audiencia, etc. */}
         </div>
       ) : (
-        // --- VISTA RESUMIDA (DE SOLO LECTURA) ---
-        <VistaPreviaTemario temario={temario} />
+        // --- VISTA RESUMIDA TAMBIÉN EDITABLE ---
+        <div className="vista-resumida-editable">
+          <input name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo-resumido" placeholder="Nombre del curso" />
+          
+          <div className="info-grid">
+            <div className="info-item">
+              <label>Versión:</label>
+              <input name="version_tecnologia" value={temario.version_tecnologia || ''} onChange={handleInputChange} className="input-info" />
+            </div>
+            <div className="info-item">
+              <label>Horas:</label>
+              <input name="horas_totales" type="number" value={temario.horas_totales || ''} onChange={handleInputChange} className="input-info" />
+            </div>
+            <div className="info-item">
+              <label>Sesiones:</label>
+              <input name="numero_sesiones" type="number" value={temario.numero_sesiones || ''} onChange={handleInputChange} className="input-info" />
+            </div>
+            <div className="info-item">
+              <label>EOL:</label>
+              <input name="EOL" value={temario.EOL || ''} onChange={handleInputChange} className="input-info" />
+            </div>
+          </div>
+
+          <div className="seccion-editable">
+            <h3>Descripción General</h3>
+            <textarea name="descripcion_general" value={temario.descripcion_general || ''} onChange={handleInputChange} className="textarea-resumido" />
+          </div>
+
+          <div className="seccion-editable">
+            <h3>Audiencia</h3>
+            <textarea name="audiencia" value={temario.audiencia || ''} onChange={handleInputChange} className="textarea-resumido" />
+          </div>
+
+          <div className="seccion-editable">
+            <h3>Prerrequisitos</h3>
+            <textarea name="prerrequisitos" value={temario.prerrequisitos || ''} onChange={handleInputChange} className="textarea-resumido" />
+          </div>
+
+          <div className="seccion-editable">
+            <h3>Objetivos</h3>
+            <textarea name="objetivos" value={temario.objetivos || ''} onChange={handleInputChange} className="textarea-resumido" placeholder="Lista los objetivos principales del curso, separados por líneas" />
+          </div>
+
+          <h3>Temario Resumido</h3>
+          {(temario.temario || []).map((cap, capIndex) => (
+            <div key={capIndex} className="capitulo-resumido">
+              <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
+              <div className="subcapitulos-resumidos">
+                {(cap.subcapitulos || []).map((sub, subIndex) => (
+                  <input
+                    key={subIndex}
+                    value={typeof sub === 'object' ? sub.nombre : sub}
+                    onChange={(e) => handleTemarioChange(capIndex, subIndex, e.target.value)}
+                    className="input-subcapitulo-resumido"
+                    placeholder="Subcapítulo"
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="acciones-footer">
@@ -139,6 +222,10 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               <option value="intermedio">Intermedio</option>
               <option value="avanzado">Avanzado</option>
             </select>
+          </div>
+          <div className="form-group">
+            <label>Objetivos (Opcional):</label>
+            <textarea name="objetivos" value={params.objetivos} onChange={handleParamsChange} placeholder="Objetivos específicos del curso" />
           </div>
           <div className="form-group">
             <label>Enfoque (Opcional):</label>
