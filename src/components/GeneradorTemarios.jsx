@@ -13,9 +13,10 @@ function GeneradorTemarios() {
   const [params, setParams] = useState({
     tema_curso: '',
     extension_curso_dias: 1,
-    nivel_dificultad: 'basico',
-    objetivos: '',
-    enfoque: ''
+    nivel_dificultad: 'intermedio',
+    audiencia: '',
+    plataforma_tecnologica: '',
+    enfoque: '' // opcional
   });
 
   // URL de tu API Gateway que invoca la Lambda de temarios
@@ -83,7 +84,7 @@ function GeneradorTemarios() {
         <div className="form-grid">
           <div className="form-group">
             <label>Tema Principal del Curso</label>
-            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Python, AWS, Scrum" />
+            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Despliegue de Aplicaciones Serverless" />
           </div>
           <div className="form-group">
             <label>Duración (días)</label>
@@ -97,16 +98,19 @@ function GeneradorTemarios() {
               <option value="avanzado">Avanzado</option>
             </select>
           </div>
+          <div className="form-group">
+            <label>Audiencia</label>
+            <input name="audiencia" value={params.audiencia} onChange={handleParamChange} placeholder="Ej: Desarrolladores Backend" />
+          </div>
+          <div className="form-group">
+            <label>Plataforma Tecnológica</label>
+            <input name="plataforma_tecnologica" value={params.plataforma_tecnologica} onChange={handleParamChange} placeholder="Ej: AWS (usando Lambda, API Gateway y DynamoDB)" />
+          </div>
+          <div className="form-group">
+            <label>Enfoque (Opcional)</label>
+            <input name="enfoque" value={params.enfoque} onChange={handleParamChange} placeholder="Ej: Creación de una API REST de alto rendimiento" />
+          </div>
         </div>
-        <div className="form-group">
-          <label>Objetivos Específicos (Opcional)</label>
-          <textarea name="objetivos" value={params.objetivos} onChange={handleParamChange} placeholder="Ej: Enfocarse en la creación de APIs REST con FastAPI" />
-        </div>
-        <div className="form-group">
-          <label>Enfoque Adicional (Opcional)</label>
-          <textarea name="enfoque" value={params.enfoque} onChange={handleParamChange} placeholder="Ej: Orientado a principiantes absolutos sin experiencia previa" />
-        </div>
-        
         <button className="btn-generar-principal" onClick={() => handleGenerar(params)} disabled={isLoading}>
           {isLoading ? 'Generando...' : 'Generar Propuesta de Temario'}
         </button>
@@ -117,7 +121,7 @@ function GeneradorTemarios() {
       {temarioGenerado && (
         <EditorDeTemario
           temarioInicial={temarioGenerado}
-          onRegenerate={handleGenerar} // La misma función sirve para regenerar
+          onRegenerate={handleGenerar}
           onSave={handleSave}
           isLoading={isLoading}
         />
