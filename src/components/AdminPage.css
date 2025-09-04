@@ -1,0 +1,201 @@
+/* src/components/AdminPage.css */
+
+/* Contenedor y títulos */
+.pagina-admin {
+  display: block;
+}
+.pagina-admin h1 {
+  margin: 0 0 8px 0;
+  color: #1b5784;          /* azul del título */
+  font-weight: 800;
+}
+
+/* Aviso de permisos */
+.pagina-admin .solo-autorizado {
+  color: #b71c1c;
+  background: #ffe8e8;
+  border: 1px solid #ffbdbd;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+/* ====== Barra de filtros ====== */
+.pagina-admin .filtros {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0 10px;
+  width: 100%;
+}
+
+/* Buscador flexible (se expande) */
+.pagina-admin .buscar-correo {
+  flex: 1 1 520px;   /* crece, encoge, base 520px */
+  min-width: 320px;  /* no más chico que 320px */
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cfd8dc;
+  outline: none;
+  box-sizing: border-box;
+}
+.pagina-admin .buscar-correo:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25,118,210,0.15);
+}
+
+/* Selects de filtros */
+.pagina-admin .select-estado,
+.pagina-admin .select-rol {
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid #cfd8dc;
+  background: #fff;
+}
+
+/* Botón actualizar */
+.pagina-admin .btn-recargar {
+  background: #0d667e;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.pagina-admin .btn-recargar:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+
+/* Vista de rol (solo UI) */
+.pagina-admin .rol-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 14px;
+}
+.pagina-admin .rol-preview .hint {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* ====== Tabla ====== */
+.tabla-solicitudes table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+/* Cabecera de la tabla: un poco más clara que el botón Actualizar */
+.tabla-solicitudes thead th {
+  background: #eaf3f9;   /* azul clarito */
+  color: #0f2e4a;
+  font-weight: 700;
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid #dfe9f1;
+}
+
+.tabla-solicitudes tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+/* zebra + hover suave */
+.tabla-solicitudes tbody tr:nth-child(odd) {
+  background: #f7fbff;
+}
+.tabla-solicitudes tbody tr:hover {
+  background: #f1f8ff;
+}
+
+/* Columna acciones en una sola línea */
+.col-acciones {
+  white-space: nowrap;
+}
+
+/* ====== Badges de estado ====== */
+.badge-estado {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+.badge-estado.pendiente {
+  background: #fff4e5;
+  color: #8a6d3b;
+  border-color: #f7d7a3;
+}
+.badge-estado.aprobado {
+  background: #e9f7ef;
+  color: #2e7d32;
+  border-color: #b6e1c3;
+}
+.badge-estado.rechazado {
+  background: #fdecea;
+  color: #c62828;
+  border-color: #f5b7b1;
+}
+
+/* Chip protegido */
+.chip-protegido {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  background: #eef2ff;
+  color: #3949ab;
+  border: 1px solid #c5cae9;
+}
+
+/* ====== Botones de acción ====== */
+.btn-aprobar,
+.btn-rechazar {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.btn-aprobar {
+  background: #1b8f3d;
+  color: #fff;
+}
+.btn-aprobar:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.btn-rechazar {
+  background: #c62828;
+  color: #fff;
+}
+.btn-rechazar:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ====== Estado general ====== */
+.spinner {
+  color: #0d667e;
+  padding: 6px 0;
+}
+
+.error-box {
+  color: #b71c1c;
+  background: #ffe8e8;
+  border: 1px solid #ffbdbd;
+  padding: 12px 14px;
+  border-radius: 10px;
+}

@@ -1,0 +1,51 @@
+.formulario-solicitud-rol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  margin: auto;
+  margin-top: 40px;
+}
+
+.formulario-solicitud-rol h2 {
+  margin-bottom: 20px;
+  color: #1b5784;
+}
+
+.formulario-solicitud-rol button {
+  padding: 12px 20px;
+  background-color: #035b6e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.formulario-solicitud-rol button:hover {
+  background-color: #023f4e;
+}
+
+.estado-solicitud {
+  font-size: 16px;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.estado-solicitud.pendiente {
+  color: orange;
+}
+
+.estado-solicitud.aceptado {
+  color: green;
+}
+
+.estado-solicitud.rechazado {
+  color: red;
+}

@@ -1,0 +1,414 @@
+/* src/components/EditorDeTemario.css (CÓDIGO COMPLETO Y FINAL) */
+
+.editor-container {
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-top: 2rem;
+}
+
+.spinner-container {
+    text-align: center;
+    padding: 3rem;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1b5784;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* --- ESTILOS PARA EL SELECTOR DE VISTA --- */
+.vista-selector {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  padding: 0.5rem;
+  background-color: #e9ecef;
+  border-radius: 8px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.vista-selector .btn-vista {
+  padding: 8px 16px;
+  border: none;
+  background-color: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #495057;
+  transition: all 0.2s ease;
+}
+
+.vista-selector .btn-vista.activo {
+  background-color: white;
+  color: #1b5784;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.vista-info {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.vista-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* --- ESTILOS PARA LA VISTA DETALLADA (EDITABLE) --- */
+.editor-label {
+  display: block;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.input-titulo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  border: none;
+  border-bottom: 2px solid #eee;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  transition: border-color 0.3s;
+  background-color: transparent;
+}
+.input-titulo:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+.textarea-descripcion {
+  width: 100%;
+  min-height: 80px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 1.5rem;
+}
+.capitulo-editor {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+.input-capitulo {
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: none;
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  background: transparent;
+}
+.input-subcapitulo {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+}
+.capitulo-editor ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+.capitulo-editor li {
+  margin-bottom: 0.5rem;
+}
+
+/* --- ESTILOS PARA LA VISTA RESUMIDA --- */
+.vista-resumida {
+  text-align: left;
+  padding: 1rem;
+}
+.vista-resumida h1 {
+  font-size: 1.8rem;
+  color: #1b5784;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.vista-resumida .seccion-resumen {
+  margin-bottom: 1.5rem;
+}
+.vista-resumida h2 {
+  font-size: 1.2rem;
+  color: #343a40;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+.vista-resumida ul {
+  list-style-type: disc;
+  padding-left: 25px;
+}
+.vista-resumida li {
+  margin-bottom: 0.5rem;
+}
+.vista-resumida .capitulo-resumido {
+  margin-bottom: 1rem;
+}
+.vista-resumida .capitulo-resumido strong {
+  font-size: 1.1rem;
+}
+
+/* --- ESTILOS PARA LOS BOTONES DE ACCIÓN --- */
+.acciones-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+.acciones-footer button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  font-weight: 500;
+}
+.btn-guardar {
+  background-color: #1b5784 !important;
+  color: white;
+  border-color: #1b5784 !important;
+}
+.regenerar-form {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 1px solid #cfe7fc;
+}
+.regenerar-form h4 {
+  margin-top: 0;
+  color: #1b5784;
+}
+.regenerar-form .form-group {
+  margin-bottom: 1rem;
+}
+
+/* --- ESTILOS PARA LA VISTA RESUMIDA EDITABLE --- */
+.vista-resumida-editable {
+  background: #fafafa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.input-titulo-resumido {
+  font-size: 1.6rem;
+  font-weight: bold;
+  border: none;
+  border-bottom: 2px solid #eee;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+  background: transparent;
+  transition: border-color 0.3s;
+}
+.input-titulo-resumido:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-item label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.input-info {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.input-info:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.seccion-editable {
+  margin-bottom: 1.5rem;
+}
+
+.seccion-editable h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1b5784;
+  font-size: 1.1rem;
+}
+
+.textarea-resumido {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+}
+.textarea-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.capitulo-resumido {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.input-capitulo-resumido {
+  width: 100%;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  border: none;
+  border-bottom: 2px solid #eee;
+  background: transparent;
+  margin-bottom: 1rem;
+  color: #333;
+}
+.input-capitulo-resumido:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+
+.subcapitulos-resumidos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.subcapitulo-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.input-subcapitulo-resumido {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: #f9f9f9;
+}
+.input-subcapitulo-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+  background: white;
+}
+
+.subcapitulo-tiempos {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.input-tiempo-sub, .input-sesion-sub {
+  width: 60px;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.input-tiempo-sub:focus, .input-sesion-sub:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.info-grid-capitulo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f0f8ff;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.info-grid-capitulo .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.info-grid-capitulo .info-item label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.input-info-small {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+.input-info-small:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.input-campo {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.input-campo:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+

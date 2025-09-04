@@ -1,5 +1,4 @@
 // src/components/RolSelector.jsx
-
 import React from 'react';
 import './RolSelector.css';
 
@@ -8,7 +7,7 @@ function RolSelector() {
     const clientId = '51g99km7557n98v3c763nk529o'; // ⚠️ Reemplaza si cambia
     const domain = 'us-east-1b7qvyydgp.auth.us-east-1.amazoncognito.com'; // ⚠️ Reemplaza si cambia
     const redirectUri = 'https://thor.netec.com.mx'; // ✅ Usa la URL de producción
-    const responseType = 'code'; // Para usar flujo Authorization Code
+    const responseType = 'code'; // Authorization Code Flow
     const state = rol;
 
     const url = `https://${domain}/signup?client_id=${clientId}&response_type=${responseType}&redirect_uri=${encodeURIComponent(
@@ -31,4 +30,5 @@ function RolSelector() {
 }
 
 export default RolSelector;
+
 
