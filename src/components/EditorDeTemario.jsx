@@ -122,25 +122,13 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           <label className="editor-label">Prerrequisitos</label>
           <textarea name="prerrequisitos" value={temario.prerrequisitos || ''} onChange={handleInputChange} className="textarea-descripcion" />
           
-          <label className="editor-label">Objetivos del Curso</label>
+          <label className="editor-label">Objetivos</label>
           <textarea name="objetivos" value={temario.objetivos || ''} onChange={handleInputChange} className="textarea-descripcion" placeholder="Lista los objetivos principales del curso, separados por líneas" />
 
           <h3>Temario Detallado</h3>
           {(temario.temario || []).map((cap, capIndex) => (
             <div key={capIndex} className="capitulo-editor">
               <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo" placeholder="Nombre del capítulo"/>
-              {/* Sección de objetivos por capítulo */}
-              <label className="editor-label">Objetivos del Capítulo</label>
-              <textarea
-                value={cap.objetivos || ''}
-                onChange={e => {
-                  const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                  nuevoTemario.temario[capIndex].objetivos = e.target.value;
-                  setTemario(nuevoTemario);
-                }}
-                className="textarea-descripcion"
-                placeholder="Lista los objetivos de este capítulo, separados por líneas"
-              />
               <ul>
                 {(cap.subcapitulos || []).map((sub, subIndex) => (
                   <li key={subIndex}>
@@ -195,7 +183,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           </div>
 
           <div className="seccion-editable">
-            <h3>Objetivos del Curso</h3>
+            <h3>Objetivos</h3>
             <textarea name="objetivos" value={temario.objetivos || ''} onChange={handleInputChange} className="textarea-resumido" placeholder="Lista los objetivos principales del curso, separados por líneas" />
           </div>
 
@@ -203,20 +191,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           {(temario.temario || []).map((cap, capIndex) => (
             <div key={capIndex} className="capitulo-resumido">
               <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
-              {/* Sección de objetivos por capítulo */}
-              <div className="seccion-editable">
-                <h4>Objetivos del Capítulo</h4>
-                <textarea
-                  value={cap.objetivos || ''}
-                  onChange={e => {
-                    const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                    nuevoTemario.temario[capIndex].objetivos = e.target.value;
-                    setTemario(nuevoTemario);
-                  }}
-                  className="textarea-resumido"
-                  placeholder="Lista los objetivos de este capítulo, separados por líneas"
-                />
-              </div>
+              
               {/* Grid de información del capítulo */}
               <div className="info-grid-capitulo">
                 <div className="info-item">
@@ -339,4 +314,3 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
-
