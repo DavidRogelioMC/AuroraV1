@@ -1,12 +1,37 @@
 // src/components/AvatarPicker.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Auth } from "aws-amplify";
 
-// Carga todas las imágenes del folder avatars
-const avatarModules = import.meta.glob("../assets/avatars/*.{png,jpg,jpeg,webp,svg}", {
+// ✅ Incluye variantes en mayúsculas/minúsculas
+const avatarModules = import.meta.glob("../assets/avatars/*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP,svg,SVG}", {
   eager: true,
 });
-const AVATAR_URLS = Object.values(avatarModules).map((m) => m.default);
+
+// ✅ Orden estable por nombre de archivo (numérico si aplica)
+function filename(url) {
+  try {
+    const name = url.split("/").pop() || "";
+    return name;
+  } catch {
+    return url;
+  }
+}
+function numericKey(name) {
+  // "15.PNG" -> 15 ; "avatar-cat.png" -> NaN
+  const m = name.match(/^(\d+)/);
+  return m ? parseInt(m[1], 10) : NaN;
+}
+
+const AVATAR_URLS = Object.entries(avatarModules)
+  .map(([, m]) => m.default)
+  .sort((a, b) => {
+    const A = filename(a), B = filename(b);
+    const na = numericKey(A), nb = numericKey(B);
+    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb; // ambos numéricos
+    if (!Number.isNaN(na)) return -1;
+    if (!Number.isNaN(nb)) return 1;
+    return A.localeCompare(B); // alfabético como fallback
+  });
 
 // Clave de storage por usuario (email opcional)
 const storageKey = (email) => `app_avatar_url:${email || "anon"}`;
@@ -34,7 +59,6 @@ export default function AvatarPicker({ isOpen, onClose, email, onSaved }) {
         await Auth.updateUserAttributes(user, { picture: selected });
       }
     } catch (err) {
-      // Ignorar errores de Cognito: la UI seguirá funcionando con localStorage
       console.log("No se pudo sincronizar avatar con Cognito (ok):", err?.message || err);
     }
 
@@ -97,7 +121,7 @@ export default function AvatarPicker({ isOpen, onClose, email, onSaved }) {
               <button
                 key={url}
                 onClick={() => setSelected(url)}
-                title={url.split("/").pop()}
+                title={filename(url)}
                 style={{
                   width: 84,
                   height: 84,
@@ -122,6 +146,7 @@ export default function AvatarPicker({ isOpen, onClose, email, onSaved }) {
         <div style={{ display: "flex", gap: 8, marginTop: 14, justifyContent: "flex-end" }}>
           <button onClick={clear} style={btn("ghost")}>Quitar</button>
           <button onClick={onClose} style={btn("ghost")}>Cerrar</button>
+          {/* ✅ Usa tu color primario */}
           <button onClick={save} disabled={!selected} style={btn("primary")}>
             Guardar
           </button>
@@ -140,6 +165,6 @@ function btn(variant) {
     fontWeight: 600,
   };
   if (variant === "primary")
-    return { ...base, background: "#22d3ee", color: "#0f172a" };
+    return { ...base, background: "#035b6e", color: "#ffffff" }; // ← primario Netec
   return { ...base, background: "transparent", color: "#e5e7eb", borderColor: "#334155" };
 }
