@@ -1,10 +1,11 @@
-// src/components/Sidebar.jsx (CÓDIGO COMPLETO Y MODIFICADO)
+// src/components/Sidebar.jsx (COMPLETO)
 
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
 import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
+import AvatarPicker from './AvatarPicker'; // ⬅️ nuevo
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
@@ -19,6 +20,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [enviando, setEnviando] = useState(false);
   const [estado, setEstado] = useState('');
   const [error, setError] = useState('');
+  const [pickerAbierto, setPickerAbierto] = useState(false); // ⬅️ nuevo
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +108,33 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     }
   };
 
+  // Handlers de AvatarPicker ⬇️
+  const abrirPicker = () => setPickerAbierto(true);
+  const cerrarPicker = () => setPickerAbierto(false);
+  const onAvatarSaved = async (url) => {
+    try {
+      // 1) Pinta en UI
+      setAvatar(url || null);
+
+      // 2) Opcional: sincroniza atributo picture en Cognito (si AvatarPicker no lo hizo)
+      const flag = String(import.meta.env.VITE_AVATAR_SYNC_COGNITO ?? 'true');
+      if (flag === 'true') {
+        const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+        await Auth.updateUserAttributes(user, { picture: url || '' });
+      }
+
+      // 3) Notifica al resto de la app (Sidebar ya escucha este evento)
+      window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { photoUrl: url } }));
+
+      // 4) (Opcional) Persistir en backend si ya tienes PUT /perfil
+      // await fetch(`${API_BASE}/perfil`, {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json', ...authHeader },
+      //   body: JSON.stringify({ photoUrl: url }),
+      // });
+    } catch {}
+  };
+
   const rolTexto =
     grupo === 'admin' ? 'Administrador' :
     grupo === 'creador' ? 'Creador' :
@@ -126,14 +155,37 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
       <button className="collapse-btn" onClick={toggle}>
         {colapsado ? '▸' : '◂'}
       </button>
+
       <div className="perfilSidebar">
-        <div className="avatar-wrap" title="Foto de perfil">
-          <img src={avatar || defaultFoto} alt="Avatar" className="avatar-img"/>
+        <div
+          className="avatar-wrap"
+          title="Foto de perfil"
+          onClick={abrirPicker}
+          style={{ cursor: 'pointer' }}
+        >
+          <img
+            src={avatar || defaultFoto}
+            alt="Avatar"
+            className="avatar-img"
+            onError={(e) => { e.currentTarget.src = defaultFoto; }}
+          />
         </div>
+
         {!colapsado && <>
           <div className="nombre">{nombre || 'Usuario conectado'}</div>
           <div className="email">{email}</div>
           <div className="grupo">🎖️ Rol: {rolTexto}</div>
+
+          {esNetec && (
+            <button
+              className="solicitar-creador-btn"
+              style={{ marginTop: 8 }}
+              onClick={abrirPicker}
+            >
+              Cambiar foto
+            </button>
+          )}
+
           {mostrarBoton && (
             <div className="solicitar-creador-card">
               <button className="solicitar-creador-btn" onClick={enviarSolicitud} disabled={disabled} title={email}>
@@ -160,7 +212,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         <Link to="/examenes" className="nav-link">
           <div className="step"><div className="circle">🔬</div>{!colapsado && <span>Examen</span>}</div>
         </Link>
-        
+
         {esAdmin && (
           <Link to="/admin" className="nav-link" title="Panel de administración">
             <div className="step"><div className="circle">⚙️</div>{!colapsado && <span>Admin</span>}</div>
@@ -183,6 +235,14 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           </Link>
         )}
       </div>
+
+      {/* Modal: AvatarPicker */}
+      <AvatarPicker
+        isOpen={pickerAbierto}
+        onClose={cerrarPicker}
+        email={email}
+        onSaved={onAvatarSaved}
+      />
     </div>
   );
 }
