@@ -1,11 +1,10 @@
-// src/components/Sidebar.jsx (COMPLETO)
-
+// src/components/Sidebar.jsx
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
 import defaultFoto from '../assets/default.jpg';
 import { useEffect, useMemo, useState } from 'react';
 import { Auth } from 'aws-amplify';
-import AvatarPicker from './AvatarPicker'; // ⬅️ nuevo
+import AvatarPicker from './AvatarPicker';
 
 const API_BASE = 'https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2';
 
@@ -20,11 +19,23 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [enviando, setEnviando] = useState(false);
   const [estado, setEstado] = useState('');
   const [error, setError] = useState('');
-  const [pickerAbierto, setPickerAbierto] = useState(false); // ⬅️ nuevo
+  const [pickerAbierto, setPickerAbierto] = useState(false);
+
+  // Pinta inmediatamente desde localStorage (carga instantánea)
+  useEffect(() => {
+    let cancelled = false;
+    try {
+      const prev = localStorage.getItem(`app_avatar_url:${(email || 'anon')}`);
+      if (prev && !cancelled) setAvatar(prev);
+    } catch {}
+    return () => { cancelled = true; };
+  }, [email]);
 
   useEffect(() => {
     let cancelled = false;
+
     async function pintarFoto() {
+      // 1) Cognito: atributo "picture" (persiste entre sesiones)
       try {
         const u = await Auth.currentAuthenticatedUser({ bypassCache: true });
         const pic = u?.attributes?.picture || '';
@@ -33,6 +44,8 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           return;
         }
       } catch {}
+
+      // 2) Backend (opcional): /perfil.photoUrl como fallback
       try {
         if (!API_BASE) return;
         const idt = localStorage.getItem('id_token');
@@ -43,10 +56,13 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         if (!cancelled && d?.photoUrl) setAvatar(d.photoUrl);
       } catch {}
     }
+
     pintarFoto();
+
+    // Escucha cambios de avatar (evento global)
     const onUpd = (e) => {
       const url = e.detail?.photoUrl;
-      if (url) setAvatar(url);
+      if (url !== undefined) setAvatar(url || null);
     };
     window.addEventListener('profilePhotoUpdated', onUpd);
     return () => {
@@ -108,31 +124,13 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     }
   };
 
-  // Handlers de AvatarPicker ⬇️
+  // Handlers del AvatarPicker
   const abrirPicker = () => setPickerAbierto(true);
   const cerrarPicker = () => setPickerAbierto(false);
-  const onAvatarSaved = async (url) => {
-    try {
-      // 1) Pinta en UI
-      setAvatar(url || null);
-
-      // 2) Opcional: sincroniza atributo picture en Cognito (si AvatarPicker no lo hizo)
-      const flag = String(import.meta.env.VITE_AVATAR_SYNC_COGNITO ?? 'true');
-      if (flag === 'true') {
-        const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-        await Auth.updateUserAttributes(user, { picture: url || '' });
-      }
-
-      // 3) Notifica al resto de la app (Sidebar ya escucha este evento)
-      window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { photoUrl: url } }));
-
-      // 4) (Opcional) Persistir en backend si ya tienes PUT /perfil
-      // await fetch(`${API_BASE}/perfil`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json', ...authHeader },
-      //   body: JSON.stringify({ photoUrl: url }),
-      // });
-    } catch {}
+  const onAvatarSaved = (url) => {
+    // AvatarPicker ya guardó en localStorage y Cognito, aquí solo pintamos y notificamos (por si otro componente escucha)
+    setAvatar(url || null);
+    window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { photoUrl: url } }));
   };
 
   const rolTexto =
@@ -246,3 +244,4 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     </div>
   );
 }
+
