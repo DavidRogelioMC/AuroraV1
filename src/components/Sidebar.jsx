@@ -21,7 +21,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
   const [error, setError] = useState('');
   const [pickerAbierto, setPickerAbierto] = useState(false);
 
-  // Pinta inmediatamente desde localStorage (carga instantánea)
+  // Pinta inmediatamente desde localStorage
   useEffect(() => {
     let cancelled = false;
     try {
@@ -33,9 +33,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
   useEffect(() => {
     let cancelled = false;
-
     async function pintarFoto() {
-      // 1) Cognito: atributo "picture" (persiste entre sesiones)
       try {
         const u = await Auth.currentAuthenticatedUser({ bypassCache: true });
         const pic = u?.attributes?.picture || '';
@@ -44,8 +42,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           return;
         }
       } catch {}
-
-      // 2) Backend (opcional): /perfil.photoUrl como fallback
       try {
         if (!API_BASE) return;
         const idt = localStorage.getItem('id_token');
@@ -56,10 +52,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
         if (!cancelled && d?.photoUrl) setAvatar(d.photoUrl);
       } catch {}
     }
-
     pintarFoto();
-
-    // Escucha cambios de avatar (evento global)
     const onUpd = (e) => {
       const url = e.detail?.photoUrl;
       if (url !== undefined) setAvatar(url || null);
@@ -73,7 +66,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
 
   const dominio = useMemo(() => (email.split('@')[1] || '').toLowerCase(), [email]);
   const esNetec = DOMINIOS_PERMITIDOS.has(dominio);
-  const mostrarBoton = esNetec && (grupo !== 'creador');
 
   const authHeader = useMemo(() => {
     if (!token) return {};
@@ -124,11 +116,18 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     }
   };
 
+  // Roles
+  const esAdmin = (grupo === 'admin');
+  const esCreador = (grupo === 'creador');
+  const esAdminPrincipal = email.toLowerCase() === 'anette.flores@netec.com.mx';
+
+  // Solo muestran botón de solicitud los que no sean creadores ni Anette
+  const mostrarBoton = esNetec && !(esCreador || esAdminPrincipal);
+
   // Handlers del AvatarPicker
   const abrirPicker = () => setPickerAbierto(true);
   const cerrarPicker = () => setPickerAbierto(false);
   const onAvatarSaved = (url) => {
-    // AvatarPicker ya guardó en localStorage y Cognito, aquí solo pintamos y notificamos (por si otro componente escucha)
     setAvatar(url || null);
     window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { photoUrl: url } }));
   };
@@ -139,8 +138,6 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
     grupo === 'participant' ? 'Participante' :
     'Sin grupo';
 
-  const esAdmin = (grupo === 'admin');
-  const esCreador = (grupo === 'creador');
   const disabled = estado === 'pendiente' || estado === 'aprobado' || enviando;
 
   const label =
@@ -217,7 +214,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           </Link>
         )}
 
-        {esCreador ? (
+        {(esCreador || esAdminPrincipal) ? (
           <Link to="/generador-contenidos" className="nav-link" title="Generador de Contenidos">
             <div className="step">
               <div className="circle">✍️</div>
