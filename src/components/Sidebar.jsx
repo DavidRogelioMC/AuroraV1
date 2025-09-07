@@ -177,7 +177,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
               style={{ marginTop: 8 }}
               onClick={abrirPicker}
             >
-              Cambiar foto
+              Cambiar avatar
             </button>
           )}
 
@@ -218,7 +218,7 @@ export default function Sidebar({ email = '', nombre, grupo = '', token }) {
           <Link to="/generador-contenidos" className="nav-link" title="Generador de Contenidos">
             <div className="step">
               <div className="circle">✍️</div>
-              {!colapsado && <span>Contenidos</span>}
+              {!colapsado && <span>Crear</span>}
             </div>
           </Link>
         ) : (
