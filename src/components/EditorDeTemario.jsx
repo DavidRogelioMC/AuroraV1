@@ -1,6 +1,6 @@
-// src/components/EditorDeTemario.jsx (CÓDIGO COMPLETO Y FUNCIONAL)
-
+// src/components/EditorDeTemario.jsx
 import React, { useState, useEffect, useRef } from 'react';
+import netecLogo from '../assets/Netec.png';      
 import './EditorDeTemario.css';
 
 function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
@@ -18,7 +18,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     const clean = pdfRef.current.querySelector('.pdf-clean');
     if (!clean) return;
 
-    // Muestra la vista limpia fuera de pantalla mientras se exporta
+    // muestra la vista limpia fuera del viewport durante la exportación
     clean.classList.add('pdf-exporting');
 
     try {
@@ -36,10 +36,9 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         })
-        .from(clean) // << exportamos SOLO la vista limpia
+        .from(clean) // << exporta SOLO la vista limpia
         .save();
     } finally {
-      // Oculta nuevamente la vista limpia en la UI
       clean.classList.remove('pdf-exporting');
     }
   };
@@ -104,101 +103,115 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 
   return (
     <div className="editor-container">
-      {/* ======= Wrapper exportable ======= */}
       <div ref={pdfRef} id="temario-pdf">
 
-        {/* ======= PLANTILLA LIMPIA SOLO PARA PDF ======= */}
+        {/* ======== VISTA LIMPIA PARA PDF ======== */}
         <div className="pdf-clean">
-          <h1 className="pdf-title">{temario?.nombre_curso || temario?.tema_curso}</h1>
 
-          <div className="pdf-meta">
-            {temario?.version_tecnologia && <div><strong>Versión:</strong> {temario.version_tecnologia}</div>}
-            {temario?.horas_totales && <div><strong>Horas Totales:</strong> {temario.horas_totales}</div>}
-            {temario?.numero_sesiones && <div><strong>Sesiones:</strong> {temario.numero_sesiones}</div>}
-            {temario?.EOL && <div><strong>EOL:</strong> {temario.EOL}</div>}
-            {temario?.porcentaje_teoria_practica_general && (
-              <div><strong>Distribución:</strong> {temario.porcentaje_teoria_practica_general}</div>
-            )}
+          {/* Encabezado con banda y logo (sin ::before para que html2canvas lo pinte) */}
+          <div className="pdf-topband">
+            <div className="band-bg" />
+            <img src={netecLogo} alt="Netec" className="pdf-logo" />
           </div>
 
-          {temario?.descripcion_general && (
-            <>
-              <h2>Descripción General</h2>
-              <p className="pdf-justify">{temario.descripcion_general}</p>
-            </>
-          )}
+          {/* Marca de agua */}
+          <div className="pdf-watermark">
+            <img src={netecLogo} alt="Watermark" className="pdf-watermark-img" />
+          </div>
 
-          {temario?.audiencia && (
-            <>
-              <h2>Audiencia</h2>
-              <p className="pdf-justify">{temario.audiencia}</p>
-            </>
-          )}
+          {/* Cuerpo */}
+          <div className="pdf-body">
+            <h1 className="pdf-title">{temario?.nombre_curso || temario?.tema_curso}</h1>
 
-          {temario?.prerrequisitos && (
-            <>
-              <h2>Prerrequisitos</h2>
-              <p className="pdf-justify">{temario.prerrequisitos}</p>
-            </>
-          )}
-
-          {temario?.objetivos && (
-            <>
-              <h2>Objetivos</h2>
-              <p className="pdf-justify" style={{ whiteSpace: 'pre-wrap' }}>{temario.objetivos}</p>
-            </>
-          )}
-
-          <h2>Temario</h2>
-          {(temario?.temario || []).map((cap, i) => (
-            <div key={i} className="pdf-capitulo">
-              <h3>{cap.capitulo}</h3>
-
-              {(cap.tiempo_capitulo_min || cap.porcentaje_teoria_practica_capitulo) && (
-                <div className="pdf-cap-meta">
-                  {cap.tiempo_capitulo_min ? <span><strong>Duración:</strong> {cap.tiempo_capitulo_min} min</span> : null}
-                  {cap.tiempo_capitulo_min && cap.porcentaje_teoria_practica_capitulo ? <span> • </span> : null}
-                  {cap.porcentaje_teoria_practica_capitulo ? (
-                    <span><strong>Distribución:</strong> {cap.porcentaje_teoria_practica_capitulo}</span>
-                  ) : null}
-                </div>
+            <div className="pdf-meta">
+              {temario?.version_tecnologia && <div><strong>Versión:</strong> {temario.version_tecnologia}</div>}
+              {temario?.horas_totales && <div><strong>Horas Totales:</strong> {temario.horas_totales}</div>}
+              {temario?.numero_sesiones && <div><strong>Sesiones:</strong> {temario.numero_sesiones}</div>}
+              {temario?.EOL && <div><strong>EOL:</strong> {temario.EOL}</div>}
+              {temario?.porcentaje_teoria_practica_general && (
+                <div><strong>Distribución:</strong> {temario.porcentaje_teoria_practica_general}</div>
               )}
-
-              <ul className="pdf-subcapitulos">
-                {(cap.subcapitulos || []).map((sub, j) => {
-                  const nombre = typeof sub === 'object' ? sub.nombre : sub;
-                  const t = typeof sub === 'object' ? sub.tiempo_subcapitulo_min : undefined;
-                  const s = typeof sub === 'object' ? sub.sesion : undefined;
-                  return (
-                    <li key={j}>
-                      <span>{nombre}</span>
-                      {(t || s) && (
-                        <span className="pdf-sub-meta">
-                          {t ? `${t} min` : ''}{t && s ? ' • ' : ''}{s ? `Sesión ${s}` : ''}
-                        </span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
-          ))}
-        </div>
-        {/* ======= FIN PLANTILLA LIMPIA ======= */}
 
-        {/* ======= VISTA DE APP (se mantiene en pantalla, no sale en PDF) ======= */}
+            {temario?.descripcion_general && (
+              <>
+                <h2>Descripción General</h2>
+                <p className="pdf-justify">{temario.descripcion_general}</p>
+              </>
+            )}
+
+            {temario?.audiencia && (
+              <>
+                <h2>Audiencia</h2>
+                <p className="pdf-justify">{temario.audiencia}</p>
+              </>
+            )}
+
+            {temario?.prerrequisitos && (
+              <>
+                <h2>Prerrequisitos</h2>
+                <p className="pdf-justify">{temario.prerrequisitos}</p>
+              </>
+            )}
+
+            {temario?.objetivos && (
+              <>
+                <h2>Objetivos</h2>
+                <p className="pdf-justify" style={{ whiteSpace: 'pre-wrap' }}>{temario.objetivos}</p>
+              </>
+            )}
+
+            <h2>Temario</h2>
+            {(temario?.temario || []).map((cap, i) => (
+              <div key={i} className="pdf-capitulo">
+                <h3>{cap.capitulo}</h3>
+
+                {(cap.tiempo_capitulo_min || cap.porcentaje_teoria_practica_capitulo) && (
+                  <div className="pdf-cap-meta">
+                    {cap.tiempo_capitulo_min ? <span><strong>Duración:</strong> {cap.tiempo_capitulo_min} min</span> : null}
+                    {cap.tiempo_capitulo_min && cap.porcentaje_teoria_practica_capitulo ? <span> • </span> : null}
+                    {cap.porcentaje_teoria_practica_capitulo ? (
+                      <span><strong>Distribución:</strong> {cap.porcentaje_teoria_practica_capitulo}</span>
+                    ) : null}
+                  </div>
+                )}
+
+                <ul className="pdf-subcapitulos">
+                  {(cap.subcapitulos || []).map((sub, j) => {
+                    const nombre = typeof sub === 'object' ? sub.nombre : sub;
+                    const t = typeof sub === 'object' ? sub.tiempo_subcapitulo_min : undefined;
+                    const s = typeof sub === 'object' ? sub.sesion : undefined;
+                    return (
+                      <li key={j}>
+                        <span>{nombre}</span>
+                        {(t || s) && (
+                          <span className="pdf-sub-meta">
+                            {t ? `${t} min` : ''}{t && s ? ' • ' : ''}{s ? `Sesión ${s}` : ''}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* Pie con banda */}
+          <div className="pdf-bottomband">
+            <div className="band-bg" />
+            <div className="pdf-footer-info">www.netec.com • servicio@netec.com</div>
+          </div>
+        </div>
+        {/* ======== FIN VISTA LIMPIA ======== */}
+
+        {/* ======== VISTA APP (NO EXPORTA) ======== */}
         <div className="app-view">
           <div className="vista-selector">
-            <button
-              className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
-              onClick={() => setVista('detallada')}
-            >
+            <button className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`} onClick={() => setVista('detallada')}>
               Vista Detallada
             </button>
-            <button
-              className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
-              onClick={() => setVista('resumida')}
-            >
+            <button className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`} onClick={() => setVista('resumida')}>
               Vista Resumida
             </button>
           </div>
@@ -215,7 +228,6 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               <p>Generando nueva versión...</p>
             </div>
           ) : vista === 'detallada' ? (
-            // --- VISTA DETALLADA ---
             <div>
               <label className="editor-label">Nombre del Curso</label>
               <textarea name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo" />
@@ -256,146 +268,12 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               ))}
             </div>
           ) : (
-            // --- VISTA RESUMIDA ---
             <div className="vista-resumida-editable">
-              <input name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo-resumido" placeholder="Nombre del curso" />
-
-              <div className="info-grid">
-                <div className="info-item">
-                  <label>Versión:</label>
-                  <input name="version_tecnologia" value={temario.version_tecnologia || ''} onChange={handleInputChange} className="input-info" />
-                </div>
-                <div className="info-item">
-                  <label>Horas:</label>
-                  <input name="horas_totales" type="number" value={temario.horas_totales || ''} onChange={handleInputChange} className="input-info" />
-                </div>
-                <div className="info-item">
-                  <label>Sesiones:</label>
-                  <input name="numero_sesiones" type="number" value={temario.numero_sesiones || ''} onChange={handleInputChange} className="input-info" />
-                </div>
-                <div className="info-item">
-                  <label>EOL:</label>
-                  <input name="EOL" value={temario.EOL || ''} onChange={handleInputChange} className="input-info" />
-                </div>
-                <div className="info-item">
-                  <label>Distribución General:</label>
-                  <input name="porcentaje_teoria_practica_general" value={temario.porcentaje_teoria_practica_general || ''} onChange={handleInputChange} className="input-info" placeholder="60% Teoría / 40% Práctica" />
-                </div>
-              </div>
-
-              <div className="seccion-editable">
-                <h3>Descripción General</h3>
-                <textarea name="descripcion_general" value={temario.descripcion_general || ''} onChange={handleInputChange} className="textarea-resumido" />
-              </div>
-
-              <div className="seccion-editable">
-                <h3>Audiencia</h3>
-                <textarea name="audiencia" value={temario.audiencia || ''} onChange={handleInputChange} className="textarea-resumido" />
-              </div>
-
-              <div className="seccion-editable">
-                <h3>Prerrequisitos</h3>
-                <textarea name="prerrequisitos" value={temario.prerrequisitos || ''} onChange={handleInputChange} className="textarea-resumido" />
-              </div>
-
-              <div className="seccion-editable">
-                <h3>Objetivos</h3>
-                <textarea name="objetivos" value={temario.objetivos || ''} onChange={handleInputChange} className="textarea-resumido" placeholder="Lista los objetivos principales del curso, separados por líneas" />
-              </div>
-
-              <h3>Temario Resumido</h3>
-              {(temario.temario || []).map((cap, capIndex) => (
-                <div key={capIndex} className="capitulo-resumido">
-                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo" />
-
-                  <div className="info-grid-capitulo">
-                    <div className="info-item">
-                      <label>Duración (min):</label>
-                      <input
-                        type="number"
-                        value={cap.tiempo_capitulo_min || ''}
-                        onChange={(e) => {
-                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                          nuevoTemario.temario[capIndex].tiempo_capitulo_min = parseInt(e.target.value) || 0;
-                          setTemario(nuevoTemario);
-                        }}
-                        className="input-info-small"
-                        placeholder="120"
-                      />
-                    </div>
-                    <div className="info-item">
-                      <label>Distribución:</label>
-                      <input
-                        value={cap.porcentaje_teoria_practica_capitulo || ''}
-                        onChange={(e) => {
-                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                          nuevoTemario.temario[capIndex].porcentaje_teoria_practica_capitulo = e.target.value;
-                          setTemario(nuevoTemario);
-                        }}
-                        className="input-info-small"
-                        placeholder="70% Teoría / 30% Práctica"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="subcapitulos-resumidos">
-                    {(cap.subcapitulos || []).map((sub, subIndex) => (
-                      <div key={subIndex} className="subcapitulo-item">
-                        <input
-                          value={typeof sub === 'object' ? sub.nombre : sub}
-                          onChange={(e) => handleTemarioChange(capIndex, subIndex, e.target.value)}
-                          className="input-subcapitulo-resumido"
-                          placeholder="Subcapítulo"
-                        />
-                        <div className="subcapitulo-tiempos">
-                          <input
-                            type="number"
-                            value={typeof sub === 'object' ? sub.tiempo_subcapitulo_min || '' : ''}
-                            onChange={(e) => {
-                              const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                              if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
-                                nuevoTemario.temario[capIndex].subcapitulos[subIndex].tiempo_subcapitulo_min = parseInt(e.target.value) || 0;
-                              } else {
-                                nuevoTemario.temario[capIndex].subcapitulos[subIndex] = {
-                                  nombre: nuevoTemario.temario[capIndex].subcapitulos[subIndex],
-                                  tiempo_subcapitulo_min: parseInt(e.target.value) || 0
-                                };
-                              }
-                              setTemario(nuevoTemario);
-                            }}
-                            className="input-tiempo-sub"
-                            placeholder="min"
-                          />
-                          <input
-                            type="number"
-                            value={typeof sub === 'object' ? sub.sesion || '' : ''}
-                            onChange={(e) => {
-                              const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                              if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
-                                nuevoTemario.temario[capIndex].subcapitulos[subIndex].sesion = parseInt(e.target.value) || 0;
-                              } else {
-                                nuevoTemario.temario[capIndex].subcapitulos[subIndex] = {
-                                  nombre: nuevoTemario.temario[capIndex].subcapitulos[subIndex],
-                                  sesion: parseInt(e.target.value) || 0
-                                };
-                              }
-                              setTemario(nuevoTemario);
-                            }}
-                            className="input-sesion-sub"
-                            placeholder="sesión"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+              {/* ... (tu vista resumida igual que antes) ... */}
             </div>
           )}
         </div>
-        {/* ======= FIN VISTA DE APP ======= */}
       </div>
-      {/* ======= FIN wrapper exportable ======= */}
 
       <div className="acciones-footer">
         <button onClick={() => setMostrarFormRegenerar(prev => !prev)}>Ajustar y Regenerar</button>
@@ -405,28 +283,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 
       {mostrarFormRegenerar && (
         <div className="regenerar-form">
-          <h4>Regenerar con Nuevos Parámetros</h4>
-          <div className="form-group">
-            <label>Duración (días):</label>
-            <input name="extension_curso_dias" type="number" value={params.extension_curso_dias} onChange={handleParamsChange} />
-          </div>
-          <div className="form-group">
-            <label>Nivel:</label>
-            <select name="nivel_dificultad" value={params.nivel_dificultad} onChange={handleParamsChange}>
-              <option value="basico">Básico</option>
-              <option value="intermedio">Intermedio</option>
-              <option value="avanzado">Avanzado</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Objetivos (Opcional):</label>
-            <textarea name="objetivos" value={params.objetivos} onChange={handleParamsChange} placeholder="Objetivos específicos del curso" />
-          </div>
-          <div className="form-group">
-            <label>Enfoque (Opcional):</label>
-            <textarea name="enfoque" value={params.enfoque} onChange={handleParamsChange} />
-          </div>
-          <button onClick={handleRegenerateClick}>Regenerar</button>
+          {/* ... (igual que antes) ... */}
         </div>
       )}
     </div>
@@ -434,4 +291,3 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
-
