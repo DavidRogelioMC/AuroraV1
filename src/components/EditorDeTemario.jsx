@@ -1,6 +1,6 @@
 // src/components/EditorDeTemario.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import netecLogo from '../assets/Netec.png';      
+import netecLogo from '../assets/Netec.png';
 import './EditorDeTemario.css';
 
 function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
@@ -8,36 +8,117 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   const [vista, setVista] = useState('detallada');
   const [mostrarFormRegenerar, setMostrarFormRegenerar] = useState(false);
 
-  // Área a exportar
+  // Área raíz que contiene la vista limpia y la de app
   const pdfRef = useRef(null);
 
-  // Exportar PDF: SOLO la plantilla limpia (.pdf-clean)
-  const exportarPDF = async () => {
-    if (!pdfRef.current) return;
+  // Utilidad: carga un asset/URL como dataURL
+  const toDataURL = async (url) => {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.readAsDataURL(blob);
+    });
+  };
 
-    const clean = pdfRef.current.querySelector('.pdf-clean');
+  // Utilidad: genera un PNG translúcido (fallback si jsPDF no soporta GState)
+  const makeTranslucent = async (srcDataUrl, alpha = 0.06) => {
+    const img = await new Promise((resolve) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.src = srcDataUrl;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = alpha; // 👈 opacidad de la marca de agua
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  };
+
+  // Exportar PDF: usa SOLO la plantilla .pdf-clean y luego estampa watermark por página
+  const exportarPDF = async () => {
+    const clean = pdfRef.current?.querySelector('.pdf-clean');
     if (!clean) return;
 
-    // muestra la vista limpia fuera del viewport durante la exportación
-    clean.classList.add('pdf-exporting');
-
+    clean.classList.add('pdf-exporting'); // muestra .pdf-clean fuera del viewport
     try {
       const { default: html2pdf } = await import('html2pdf.js');
 
       const titulo = temario?.nombre_curso || temario?.tema_curso || 'temario';
       const filename = `temario_${String(titulo).replace(/\s+/g, '_')}.pdf`;
 
-      await html2pdf()
-        .set({
-          margin: [12, 12, 16, 12],
-          filename,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-        })
-        .from(clean) // << exporta SOLO la vista limpia
-        .save();
+      const opt = {
+        margin: [12, 12, 16, 12],
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      // 1) Genera el PDF desde la vista limpia
+      const worker = html2pdf().set(opt).from(clean).toPdf();
+      const pdf = await worker.get('pdf');
+
+      // 2) Marca de agua: logo translúcido en TODAS las páginas
+      const rawLogo = await toDataURL(netecLogo);
+      const total = pdf.internal.getNumberOfPages();
+      const W = pdf.internal.pageSize.getWidth();
+      const H = pdf.internal.pageSize.getHeight();
+
+      // Si el engine soporta GState, usamos opacidad nativa; si no, usamos PNG translúcido
+      const canGState = Boolean(pdf.setGState && pdf.GState);
+      const wmLogo = canGState ? rawLogo : await makeTranslucent(rawLogo, 0.06);
+
+      const props = pdf.getImageProperties(wmLogo);
+      const imgW = W * 0.55; // 55% del ancho de página
+      const imgH = imgW * (props.height / props.width);
+      const x = (W - imgW) / 2;
+      const y = (H - imgH) / 2;
+
+      for (let i = 1; i <= total; i++) {
+        pdf.setPage(i);
+        if (canGState) {
+          pdf.setGState(new pdf.GState({ opacity: 0.06 })); 
+          pdf.addImage(rawLogo, 'PNG', x, y, imgW, imgH);
+          pdf.setGState(new pdf.GState({ opacity: 1 }));
+        } else {
+          pdf.addImage(wmLogo, 'PNG', x, y, imgW, imgH);
+        }
+      }
+
+      // =================================================================
+// =========      AÑADIR ESTE BLOQUE PARA LA NUMERACIÓN      =========
+// =================================================================
+const pageNumText = "Página";
+// Configurar fuente y color para el número de página
+pdf.setFontSize(10);
+pdf.setTextColor(100); // Color gris (0 es negro, 255 es blanco)
+
+for (let i = 1; i <= total; i++) {
+  pdf.setPage(i);
+
+  // Construir el texto "Página i de N"
+  const text = `${pageNumText} ${i} de ${total}`;
+
+  // Calcular la posición (abajo y al centro de la página)
+  const textWidth = pdf.getStringUnitWidth(text) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
+  const x = (W - textWidth) / 2; // Centrado horizontalmente
+  const y = H - 10; // 10mm desde el borde inferior
+
+  // Escribir el texto directamente en el PDF
+  pdf.text(text, x, y);
+}
+// =================================================================
+// =================== FIN DEL BLOQUE A AÑADIR ===================
+// =================================================================
+      // 3) Guarda el PDF
+      await worker.save();
     } finally {
       clean.classList.remove('pdf-exporting');
     }
@@ -64,30 +145,29 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     });
   }, [temarioInicial]);
 
-  // Edición directa
+  // Handlers de edición
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setTemario(prev => ({ ...prev, [name]: value }));
+    setTemario((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleTemarioChange = (capIndex, subIndex, value) => {
-    const nuevoTemario = JSON.parse(JSON.stringify(temario));
+    const nuevo = JSON.parse(JSON.stringify(temario));
     if (subIndex === null) {
-      nuevoTemario.temario[capIndex].capitulo = value;
+      nuevo.temario[capIndex].capitulo = value;
     } else {
-      if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
-        nuevoTemario.temario[capIndex].subcapitulos[subIndex].nombre = value;
+      if (typeof nuevo.temario[capIndex].subcapitulos[subIndex] === 'object') {
+        nuevo.temario[capIndex].subcapitulos[subIndex].nombre = value;
       } else {
-        nuevoTemario.temario[capIndex].subcapitulos[subIndex] = value;
+        nuevo.temario[capIndex].subcapitulos[subIndex] = value;
       }
     }
-    setTemario(nuevoTemario);
+    setTemario(nuevo);
   };
 
-  // Regenerar / Guardar
   const handleParamsChange = (e) => {
     const { name, value } = e.target;
-    setParams(prev => ({ ...prev, [name]: value }));
+    setParams((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleRegenerateClick = () => {
@@ -95,29 +175,23 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     setMostrarFormRegenerar(false);
   };
 
-  const handleSaveClick = () => {
-    onSave(temario);
-  };
+  const handleSaveClick = () => onSave(temario);
 
   if (!temario) return null;
 
   return (
     <div className="editor-container">
       <div ref={pdfRef} id="temario-pdf">
-
-        {/* ======== VISTA LIMPIA PARA PDF ======== */}
+        {/* ========= VISTA LIMPIA SOLO PARA PDF ========= */}
         <div className="pdf-clean">
-
-          {/* Encabezado con banda y logo (sin ::before para que html2canvas lo pinte) */}
-          <div className="pdf-topband">
-            <div className="band-bg" />
-            <img src={netecLogo} alt="Netec" className="pdf-logo" />
-          </div>
-
-          {/* Marca de agua */}
-          <div className="pdf-watermark">
-            <img src={netecLogo} alt="Watermark" className="pdf-watermark-img" />
-          </div>
+          {/* ========= NUEVO ENCABEZADO CORPORATIVO (SOLO LOGO) ========= */}
+<div className="pdf-header-corp">
+  <div className="header-left">
+    <img src={netecLogo} alt="Netec Logo" className="header-logo-netec" />
+  </div>
+</div>
+{/* Línea divisora debajo del header */}
+<div className="pdf-header-divider" />
 
           {/* Cuerpo */}
           <div className="pdf-body">
@@ -161,7 +235,10 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               </>
             )}
 
+            {/* Salto de página para empezar Temario en una nueva hoja */}
+            <div className="html2pdf__page-break" />
             <h2>Temario</h2>
+
             {(temario?.temario || []).map((cap, i) => (
               <div key={i} className="pdf-capitulo">
                 <h3>{cap.capitulo}</h3>
@@ -197,21 +274,29 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
             ))}
           </div>
 
-          {/* Pie con banda */}
-          <div className="pdf-bottomband">
-            <div className="band-bg" />
-            <div className="pdf-footer-info">www.netec.com • servicio@netec.com</div>
-          </div>
-        </div>
-        {/* ======== FIN VISTA LIMPIA ======== */}
+          {/* ========= NUEVO FOOTER CORPORATIVO ========= */}
+<div className="pdf-footer-corp">
+  <div className="pdf-footer-divider" />
+  <div className="footer-content">
+    <span className="footer-left">Presencial Internacional</span>
+    <span className="footer-right">www.netec.com</span>
+  </div>
+</div>
+        {/* ========= FIN VISTA LIMPIA ========= */}
 
-        {/* ======== VISTA APP (NO EXPORTA) ======== */}
+        {/* ========= VISTA APP (NO SE EXPORTA) ========= */}
         <div className="app-view">
           <div className="vista-selector">
-            <button className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`} onClick={() => setVista('detallada')}>
+            <button
+              className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
+              onClick={() => setVista('detallada')}
+            >
               Vista Detallada
             </button>
-            <button className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`} onClick={() => setVista('resumida')}>
+            <button
+              className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
+              onClick={() => setVista('resumida')}
+            >
               Vista Resumida
             </button>
           </div>
@@ -269,21 +354,21 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
             </div>
           ) : (
             <div className="vista-resumida-editable">
-              {/* ... (tu vista resumida igual que antes) ... */}
+              {/* … tu vista resumida igual que antes … */}
             </div>
           )}
         </div>
       </div>
 
       <div className="acciones-footer">
-        <button onClick={() => setMostrarFormRegenerar(prev => !prev)}>Ajustar y Regenerar</button>
+        <button onClick={() => setMostrarFormRegenerar((prev) => !prev)}>Ajustar y Regenerar</button>
         <button type="button" onClick={exportarPDF}>Exportar PDF</button>
         <button onClick={handleSaveClick} className="btn-guardar">Guardar Versión</button>
       </div>
 
       {mostrarFormRegenerar && (
         <div className="regenerar-form">
-          {/* ... (igual que antes) ... */}
+          {/* … igual que antes … */}
         </div>
       )}
     </div>

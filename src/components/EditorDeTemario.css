@@ -1,4 +1,4 @@
-/* src/components/EditorDeTemario.css (CÓDIGO COMPLETO Y FINAL) */
+/* src/components/EditorDeTemario.css (VERSIÓN FINAL Y LIMPIA) */
 
 .editor-container {
   padding: 2rem;
@@ -24,7 +24,9 @@
 }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* --- ESTILOS PARA EL SELECTOR DE VISTA --- */
+/* --- ESTILOS PARA LA VISTA DETALLADA Y LA INTERFAZ --- */
+/* (Toda esta sección no afecta al PDF y está correcta) */
+
 .vista-selector {
   display: flex;
   justify-content: center;
@@ -68,7 +70,6 @@
   font-style: italic;
 }
 
-/* --- ESTILOS PARA LA VISTA DETALLADA (EDITABLE) --- */
 .editor-label {
   display: block;
   margin-top: 1.5rem;
@@ -137,42 +138,6 @@
   margin-bottom: 0.5rem;
 }
 
-/* --- ESTILOS PARA LA VISTA RESUMIDA --- */
-.vista-resumida {
-  text-align: left;
-  padding: 1rem;
-}
-.vista-resumida h1 {
-  font-size: 1.8rem;
-  color: #1b5784;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.vista-resumida .seccion-resumen {
-  margin-bottom: 1.5rem;
-}
-.vista-resumida h2 {
-  font-size: 1.2rem;
-  color: #343a40;
-  border-bottom: 2px solid #e9ecef;
-  padding-bottom: 0.5rem;
-  margin-bottom: 1rem;
-}
-.vista-resumida ul {
-  list-style-type: disc;
-  padding-left: 25px;
-}
-.vista-resumida li {
-  margin-bottom: 0.5rem;
-}
-.vista-resumida .capitulo-resumido {
-  margin-bottom: 1rem;
-}
-.vista-resumida .capitulo-resumido strong {
-  font-size: 1.1rem;
-}
-
-/* --- ESTILOS PARA LOS BOTONES DE ACCIÓN --- */
 .acciones-footer {
   display: flex;
   justify-content: flex-end;
@@ -194,236 +159,25 @@
   color: white;
   border-color: #1b5784 !important;
 }
-.regenerar-form {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: #f0f8ff;
-  border-radius: 8px;
-  border: 1px solid #cfe7fc;
-}
-.regenerar-form h4 {
-  margin-top: 0;
-  color: #1b5784;
-}
-.regenerar-form .form-group {
-  margin-bottom: 1rem;
-}
 
-/* --- ESTILOS PARA LA VISTA RESUMIDA EDITABLE --- */
-.vista-resumida-editable {
-  background: #fafafa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-}
+/*
+ ==================================================================
+ =================== ESTILOS PARA EL PDF FINAL ====================
+ ==================================================================
+*/
 
-.input-titulo-resumido {
-  font-size: 1.6rem;
-  font-weight: bold;
-  border: none;
-  border-bottom: 2px solid #eee;
-  width: 100%;
-  margin-bottom: 1.5rem;
-  padding: 0.5rem 0;
-  background: transparent;
-  transition: border-color 0.3s;
-}
-.input-titulo-resumido:focus {
-  border-bottom-color: #1b5784;
-  outline: none;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-item label {
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: #555;
-}
-
-.input-info {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-.input-info:focus {
-  border-color: #1b5784;
-  outline: none;
-}
-
-.seccion-editable {
-  margin-bottom: 1.5rem;
-}
-
-.seccion-editable h3 {
-  margin: 0 0 0.5rem 0;
-  color: #1b5784;
-  font-size: 1.1rem;
-}
-
-.textarea-resumido {
-  width: 100%;
-  min-height: 80px;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  resize: vertical;
-  font-family: inherit;
-}
-.textarea-resumido:focus {
-  border-color: #1b5784;
-  outline: none;
-}
-
-.capitulo-resumido {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
-
-.input-capitulo-resumido {
-  width: 100%;
-  font-size: 1.2rem;
-  font-weight: 600;
-  padding: 0.5rem;
-  border: none;
-  border-bottom: 2px solid #eee;
-  background: transparent;
-  margin-bottom: 1rem;
-  color: #333;
-}
-.input-capitulo-resumido:focus {
-  border-bottom-color: #1b5784;
-  outline: none;
-}
-
-.subcapitulos-resumidos {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.subcapitulo-item {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.input-subcapitulo-resumido {
-  flex: 1;
-  min-width: 200px;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  background: #f9f9f9;
-}
-.input-subcapitulo-resumido:focus {
-  border-color: #1b5784;
-  outline: none;
-  background: white;
-}
-
-.subcapitulo-tiempos {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-}
-
-.input-tiempo-sub, .input-sesion-sub {
-  width: 60px;
-  padding: 0.4rem;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-.input-tiempo-sub:focus, .input-sesion-sub:focus {
-  border-color: #1b5784;
-  outline: none;
-}
-
-.info-grid-capitulo {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  background: #f0f8ff;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-}
-
-.info-grid-capitulo .info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.info-grid-capitulo .info-item label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #555;
-}
-
-.input-info-small {
-  padding: 0.4rem;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  font-size: 0.85rem;
-}
-.input-info-small:focus {
-  border-color: #1b5784;
-  outline: none;
-}
-
-.input-campo {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-}
-.input-campo:focus {
-  border-color: #1b5784;
-  outline: none;
-}
-
-/* ========= Paleta / base ========= */
+/* ========= Paleta / Base ========= */
 :root{
   --pdf-primary:  #0B2D66; /* azul oscuro */
   --pdf-primary-2:#0C58A0; /* azul secundario */
   --pdf-text:     #222;
 }
 
-/* Contenedor del módulo PDF (no el canvas final) */
+/* Contenedor del módulo PDF */
 #temario-pdf{
   background:#fff;
   color:var(--pdf-text);
-  max-width:794px;              /* ~A4 a 96dpi */
+  max-width:794px;            /* ~A4 a 96dpi */
   margin:0 auto;
   padding:0;
   box-sizing:border-box;
@@ -431,9 +185,7 @@
 }
 #temario-pdf img{ max-width:100%; height:auto; }
 
-/* ========= Vista limpia: sólo para exportar ========= */
-/* Oculta en la app; visible sólo mientras exportamos,
-   posicionada fuera del viewport para no parpadear */
+/* ========= Vista limpia (contenedor para exportar) ========= */
 #temario-pdf .pdf-clean{
   display:none;
   background:#fff;
@@ -442,28 +194,35 @@
 #temario-pdf .pdf-clean.pdf-exporting{
   display:block;
   position:absolute;
-  left:-99999px;        /* fuera del viewport */
+  left:-99999px;      /* fuera del viewport */
   top:0;
-  width:794px;          /* ancho A4 aproximado */
+  width:794px;        /* ancho A4 aproximado */
 }
 
-/* ========= Banda superior con logo ========= */
-#temario-pdf .pdf-topband{
-  position:relative;
-  height:40px;
-  overflow:hidden;
-}
-#temario-pdf .pdf-topband .band-bg{
-  position:absolute;
-  left:-10%;
-  top:-60px;
-  width:120%;
-  height:160px;
-  background:linear-gradient(135deg,var(--pdf-primary),var(--pdf-primary-2));
-  transform:skewY(-8deg);
+/* ========= Encabezado Corporativo ========= */
+#temario-pdf .pdf-header-corp {
+  display: flex;
+  align-items: center; /* Centra el logo verticalmente */
+  padding: 12px 24px;
+  height: 60px; /* Altura fija para la sección del header */
 }
 
-/* ========= Cuerpo ========= */
+#temario-pdf .header-left {
+  /* Contenedor del logo, por si se necesita en el futuro */
+}
+
+#temario-pdf .header-logo-netec {
+  height: 40px; /* Controla el tamaño del logo */
+  width: auto;
+}
+
+#temario-pdf .pdf-header-divider {
+  height: 3px;
+  background: linear-gradient(90deg, var(--pdf-primary), var(--pdf-primary-2));
+  margin: 0 24px 10px 24px; /* Margen arriba, a los lados, y abajo */
+}
+
+/* ========= Cuerpo del PDF ========= */
 #temario-pdf .pdf-body{
   position:relative;
   z-index:1;
@@ -486,7 +245,6 @@
   margin:6px 0 16px;
 }
 
-/* Títulos de sección con divisor azul */
 #temario-pdf .pdf-clean h2{
   font-size:18px;
   margin:18px 0 8px;
@@ -510,7 +268,7 @@
 }
 #temario-pdf .pdf-justify{ text-align:justify; }
 
-/* Capítulos / subcapítulos */
+/* Capítulos y subcapítulos */
 #temario-pdf .pdf-capitulo{
   margin:10px 0 12px;
   page-break-inside:avoid;
@@ -536,40 +294,14 @@
   color:#555;
 }
 
-/* Evitar desbordes raros en PDF */
+/* Utilidades */
 #temario-pdf .pdf-clean *{
   word-wrap:break-word;
   overflow-wrap:anywhere;
 }
 
-/* ========= Banda inferior ========= */
-#temario-pdf .pdf-bottomband{
-  position:relative;
-  height:70px;
-  margin-top:16px;
-}
-#temario-pdf .pdf-bottomband .band-bg{
-  position:absolute;
-  left:-10%;
-  bottom:-80px;
-  width:120%;
-  height:160px;
-  background:linear-gradient(135deg,var(--pdf-primary-2),var(--pdf-primary));
-  transform:skewY(-8deg);
-}
-#temario-pdf .pdf-footer-info{
-  position:absolute;
-  right:20px;
-  bottom:10px;
-  color:#fff;
-  font-size:12px;
-  z-index:2;
-}
-
-/* ========= Saltos de página ========= */
 .html2pdf__page-break{ page-break-before:always; }
 
-/* Utilidades opcionales de salto */
 .pb-before { break-before: page; page-break-before: always; }
 .pb-after  { break-after:  page; page-break-after:  always; }
 .pb-avoid  { break-inside: avoid; page-break-inside: avoid; }
