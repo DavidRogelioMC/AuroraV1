@@ -450,7 +450,7 @@
 /* ========= Banda superior con logo ========= */
 #temario-pdf .pdf-topband{
   position:relative;
-  height:90px;
+  height:40px;
   overflow:hidden;
 }
 #temario-pdf .pdf-topband .band-bg{
