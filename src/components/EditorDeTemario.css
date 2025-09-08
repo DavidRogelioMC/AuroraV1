@@ -412,60 +412,172 @@
   outline: none;
 }
 
-/* Base */
+/* ========= Paleta / base ========= */
+:root{
+  --pdf-primary:  #0B2D66; /* azul oscuro */
+  --pdf-primary-2:#0C58A0; /* azul secundario */
+  --pdf-text:     #222;
+}
+
+/* Contenedor del módulo PDF (no el canvas final) */
 #temario-pdf{
-  background:#fff; color:#000; max-width:794px; margin:0 auto; padding:16px 24px; box-sizing:border-box;
+  background:#fff;
+  color:var(--pdf-text);
+  max-width:794px;              /* ~A4 a 96dpi */
+  margin:0 auto;
+  padding:0;
+  box-sizing:border-box;
+  position:relative;
 }
 #temario-pdf img{ max-width:100%; height:auto; }
 
-:root{
-  --pdf-primary:#0B2D66;
-  --pdf-primary-2:#0C58A0;
+/* ========= Vista limpia: sólo para exportar ========= */
+/* Oculta en la app; visible sólo mientras exportamos,
+   posicionada fuera del viewport para no parpadear */
+#temario-pdf .pdf-clean{
+  display:none;
+  background:#fff;
+  position:relative;
+}
+#temario-pdf .pdf-clean.pdf-exporting{
+  display:block;
+  position:absolute;
+  left:-99999px;        /* fuera del viewport */
+  top:0;
+  width:794px;          /* ancho A4 aproximado */
 }
 
-/* Vista limpia solo en export */
-#temario-pdf .pdf-clean{ display:none; background:#fff; position:relative; }
-#temario-pdf .pdf-clean.pdf-exporting{ display:block; position:absolute; left:-99999px; top:0; width:794px; }
-
-/* Banda superior con logo pequeño */
-#temario-pdf .pdf-topband{ position:relative; height:90px; overflow:hidden; }
+/* ========= Banda superior con logo ========= */
+#temario-pdf .pdf-topband{
+  position:relative;
+  height:90px;
+  overflow:hidden;
+}
 #temario-pdf .pdf-topband .band-bg{
-  position:absolute; left:-10%; top:-60px; width:120%; height:160px;
+  position:absolute;
+  left:-10%;
+  top:-60px;
+  width:120%;
+  height:160px;
   background:linear-gradient(135deg,var(--pdf-primary),var(--pdf-primary-2));
   transform:skewY(-8deg);
 }
-#temario-pdf .pdf-logo{ position:absolute; left:20px; top:18px; height:48px; z-index:2; object-fit:contain; }
-
-/* Cuerpo */
-#temario-pdf .pdf-body{ position:relative; z-index:1; padding:8px 24px 0 24px; }
-#temario-pdf .pdf-title{ margin:6px 0 8px; font-size:28px; line-height:1.15; font-weight:800; color:var(--pdf-primary); }
-#temario-pdf .pdf-meta{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 16px; font-size:12.5px; margin:6px 0 16px; }
-
-/* Divisores azules (línea debajo de cada sección) */
-#temario-pdf .pdf-clean h2{
-  font-size:18px; margin:18px 0 8px; color:var(--pdf-primary);
-  border-bottom:2px solid var(--pdf-primary); padding-bottom:6px; page-break-after:avoid;
+#temario-pdf .pdf-logo{
+  position:absolute;
+  left:20px;
+  top:18px;
+  height:48px;
+  z-index:2;
+  object-fit:contain;
 }
-#temario-pdf .pdf-clean h3{ font-size:15px; margin:14px 0 6px; page-break-after:avoid; color:var(--pdf-primary); }
 
-#temario-pdf .pdf-clean p, #temario-pdf .pdf-clean li{ font-size:12.5px; line-height:1.45; color:#222; }
+/* ========= Cuerpo ========= */
+#temario-pdf .pdf-body{
+  position:relative;
+  z-index:1;
+  padding:8px 24px 0 24px;
+}
+
+#temario-pdf .pdf-title{
+  margin:6px 0 8px;
+  font-size:28px;
+  line-height:1.15;
+  font-weight:800;
+  color:var(--pdf-primary);
+}
+
+#temario-pdf .pdf-meta{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px 16px;
+  font-size:12.5px;
+  margin:6px 0 16px;
+}
+
+/* Títulos de sección con divisor azul */
+#temario-pdf .pdf-clean h2{
+  font-size:18px;
+  margin:18px 0 8px;
+  color:var(--pdf-primary);
+  border-bottom:2px solid var(--pdf-primary);
+  padding-bottom:6px;
+  page-break-after:avoid;
+}
+#temario-pdf .pdf-clean h3{
+  font-size:15px;
+  margin:14px 0 6px;
+  color:var(--pdf-primary);
+  page-break-after:avoid;
+}
+
+#temario-pdf .pdf-clean p,
+#temario-pdf .pdf-clean li{
+  font-size:12.5px;
+  line-height:1.45;
+  color:var(--pdf-text);
+}
 #temario-pdf .pdf-justify{ text-align:justify; }
-#temario-pdf .pdf-capitulo{ margin:10px 0 12px; page-break-inside:avoid; }
-#temario-pdf .pdf-subcapitulos{ margin:6px 0 0 18px; padding:0; }
-#temario-pdf .pdf-subcapitulos li{ margin:2px 0; list-style:disc; }
-#temario-pdf .pdf-sub-meta{ margin-left:6px; font-size:11.5px; color:#555; }
-#temario-pdf .pdf-clean *{ word-wrap:break-word; overflow-wrap:anywhere; }
-.html2pdf__page-break{ page-break-before:always; }
 
-/* Pie con banda */
-#temario-pdf .pdf-bottomband{ position:relative; height:70px; margin-top:16px; }
+/* Capítulos / subcapítulos */
+#temario-pdf .pdf-capitulo{
+  margin:10px 0 12px;
+  page-break-inside:avoid;
+}
+#temario-pdf .pdf-cap-meta{
+  font-size:12px;
+  color:#555;
+  margin:0 0 6px;
+}
+#temario-pdf .pdf-cap-meta span{ white-space:nowrap; }
+
+#temario-pdf .pdf-subcapitulos{
+  margin:6px 0 0 18px;
+  padding:0;
+}
+#temario-pdf .pdf-subcapitulos li{
+  margin:2px 0;
+  list-style:disc;
+}
+#temario-pdf .pdf-sub-meta{
+  margin-left:6px;
+  font-size:11.5px;
+  color:#555;
+}
+
+/* Evitar desbordes raros en PDF */
+#temario-pdf .pdf-clean *{
+  word-wrap:break-word;
+  overflow-wrap:anywhere;
+}
+
+/* ========= Banda inferior ========= */
+#temario-pdf .pdf-bottomband{
+  position:relative;
+  height:70px;
+  margin-top:16px;
+}
 #temario-pdf .pdf-bottomband .band-bg{
-  position:absolute; left:-10%; bottom:-80px; width:120%; height:160px;
+  position:absolute;
+  left:-10%;
+  bottom:-80px;
+  width:120%;
+  height:160px;
   background:linear-gradient(135deg,var(--pdf-primary-2),var(--pdf-primary));
   transform:skewY(-8deg);
 }
-#temario-pdf .pdf-footer-info{ position:absolute; right:20px; bottom:10px; color:#fff; font-size:12px; z-index:2; }
+#temario-pdf .pdf-footer-info{
+  position:absolute;
+  right:20px;
+  bottom:10px;
+  color:#fff;
+  font-size:12px;
+  z-index:2;
+}
 
-/* Botón (opcional) */
-.btn-exportar{ background:var(--pdf-primary); color:#fff; border:0; padding:.6rem 1rem; border-radius:6px; cursor:pointer; }
-.btn-exportar:hover{ opacity:.9; }
+/* ========= Saltos de página ========= */
+.html2pdf__page-break{ page-break-before:always; }
+
+/* Utilidades opcionales de salto */
+.pb-before { break-before: page; page-break-before: always; }
+.pb-after  { break-after:  page; page-break-after:  always; }
+.pb-avoid  { break-inside: avoid; page-break-inside: avoid; }
