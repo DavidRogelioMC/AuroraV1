@@ -462,14 +462,6 @@
   background:linear-gradient(135deg,var(--pdf-primary),var(--pdf-primary-2));
   transform:skewY(-8deg);
 }
-#temario-pdf .pdf-logo{
-  position:absolute;
-  left:20px;
-  top:18px;
-  height:48px;
-  z-index:2;
-  object-fit:contain;
-}
 
 /* ========= Cuerpo ========= */
 #temario-pdf .pdf-body{
