@@ -412,148 +412,60 @@
   outline: none;
 }
 
-/* === Estilos base que ya tenías === */
-#temario-pdf {
-  background: #fff;
-  color: #000;
-  max-width: 794px;   /* ~A4 a 96dpi */
-  margin: 0 auto;
-  padding: 16px 24px;
-  box-sizing: border-box;
+/* Base */
+#temario-pdf{
+  background:#fff; color:#000; max-width:794px; margin:0 auto; padding:16px 24px; box-sizing:border-box;
+}
+#temario-pdf img{ max-width:100%; height:auto; }
+
+:root{
+  --pdf-primary:#0B2D66;
+  --pdf-primary-2:#0C58A0;
 }
 
-#temario-pdf img { max-width: 100%; height: auto; }
+/* Vista limpia solo en export */
+#temario-pdf .pdf-clean{ display:none; background:#fff; position:relative; }
+#temario-pdf .pdf-clean.pdf-exporting{ display:block; position:absolute; left:-99999px; top:0; width:794px; }
 
-/* Paleta corporativa */
-:root {
-  --pdf-primary: #0B2D66; /* azul oscuro corporativo */
-  --pdf-primary-2: #0C58A0; /* tono secundario para degradado */
+/* Banda superior con logo pequeño */
+#temario-pdf .pdf-topband{ position:relative; height:90px; overflow:hidden; }
+#temario-pdf .pdf-topband .band-bg{
+  position:absolute; left:-10%; top:-60px; width:120%; height:160px;
+  background:linear-gradient(135deg,var(--pdf-primary),var(--pdf-primary-2));
+  transform:skewY(-8deg);
 }
+#temario-pdf .pdf-logo{ position:absolute; left:20px; top:18px; height:48px; z-index:2; object-fit:contain; }
 
-/* La vista limpia no se muestra en la app */
-#temario-pdf .pdf-clean { display: none; }
+/* Cuerpo */
+#temario-pdf .pdf-body{ position:relative; z-index:1; padding:8px 24px 0 24px; }
+#temario-pdf .pdf-title{ margin:6px 0 8px; font-size:28px; line-height:1.15; font-weight:800; color:var(--pdf-primary); }
+#temario-pdf .pdf-meta{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 16px; font-size:12.5px; margin:6px 0 16px; }
 
-/* Solo mientras exportamos, la mostramos fuera del viewport */
-#temario-pdf .pdf-clean.pdf-exporting{
-  display: block;
-  position: absolute;
-  left: -99999px;   /* fuera del viewport */
-  top: 0;
-  width: 794px;     /* A4 aprox */
-  background: #fff;
+/* Divisores azules (línea debajo de cada sección) */
+#temario-pdf .pdf-clean h2{
+  font-size:18px; margin:18px 0 8px; color:var(--pdf-primary);
+  border-bottom:2px solid var(--pdf-primary); padding-bottom:6px; page-break-after:avoid;
 }
+#temario-pdf .pdf-clean h3{ font-size:15px; margin:14px 0 6px; page-break-after:avoid; color:var(--pdf-primary); }
 
-/* Tipografía y colores del documento */
-#temario-pdf .pdf-clean .pdf-title {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  line-height: 1.15;
-  font-weight: 800;
-  color: var(--pdf-primary);
-}
+#temario-pdf .pdf-clean p, #temario-pdf .pdf-clean li{ font-size:12.5px; line-height:1.45; color:#222; }
+#temario-pdf .pdf-justify{ text-align:justify; }
+#temario-pdf .pdf-capitulo{ margin:10px 0 12px; page-break-inside:avoid; }
+#temario-pdf .pdf-subcapitulos{ margin:6px 0 0 18px; padding:0; }
+#temario-pdf .pdf-subcapitulos li{ margin:2px 0; list-style:disc; }
+#temario-pdf .pdf-sub-meta{ margin-left:6px; font-size:11.5px; color:#555; }
+#temario-pdf .pdf-clean *{ word-wrap:break-word; overflow-wrap:anywhere; }
+.html2pdf__page-break{ page-break-before:always; }
 
-#temario-pdf .pdf-clean .pdf-meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 6px 16px;
-  font-size: 12.5px;
-  margin: 6px 0 16px;
+/* Pie con banda */
+#temario-pdf .pdf-bottomband{ position:relative; height:70px; margin-top:16px; }
+#temario-pdf .pdf-bottomband .band-bg{
+  position:absolute; left:-10%; bottom:-80px; width:120%; height:160px;
+  background:linear-gradient(135deg,var(--pdf-primary-2),var(--pdf-primary));
+  transform:skewY(-8deg);
 }
+#temario-pdf .pdf-footer-info{ position:absolute; right:20px; bottom:10px; color:#fff; font-size:12px; z-index:2; }
 
-#temario-pdf .pdf-clean h2 {
-  font-size: 18px;
-  margin: 18px 0 6px;
-  page-break-after: avoid;
-  color: var(--pdf-primary);
-}
-#temario-pdf .pdf-clean h3 {
-  font-size: 15px;
-  margin: 14px 0 6px;
-  page-break-after: avoid;
-  color: var(--pdf-primary);
-}
-
-#temario-pdf .pdf-clean p,
-#temario-pdf .pdf-clean li {
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: #222;
-}
-#temario-pdf .pdf-clean .pdf-justify { text-align: justify; }
-
-#temario-pdf .pdf-clean .pdf-capitulo {
-  margin: 10px 0 12px;
-  page-break-inside: avoid;
-}
-#temario-pdf .pdf-clean .pdf-subcapitulos {
-  margin: 6px 0 0 18px; padding: 0;
-}
-#temario-pdf .pdf-clean .pdf-subcapitulos li {
-  margin: 2px 0; list-style: disc;
-}
-#temario-pdf .pdf-clean .pdf-sub-meta {
-  margin-left: 6px; font-size: 11.5px; color: #555;
-}
-
-/* Evitar cortes raros / desbordes en PDF */
-#temario-pdf .pdf-clean * { word-wrap: break-word; overflow-wrap: anywhere; }
-
-/* Saltos manuales si los usas */
-.html2pdf__page-break { page-break-before: always; }
-
-/* ===== Encabezado (banda azul + logo) ===== */
-#temario-pdf .pdf-clean{ position: relative; }
-
-#temario-pdf .pdf-topband{
-  position: relative;
-  height: 90px;
-  overflow: hidden;
-}
-#temario-pdf .pdf-topband::before{
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, var(--pdf-primary), var(--pdf-primary-2));
-  /* diagonal estilo plantilla */
-  clip-path: polygon(0 0, 70% 0, 55% 100%, 0% 100%);
-}
-#temario-pdf .pdf-logo{
-  position: absolute;
-  left: 20px; top: 18px;
-  height: 48px; object-fit: contain; z-index: 1;
-}
-
-/* ===== Marca de agua ===== */
-#temario-pdf .pdf-watermark{
-  position: absolute; inset: 0;
-  display: grid; place-items: center;
-  pointer-events: none;
-}
-#temario-pdf .pdf-watermark-img{
-  width: 60%;
-  max-width: 480px;
-  opacity: .06;             /* ajusta intensidad */
-  filter: grayscale(100%);
-}
-
-/* ===== Cuerpo ===== */
-#temario-pdf .pdf-body{
-  padding: 8px 24px 0 24px; /* espacio tras la banda */
-}
-
-/* ===== Pie (banda) ===== */
-#temario-pdf .pdf-bottomband{
-  position: relative;
-  height: 70px;
-  margin-top: 16px;
-}
-#temario-pdf .pdf-bottomband::before{
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, var(--pdf-primary-2), var(--pdf-primary));
-  clip-path: polygon(0 35%, 100% 0, 100% 100%, 0% 100%);
-}
-#temario-pdf .pdf-footer-info{
-  position: absolute;
-  right: 20px; bottom: 10px;
-  font-size: 12px; color: #fff; z-index: 1;
-}
+/* Botón (opcional) */
+.btn-exportar{ background:var(--pdf-primary); color:#fff; border:0; padding:.6rem 1rem; border-radius:6px; cursor:pointer; }
+.btn-exportar:hover{ opacity:.9; }
