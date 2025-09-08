@@ -412,3 +412,21 @@
   outline: none;
 }
 
+/* === Estilos para la exportación a PDF === */
+#temario-pdf {
+  background: #fff;
+  color: #000;
+  max-width: 794px;   /* ~A4 a 96dpi */
+  margin: 0 auto;
+  padding: 16px 24px;
+  box-sizing: border-box;
+}
+
+.html2pdf__page-break { 
+  page-break-before: always; 
+}
+
+#temario-pdf img { 
+  max-width: 100%; 
+  height: auto; 
+}

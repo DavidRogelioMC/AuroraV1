@@ -1,6 +1,7 @@
 // src/components/GeneradorTemarios.jsx
 
 import React, { useState } from 'react';
+import html2pdf from 'html2pdf.js';  
 import EditorDeTemario from './EditorDeTemario'; // Asegúrate de que este componente exista
 import './GeneradorTemarios.css'; // Crearemos este CSS
 
@@ -8,6 +9,9 @@ function GeneradorTemarios() {
   const [temarioGenerado, setTemarioGenerado] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // === NUEVO: ref para el área a exportar ===
+  const pdfTargetRef = useRef(null);
 
   // Estado para los parámetros de la Lambda
   const [params, setParams] = useState({
@@ -74,6 +78,26 @@ function GeneradorTemarios() {
     alert("Funcionalidad de guardado en desarrollo.");
   };
 
+   // === NUEVO: función para exportar PDF ===
+  const exportarPDF = () => {
+    if (!pdfTargetRef.current) return;
+
+    const titulo = temarioGenerado?.tema_curso || 'temario';
+    const filename = `temario_${String(titulo).replace(/\s+/g, '_')}.pdf`;
+
+    html2pdf()
+      .set({
+        margin: [10, 10, 10, 10],
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      })
+      .from(pdfTargetRef.current)
+      .save();
+  };
+  
   return (
     <div className="generador-temarios-container">
       <h2>Generador de Cursos Estándar</h2>
