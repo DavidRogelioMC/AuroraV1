@@ -11,12 +11,15 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   // Área a exportar
   const pdfRef = useRef(null);
 
-  // Exportar PDF (activa vista limpia solo durante la exportación)
+  // Exportar PDF: SOLO la plantilla limpia (.pdf-clean)
   const exportarPDF = async () => {
     if (!pdfRef.current) return;
 
-    // Modo PDF: muestra plantilla limpia y oculta la UI de edición
-    pdfRef.current.classList.add('pdf-mode');
+    const clean = pdfRef.current.querySelector('.pdf-clean');
+    if (!clean) return;
+
+    // Muestra la vista limpia fuera de pantalla mientras se exporta
+    clean.classList.add('pdf-exporting');
 
     try {
       const { default: html2pdf } = await import('html2pdf.js');
@@ -33,11 +36,11 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         })
-        .from(pdfRef.current)
+        .from(clean) // << exportamos SOLO la vista limpia
         .save();
     } finally {
-      // Volver al modo normal
-      pdfRef.current.classList.remove('pdf-mode');
+      // Oculta nuevamente la vista limpia en la UI
+      clean.classList.remove('pdf-exporting');
     }
   };
 
@@ -183,7 +186,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         </div>
         {/* ======= FIN PLANTILLA LIMPIA ======= */}
 
-        {/* ======= VISTA DE APP (se oculta al exportar) ======= */}
+        {/* ======= VISTA DE APP (se mantiene en pantalla, no sale en PDF) ======= */}
         <div className="app-view">
           <div className="vista-selector">
             <button
@@ -431,3 +434,4 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
+
