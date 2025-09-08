@@ -1,7 +1,5 @@
 // src/components/GeneradorTemarios.jsx
-
-import React, { useState } from 'react';
-import html2pdf from 'html2pdf.js';  
+import React, { useState, useRef } from 'react';
 import EditorDeTemario from './EditorDeTemario'; // Asegúrate de que este componente exista
 import './GeneradorTemarios.css'; // Crearemos este CSS
 

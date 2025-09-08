@@ -1,7 +1,6 @@
 // src/components/EditorDeTemario.jsx (CÓDIGO COMPLETO Y FUNCIONAL)
 
 import React, { useState, useEffect, useRef } from 'react'; 
-import html2pdf from 'html2pdf.js';    
 import './EditorDeTemario.css';
 
 function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
@@ -13,22 +12,28 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   const pdfRef = useRef(null);
 
   // Exportar PDF
-  const exportarPDF = () => {
-    if (!pdfRef.current) return;
-    const titulo = temario?.nombre_curso || temario?.tema_curso || 'temario';
-    const filename = `temario_${String(titulo).replace(/\s+/g, '_')}.pdf`;
-    html2pdf()
-      .set({
-        margin: [10,10,10,10],
-        filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all','css','legacy'] }
-      })
-      .from(pdfRef.current)
-      .save();
-  };
+const exportarPDF = async () => {
+  if (!pdfRef.current) return;
+
+  // carga la librería solo cuando se necesita (evita problemas de window/SSR y reduce bundle inicial)
+  const { default: html2pdf } = await import('html2pdf.js');
+
+  const titulo = temario?.nombre_curso || temario?.tema_curso || 'temario';
+  const filename = `temario_${String(titulo).replace(/\s+/g, '_')}.pdf`;
+
+  html2pdf()
+    .set({
+      margin: [10, 10, 10, 10],
+      filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    })
+    .from(pdfRef.current)
+    .save();
+};
+
 
   // Parámetros para re-generación
   const [params, setParams] = useState({
