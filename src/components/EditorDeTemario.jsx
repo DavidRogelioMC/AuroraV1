@@ -98,13 +98,13 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     <div className="editor-container">
       <div className="vista-selector">
         <button 
-          className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
+          className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
           onClick={() => setVista('detallada')}
         >
           Vista Detallada
         </button>
         <button 
-          className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
+          className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
           onClick={() => setVista('resumida')}
         >
           Vista Resumida
