@@ -112,7 +112,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       </div>
       
       <div className="vista-info">
-        {vista === 'detallada' ? (
+        {vista === 'resumida' ? (
           <p>📝 Vista completa con todos los campos editables organizados verticalmente</p>
         ) : (
           <p>📋 Vista compacta con campos organizados en grillas para edición rápida</p>
