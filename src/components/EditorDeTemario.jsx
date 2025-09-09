@@ -101,13 +101,13 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
           onClick={() => setVista('resumida')}
         >
-          Vista Resumida
+          Vista Detallada
         </button>
         <button 
           className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
           onClick={() => setVista('detallada')}
         >
-          Vista Detallada
+          Vista Resumida
         </button>
       </div>
       
