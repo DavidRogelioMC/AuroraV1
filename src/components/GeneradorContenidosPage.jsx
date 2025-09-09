@@ -1,8 +1,10 @@
-// src/components/GeneradorContenidosPage.jsx (VERSIÓN MEJORADA)
-
+// src/components/GeneradorContenidosPage.jsx (VERSIÓN MEJORADA + Botón de Versiones)
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import './GeneradorContenidosPage.css';
+
+// 👇 Importa el botón flotante de versiones
+import BotonVersionesTemario from './BotonVersionesTemario';
 
 function GeneradorContenidosPage() {
   const location = useLocation();
@@ -63,6 +65,12 @@ function GeneradorContenidosPage() {
             pero el menú de arriba ya no será visible */}
         <Outlet /> 
       </div>
+
+      {/* 👇 Botón flotante para ver versiones (funciona en cualquier pantalla) */}
+      <BotonVersionesTemario
+        apiBase="https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2"
+        // cursoId="aws-serverless-basico" // ← si lo dejas comentado, pedirá el cursoId por prompt
+      />
     </div>
   );
 }
