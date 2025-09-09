@@ -1,5 +1,6 @@
 // src/components/GeneradorTemarios.jsx
-import React, { useState, useRef } from 'react';
+
+import React, { useState } from 'react';
 import EditorDeTemario from './EditorDeTemario'; // Asegúrate de que este componente exista
 import './GeneradorTemarios.css'; // Crearemos este CSS
 
@@ -8,15 +9,13 @@ function GeneradorTemarios() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // === NUEVO: ref para el área a exportar ===
-  const pdfTargetRef = useRef(null);
-
   // Estado para los parámetros de la Lambda
   const [params, setParams] = useState({
+    tecnologia: '',
     tema_curso: '',
     extension_curso_dias: 1,
     nivel_dificultad: 'basico',
-    objetivos: '',
+    audiencia: '',
     enfoque: ''
   });
 
@@ -30,8 +29,12 @@ function GeneradorTemarios() {
 
   // Función para generar/regenerar el temario
   const handleGenerar = async (nuevosParams = params) => {
-    if (!nuevosParams.tema_curso) {
-      setError("Por favor, especifica el tema del curso.");
+    if (!nuevosParams.tema_curso || !nuevosParams.tecnologia) {
+      setError("Por favor, especifica la tecnología y el tema del curso.");
+      return;
+    }
+    if (!nuevosParams.audiencia?.trim()) {
+      setError("Por favor, especifica la audiencia del curso.");
       return;
     }
     setIsLoading(true);
@@ -76,26 +79,6 @@ function GeneradorTemarios() {
     alert("Funcionalidad de guardado en desarrollo.");
   };
 
-   // === NUEVO: función para exportar PDF ===
-  const exportarPDF = () => {
-    if (!pdfTargetRef.current) return;
-
-    const titulo = temarioGenerado?.tema_curso || 'temario';
-    const filename = `temario_${String(titulo).replace(/\s+/g, '_')}.pdf`;
-
-    html2pdf()
-      .set({
-        margin: [10, 10, 10, 10],
-        filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      })
-      .from(pdfTargetRef.current)
-      .save();
-  };
-  
   return (
     <div className="generador-temarios-container">
       <h2>Generador de Cursos Estándar</h2>
@@ -104,8 +87,12 @@ function GeneradorTemarios() {
       <div className="formulario-inicial">
         <div className="form-grid">
           <div className="form-group">
+            <label>Tecnología</label>
+            <input name="tecnologia" value={params.tecnologia} onChange={handleParamChange} placeholder="Ej: AWS Serverless, React, Python, etc." />
+          </div>
+          <div className="form-group">
             <label>Tema Principal del Curso</label>
-            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Python, AWS, Scrum" />
+            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Arquitecturas Serverless, Desarrollo Frontend" />
           </div>
           <div className="form-group">
             <label>Duración (días)</label>
@@ -121,12 +108,12 @@ function GeneradorTemarios() {
           </div>
         </div>
         <div className="form-group">
-          <label>Objetivos Específicos (Opcional)</label>
-          <textarea name="objetivos" value={params.objetivos} onChange={handleParamChange} placeholder="Ej: Enfocarse en la creación de APIs REST con FastAPI" />
+          <label>Audiencia</label>
+          <textarea name="audiencia" value={params.audiencia} onChange={handleParamChange} placeholder="Ej: Desarrolladores e Ingenieros de la Nube con experiencia en AWS" />
         </div>
         <div className="form-group">
           <label>Enfoque Adicional (Opcional)</label>
-          <textarea name="enfoque" value={params.enfoque} onChange={handleParamChange} placeholder="Ej: Orientado a principiantes absolutos sin experiencia previa" />
+          <textarea name="enfoque" value={params.enfoque} onChange={handleParamChange} placeholder="Ej: Orientado a patrones de diseño, con énfasis en casos prácticos" />
         </div>
         
         <button className="btn-generar-principal" onClick={() => handleGenerar(params)} disabled={isLoading}>
