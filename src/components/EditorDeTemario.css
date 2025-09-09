@@ -1,4 +1,4 @@
-/* src/components/EditorDeTemario.css (VERSIÓN FINAL Y LIMPIA) */
+/* src/components/EditorDeTemario.css (CÓDIGO COMPLETO Y FINAL) */
 
 .editor-container {
   padding: 2rem;
@@ -24,9 +24,7 @@
 }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* --- ESTILOS PARA LA VISTA DETALLADA Y LA INTERFAZ --- */
-/* (Toda esta sección no afecta al PDF y está correcta) */
-
+/* --- ESTILOS PARA EL SELECTOR DE VISTA --- */
 .vista-selector {
   display: flex;
   justify-content: center;
@@ -70,6 +68,7 @@
   font-style: italic;
 }
 
+/* --- ESTILOS PARA LA VISTA DETALLADA (EDITABLE) --- */
 .editor-label {
   display: block;
   margin-top: 1.5rem;
@@ -138,6 +137,42 @@
   margin-bottom: 0.5rem;
 }
 
+/* --- ESTILOS PARA LA VISTA RESUMIDA --- */
+.vista-resumida {
+  text-align: left;
+  padding: 1rem;
+}
+.vista-resumida h1 {
+  font-size: 1.8rem;
+  color: #1b5784;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.vista-resumida .seccion-resumen {
+  margin-bottom: 1.5rem;
+}
+.vista-resumida h2 {
+  font-size: 1.2rem;
+  color: #343a40;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+.vista-resumida ul {
+  list-style-type: disc;
+  padding-left: 25px;
+}
+.vista-resumida li {
+  margin-bottom: 0.5rem;
+}
+.vista-resumida .capitulo-resumido {
+  margin-bottom: 1rem;
+}
+.vista-resumida .capitulo-resumido strong {
+  font-size: 1.1rem;
+}
+
+/* --- ESTILOS PARA LOS BOTONES DE ACCIÓN --- */
 .acciones-footer {
   display: flex;
   justify-content: flex-end;
@@ -160,148 +195,458 @@
   border-color: #1b5784 !important;
 }
 
-/*
- ==================================================================
- =================== ESTILOS PARA EL PDF FINAL ====================
- ==================================================================
-*/
-
-/* ========= Paleta / Base ========= */
-:root{
-  --pdf-primary:  #0B2D66; /* azul oscuro */
-  --pdf-primary-2:#0C58A0; /* azul secundario */
-  --pdf-text:     #222;
+.btn-exportar {
+  background-color: #e74c3c !important;
+  color: white !important;
+  border-color: #e74c3c !important;
+  transition: background-color 0.2s;
 }
 
-/* Contenedor del módulo PDF */
-#temario-pdf{
-  background:#fff;
-  color:var(--pdf-text);
-  max-width:794px;            /* ~A4 a 96dpi */
-  margin:0 auto;
-  padding:0;
-  box-sizing:border-box;
-  position:relative;
+.btn-exportar:hover {
+  background-color: #c0392b !important;
+  border-color: #c0392b !important;
 }
-#temario-pdf img{ max-width:100%; height:auto; }
-
-/* ========= Vista limpia (contenedor para exportar) ========= */
-#temario-pdf .pdf-clean{
-  display:none;
-  background:#fff;
-  position:relative;
-}
-#temario-pdf .pdf-clean.pdf-exporting{
-  display:block;
-  position:absolute;
-  left:-99999px;      /* fuera del viewport */
-  top:0;
-  width:794px;        /* ancho A4 aproximado */
+.regenerar-form {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 1px solid #cfe7fc;
 }
 
-/* ========= Encabezado Corporativo ========= */
-#temario-pdf .pdf-header-corp {
+.regenerar-form h4 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #1b5784;
+}
+
+.regenerar-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.regenerar-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.regenerar-form .form-group input,
+.regenerar-form .form-group select,
+.regenerar-form .form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.regenerar-form .form-group textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.regenerar-form .form-group input:focus,
+.regenerar-form .form-group select:focus,
+.regenerar-form .form-group textarea:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.regenerar-form button {
+  background-color: #1b5784;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.2s;
+}
+
+.regenerar-form button:hover {
+  background-color: #154660;
+}
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 768px) {
+  .vista-selector {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .vista-selector .btn-vista {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid-capitulo {
+    grid-template-columns: 1fr;
+  }
+  
+  .capitulo-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .acciones-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .acciones-footer button {
+    width: 100%;
+  }
+  
+  .editor-container {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-titulo {
+    font-size: 1.4rem;
+  }
+  
+  .input-titulo-resumido {
+    font-size: 1.3rem;
+  }
+  
+  .subcapitulos-resumidos {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA PDF --- */
+@media print {
+  .vista-selector,
+  .vista-info,
+  .acciones-footer,
+  .regenerar-form {
+    display: none !important;
+  }
+  
+  .editor-container {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+  
+  .input-titulo,
+  .input-titulo-resumido,
+  .input-campo,
+  .input-capitulo,
+  .input-subcapitulo,
+  .textarea-descripcion,
+  .textarea-objetivos-capitulo,
+  .textarea-objetivos-resumido {
+    border: none;
+    background: transparent;
+    resize: none;
+    outline: none;
+  }
+}
+
+/* --- ESTILOS PARA LA VISTA RESUMIDA EDITABLE --- */
+.vista-resumida-editable {
+  background: #fafafa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.input-titulo-resumido {
+  font-size: 1.6rem;
+  font-weight: bold;
+  border: none;
+  border-bottom: 2px solid #eee;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+  background: transparent;
+  transition: border-color 0.3s;
+}
+.input-titulo-resumido:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.info-item {
   display: flex;
-  align-items: center; /* Centra el logo verticalmente */
-  padding: 12px 24px;
-  height: 60px; /* Altura fija para la sección del header */
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-#temario-pdf .header-left {
-  /* Contenedor del logo, por si se necesita en el futuro */
+.info-item label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #555;
 }
 
-#temario-pdf .header-logo-netec {
-  height: 40px; /* Controla el tamaño del logo */
-  width: auto;
+.input-info {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.input-info:focus {
+  border-color: #1b5784;
+  outline: none;
 }
 
-#temario-pdf .pdf-header-divider {
-  height: 3px;
-  background: linear-gradient(90deg, var(--pdf-primary), var(--pdf-primary-2));
-  margin: 0 24px 10px 24px; /* Margen arriba, a los lados, y abajo */
+.seccion-editable {
+  margin-bottom: 1.5rem;
 }
 
-/* ========= Cuerpo del PDF ========= */
-#temario-pdf .pdf-body{
-  position:relative;
-  z-index:1;
-  padding:8px 24px 0 24px;
+.seccion-editable h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1b5784;
+  font-size: 1.1rem;
 }
 
-#temario-pdf .pdf-title{
-  margin:6px 0 8px;
-  font-size:28px;
-  line-height:1.15;
-  font-weight:800;
-  color:var(--pdf-primary);
+.textarea-resumido {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+}
+.textarea-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
 }
 
-#temario-pdf .pdf-meta{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:6px 16px;
-  font-size:12.5px;
-  margin:6px 0 16px;
+.capitulo-resumido {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
 }
 
-#temario-pdf .pdf-clean h2{
-  font-size:18px;
-  margin:18px 0 8px;
-  color:var(--pdf-primary);
-  border-bottom:2px solid var(--pdf-primary);
-  padding-bottom:6px;
-  page-break-after:avoid;
+.input-capitulo-resumido {
+  width: 100%;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  border: none;
+  border-bottom: 2px solid #eee;
+  background: transparent;
+  margin-bottom: 1rem;
+  color: #333;
 }
-#temario-pdf .pdf-clean h3{
-  font-size:15px;
-  margin:14px 0 6px;
-  color:var(--pdf-primary);
-  page-break-after:avoid;
-}
-
-#temario-pdf .pdf-clean p,
-#temario-pdf .pdf-clean li{
-  font-size:12.5px;
-  line-height:1.45;
-  color:var(--pdf-text);
-}
-#temario-pdf .pdf-justify{ text-align:justify; }
-
-/* Capítulos y subcapítulos */
-#temario-pdf .pdf-capitulo{
-  margin:10px 0 12px;
-  page-break-inside:avoid;
-}
-#temario-pdf .pdf-cap-meta{
-  font-size:12px;
-  color:#555;
-  margin:0 0 6px;
-}
-#temario-pdf .pdf-cap-meta span{ white-space:nowrap; }
-
-#temario-pdf .pdf-subcapitulos{
-  margin:6px 0 0 18px;
-  padding:0;
-}
-#temario-pdf .pdf-subcapitulos li{
-  margin:2px 0;
-  list-style:disc;
-}
-#temario-pdf .pdf-sub-meta{
-  margin-left:6px;
-  font-size:11.5px;
-  color:#555;
+.input-capitulo-resumido:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
 }
 
-/* Utilidades */
-#temario-pdf .pdf-clean *{
-  word-wrap:break-word;
-  overflow-wrap:anywhere;
+.subcapitulos-resumidos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
-.html2pdf__page-break{ page-break-before:always; }
+.subcapitulo-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
 
-.pb-before { break-before: page; page-break-before: always; }
-.pb-after  { break-after:  page; page-break-after:  always; }
-.pb-avoid  { break-inside: avoid; page-break-inside: avoid; }
+.input-subcapitulo-resumido {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: #f9f9f9;
+}
+.input-subcapitulo-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+  background: white;
+}
+
+.subcapitulo-tiempos {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.input-tiempo-sub, .input-sesion-sub {
+  width: 60px;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.input-tiempo-sub:focus, .input-sesion-sub:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.info-grid-capitulo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f0f8ff;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.info-grid-capitulo .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.info-grid-capitulo .info-item label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.input-info-small {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+.input-info-small:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.input-campo {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.input-campo:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+/* --- ESTILOS PARA LOS NUEVOS ELEMENTOS --- */
+.capitulo-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.capitulo-info-grid .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.capitulo-info-grid .info-item label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.capitulo-info-grid .input-info {
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.capitulo-info-grid .input-info:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.objetivos-capitulo {
+  margin: 1rem 0;
+}
+
+.objetivos-capitulo label {
+  display: block;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.textarea-objetivos-capitulo {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea-objetivos-capitulo:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.objetivos-capitulo-resumido {
+  margin: 1rem 0;
+}
+
+.objetivos-capitulo-resumido label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.3rem;
+}
+
+.textarea-objetivos-resumido {
+  width: 100%;
+  min-height: 60px;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea-objetivos-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
