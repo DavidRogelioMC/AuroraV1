@@ -99,15 +99,15 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       <div className="vista-selector">
         <button 
           className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
-          onClick={() => setVista('detallada')}
-        >
-          Vista Detallada
-        </button>
-        <button 
-          className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
           onClick={() => setVista('resumida')}
         >
           Vista Resumida
+        </button>
+        <button 
+          className={`btn-vista ${vista === 'detallada' ? 'activo' : ''}`}
+          onClick={() => setVista('detallada')}
+        >
+          Vista Detallada
         </button>
       </div>
       
@@ -159,7 +159,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           <label className="editor-label">Objetivos</label>
           <textarea name="objetivos" value={temario.objetivos || ''} onChange={handleInputChange} className="textarea-descripcion" placeholder="Lista los objetivos principales del curso, separados por líneas" />
 
-          <h3>Temario Detallado</h3>
+          <h3>Temario Resumido</h3>
           {(temario.temario || []).map((cap, capIndex) => (
             <div key={capIndex} className="capitulo-editor">
               <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo" placeholder="Nombre del capítulo"/>
@@ -272,7 +272,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
             <textarea name="objetivos" value={temario.objetivos || ''} onChange={handleInputChange} className="textarea-resumido" placeholder="Lista los objetivos principales del curso, separados por líneas" />
           </div>
 
-          <h3>Temario Resumido</h3>
+          <h3>Temario Detallado</h3>
           {(temario.temario || []).map((cap, capIndex) => (
             <div key={capIndex} className="capitulo-resumido">
               <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
