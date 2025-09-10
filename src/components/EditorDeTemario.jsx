@@ -157,129 +157,51 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     }
   };
 
-  // Función para exportar PDF profesional con marca de agua y estructura corporativa
-  const exportarPDF = async () => {
+  // Función para exportar PDF con logo de Netec de fondo
+  const exportarPDF = () => {
     const elemento = pdfRef.current;
     if (!elemento) {
       console.error("No se encontró el elemento PDF");
       return;
     }
 
-    try {
-      // Agregar clase para hacer visible el contenido durante la exportación
-      elemento.classList.add('pdf-exporting');
-      
-      // Convertir logo de Netec a base64 para la marca de agua
-      const logoDataUrl = await toDataURL(netecLogo);
-      const logoTranslucent = await makeTranslucent(logoDataUrl, 0.08);
+    // Agregar clase para hacer visible el contenido durante la exportación
+    elemento.classList.add('pdf-exporting');
 
-      // Configuración para el PDF con marca de agua
-      const options = {
-        margin: [15, 15, 25, 15],
-        filename: `Temario_${temario.nombre_curso?.replace(/[^a-zA-Z0-9]/g, '_') || 'documento'}_${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          removeContainer: true
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait',
-          compress: true
-        }
-      };
-
-      const pdf = await html2pdf()
-        .set(options)
-        .from(elemento)
-        .toPdf()
-        .get('pdf');
-
-      const totalPages = pdf.internal.getNumberOfPages();
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      // Agregar marca de agua en cada página
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        
-        // Marca de agua con logo de Netec centrado
-        const logoWidth = 80;
-        const logoHeight = 40;
-        const logoX = (pageWidth - logoWidth) / 2;
-        const logoY = (pageHeight - logoHeight) / 2;
-        
-        pdf.addImage(
-          logoTranslucent,
-          'PNG',
-          logoX,
-          logoY,
-          logoWidth,
-          logoHeight,
-          undefined,
-          'NONE'
-        );
-        
-        // Header corporativo discreto
-        pdf.setFontSize(8);
-        pdf.setTextColor(120, 120, 120);
-        pdf.text(
-          'Documento Confidencial - GlobalK S.A. de C.V.',
-          pageWidth / 2,
-          10,
-          { align: 'center' }
-        );
-        
-        // Footer corporativo profesional
-        pdf.setFontSize(8);
-        pdf.setTextColor(100, 100, 100);
-        
-        // Línea decorativa en el footer
-        pdf.setDrawColor(27, 87, 132);
-        pdf.setLineWidth(0.5);
-        pdf.line(15, pageHeight - 15, pageWidth - 15, pageHeight - 15);
-        
-        // Texto del footer
-        pdf.text(
-          `GlobalK S.A. de C.V.`,
-          15,
-          pageHeight - 8,
-          { align: 'left' }
-        );
-        
-        pdf.text(
-          `Página ${i} de ${totalPages}`,
-          pageWidth / 2,
-          pageHeight - 8,
-          { align: 'center' }
-        );
-        
-        pdf.text(
-          new Date().toLocaleDateString('es-ES'),
-          pageWidth - 15,
-          pageHeight - 8,
-          { align: 'right' }
-        );
+    const options = {
+      margin: 1,
+      filename: `Temario_${temario.nombre_curso || 'documento'}_${new Date().toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      },
+      jsPDF: { 
+        unit: 'in', 
+        format: 'letter', 
+        orientation: 'portrait' 
       }
+    };
 
-      await pdf.save();
-      setOkUi("PDF exportado correctamente ✔");
-      
-    } catch (error) {
-      console.error("Error al generar PDF:", error);
-      setErrorUi("Error al generar el PDF: " + error.message);
-    } finally {
-      // Remover la clase después de la exportación
-      elemento.classList.remove('pdf-exporting');
-    }
-  };
-
-  const exportarExcel = () => {
+    html2pdf()
+      .set(options)
+      .from(elemento)
+      .save()
+      .then(() => {
+        console.log("PDF guardado exitosamente");
+        setOkUi("PDF exportado correctamente ✔");
+      })
+      .catch((error) => {
+        console.error("Error al generar PDF:", error);
+        setErrorUi("Error al generar el PDF");
+      })
+      .finally(() => {
+        // Remover la clase después de la exportación
+        elemento.classList.remove('pdf-exporting');
+      });
+  };  const exportarExcel = () => {
     if (!temario) {
       setErrorUi("No hay temario para exportar");
       return;
@@ -780,6 +702,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
+
 
 
 
