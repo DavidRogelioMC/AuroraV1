@@ -750,6 +750,8 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
   line-height: 1.6;
+  display: block;
+  visibility: visible;
 }
 
 .pdf-clean.pdf-exporting {
@@ -758,6 +760,7 @@
   left: -9999px;
   width: 210mm;
   visibility: visible;
+  display: block !important;
 }
 
 .pdf-header-corp {
@@ -910,10 +913,10 @@
   margin-top: 30px;
 }
 
-/* Ocultar contenido PDF en vista normal */
+/* Ocultar contenido PDF en vista normal pero permitir que html2pdf lo procese */
 @media screen {
-  .pdf-clean {
-    display: none;
+  .pdf-clean:not(.pdf-exporting) {
+    display: none !important;
   }
 }
 
