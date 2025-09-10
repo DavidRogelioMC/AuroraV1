@@ -1,121 +1,133 @@
-// src/components/EditorDeTemario.jsx
-import React, { useState, useEffect, useRef } from "react";
-import html2pdf from "html2pdf.js";
-import "./EditorDeTemario.css";
+import React, { useState } from 'react';
+import EditorDeTemario from './EditorDeTemario'; 
+import './GeneradorTemarios.css';
 
-// Utilidad: slugify para IDs
-function slugify(str = "") {
-  return String(str)
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "curso";
-}
+function GeneradorTemarios() {
+  const [temarioGenerado, setTemarioGenerado] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-// Exportar CSV en memoria (Excel lo abre sin problemas)
-function downloadCSV(filename, rows) {
-  const csv = rows.map(r => r.map(cell => {
-    const s = (cell ?? "").toString();
-    if (s.includes('"') || s.includes(",") || s.includes("\n")) {
-      return `"${s.replace(/"/g, '""')}"`;
+  // Estado para los parámetros
+  const [params, setParams] = useState({
+    tecnologia: '',
+    tema_curso: '',
+    extension_curso_dias: 1,
+    nivel_dificultad: 'basico',
+    audiencia: '',
+    enfoque: ''
+  });
+
+  // URL de tu API Gateway que invoca la Lambda
+  const apiUrl = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/PruebaTEM";
+
+  const handleParamChange = (e) => {
+    const { name, value } = e.target;
+    setParams(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Generar/regenerar temario
+  const handleGenerar = async (nuevosParams = params) => {
+    if (!nuevosParams.tema_curso || !nuevosParams.tecnologia) {
+      setError("Por favor, especifica la tecnología y el tema del curso.");
+      return;
     }
-    return s;
-  }).join(",")).join("\n");
+    if (!nuevosParams.audiencia?.trim()) {
+      setError("Por favor, especifica la audiencia del curso.");
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    setTemarioGenerado(null);
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+    try {
+      const token = localStorage.getItem("id_token");
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(nuevosParams)
+      });
+      
+      const data = await response.json();
 
-function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
-  const [temario, setTemario] = useState(temarioInicial);
-
-  const pdfTargetRef = useRef(null);
-
-  useEffect(() => {
-    setTemario(temarioInicial);
-  }, [temarioInicial]);
-
-  // Exportar PDF
-  const exportarPDF = () => {
-    if (!pdfTargetRef.current) return;
-    const titulo = temario?.nombre_curso || "temario";
-    const filename = `temario_${String(titulo).replace(/\s+/g, "_")}.pdf`;
-    html2pdf()
-      .set({
-        margin: [10, 10, 10, 10],
-        filename,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-      })
-      .from(pdfTargetRef.current)
-      .save();
-  };
-
-  // Exportar Excel (CSV)
-  const exportarCSV = () => {
-    if (!temario) return;
-    const rows = [];
-    rows.push(["Curso", temario?.nombre_curso || ""]);
-    rows.push(["Versión", temario?.version_tecnologia || ""]);
-    rows.push([]);
-    rows.push(["Capítulo", "Subcapítulo"]);
-
-    (temario?.temario || []).forEach(cap => {
-      const capitulo = cap?.capitulo || "";
-      if (cap?.subcapitulos?.length) {
-        cap.subcapitulos.forEach(sub => {
-          const nombreSub = typeof sub === "object" ? sub.nombre : sub;
-          rows.push([capitulo, nombreSub || ""]);
-        });
-      } else {
-        rows.push([capitulo, ""]);
+      if (!response.ok) {
+        throw new Error(data.error || "Ocurrió un error en el servidor.");
       }
-    });
-
-    const filename = `temario_${slugify(temario?.nombre_curso)}.csv`;
-    downloadCSV(filename, rows);
+      
+      const temarioCompleto = { ...data, ...nuevosParams };
+      setTemarioGenerado(temarioCompleto);
+      
+    } catch (err) {
+      console.error("Error al generar el temario:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (!temario) return null;
+  // Guardar versión
+  const handleSave = async (temarioParaGuardar) => {
+    console.log("Guardando esta versión del temario:", temarioParaGuardar);
+    alert("Funcionalidad de guardado en desarrollo.");
+  };
 
   return (
-    <div className="editor-container">
-      <h3>Temario Generado</h3>
+    <div className="generador-temarios-container">
+      <h2>Generador de Cursos Estándar</h2>
+      <p>Introduce los detalles para generar una propuesta de temario con IA.</p>
 
-      {/* Acciones */}
-      <div className="acciones-footer">
-        <button onClick={() => onRegenerate(temario)} disabled={isLoading}>
-          {isLoading ? "Regenerando..." : "Regenerar"}
-        </button>
-        <button className="btn-guardar" onClick={() => onSave(temario)}>
-          Guardar versión
-        </button>
-        <button className="btn-secundario" onClick={exportarPDF}>
-          Exportar PDF
-        </button>
-        <button className="btn-exportar" onClick={exportarCSV}>
-          Exportar Excel (CSV)
+      <div className="formulario-inicial">
+        <div className="form-grid">
+          <div className="form-group">
+            <label>Tecnología</label>
+            <input name="tecnologia" value={params.tecnologia} onChange={handleParamChange} placeholder="Ej: AWS Serverless, React, Python, etc." />
+          </div>
+          <div className="form-group">
+            <label>Tema Principal del Curso</label>
+            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Arquitecturas Serverless, Desarrollo Frontend" />
+          </div>
+          <div className="form-group">
+            <label>Duración (días)</label>
+            <input name="extension_curso_dias" type="number" min="1" value={params.extension_curso_dias} onChange={handleParamChange} />
+          </div>
+          <div className="form-group">
+            <label>Nivel de Dificultad</label>
+            <select name="nivel_dificultad" value={params.nivel_dificultad} onChange={handleParamChange}>
+              <option value="basico">Básico</option>
+              <option value="intermedio">Intermedio</option>
+              <option value="avanzado">Avanzado</option>
+            </select>
+          </div>
+        </div>
+        <div className="form-group">
+          <label>Audiencia</label>
+          <textarea name="audiencia" value={params.audiencia} onChange={handleParamChange} placeholder="Ej: Desarrolladores e Ingenieros de la Nube con experiencia en AWS" />
+        </div>
+        <div className="form-group">
+          <label>Enfoque Adicional (Opcional)</label>
+          <textarea name="enfoque" value={params.enfoque} onChange={handleParamChange} placeholder="Ej: Orientado a patrones de diseño, con énfasis en casos prácticos" />
+        </div>
+        
+        <button className="btn-generar-principal" onClick={() => handleGenerar(params)} disabled={isLoading}>
+          {isLoading ? 'Generando...' : 'Generar Propuesta de Temario'}
         </button>
       </div>
 
-      {/* Contenido para PDF */}
-      <div ref={pdfTargetRef}>
-        <pre className="temario-json">
-          {JSON.stringify(temario, null, 2)}
-        </pre>
-      </div>
+      {error && <div className="error-mensaje">{error}</div>}
+
+      {temarioGenerado && (
+        <EditorDeTemario
+          temarioInicial={temarioGenerado}
+          onRegenerate={handleGenerar}
+          onSave={handleSave}
+          isLoading={isLoading}
+        />
+      )}
     </div>
   );
 }
 
-export default EditorDeTemario;
+export default GeneradorTemarios;
 
