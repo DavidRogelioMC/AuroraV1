@@ -1,0 +1,158 @@
+/* src/components/HistorialTemarios.css */
+.historial-card {
+  margin-top: 2rem;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  background: #fafafa;
+  padding: 1rem 1.25rem;
+}
+
+.historial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-bottom: .5rem;
+}
+
+.historial-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #0e3b4a;
+}
+
+.curso-tag {
+  color: #666;
+  font-weight: 500;
+}
+
+.historial-controls {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.historial-controls input,
+.historial-controls select {
+  padding: .45rem .6rem;
+  border: 1px solid #d5d5d5;
+  border-radius: 6px;
+  font-size: .95rem;
+  background: #fff;
+}
+
+.historial-controls button {
+  padding: .5rem .75rem;
+  border: 1px solid #035b6e;
+  border-radius: 6px;
+  color: #fff;
+  background: #035b6e;
+  cursor: pointer;
+}
+.historial-controls button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.historial-error {
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  color: #7b1f1c;
+  padding: .75rem;
+  border-radius: 8px;
+  margin: .5rem 0 1rem;
+}
+
+.historial-empty {
+  color: #666;
+  padding: .75rem 0 1rem;
+}
+
+.historial-lista {
+  list-style: none;
+  padding: 0;
+  margin: .5rem 0 0;
+}
+
+.historial-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border-top: 1px dashed #e1e1e1;
+  padding: .75rem 0;
+}
+.historial-item:first-child {
+  border-top: none;
+}
+
+.historial-main {
+  display: grid;
+  gap: .2rem;
+}
+
+.historial-fecha {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.latest-chip {
+  background: #e8f4ff;
+  color: #0c5a88;
+  border: 1px solid #b7dcff;
+  font-size: .75rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.historial-nota {
+  color: #333;
+}
+
+.historial-meta {
+  color: #777;
+  font-size: .9rem;
+}
+
+.muted {
+  color: #aaa;
+}
+
+.historial-actions {
+  display: flex;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
+.btn-light {
+  background: #fff;
+  color: #333;
+  border: 1px solid #cfcfcf;
+  padding: .45rem .65rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #035b6e;
+  color: #fff;
+  border: 1px solid #035b6e;
+  padding: .45rem .65rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-light:hover { background: #f7f7f7; }
+.btn-primary:hover { background: #197fa6; border-color: #197fa6; }
+
+@media (max-width: 640px) {
+  .historial-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .historial-actions {
+    justify-content: flex-end;
+  }
+}
