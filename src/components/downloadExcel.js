@@ -1,57 +1,69 @@
 // src/utils/downloadExcel.js
-export function downloadTemarioAsExcel(temarioJson, cursoId = "curso", versionId = "version") {
-  const lines = [];
-  const safe = (v) => {
-    const s = (v ?? "").toString().replace(/"/g, '""');
-    return /[",\n]/.test(s) ? `"${s}"` : s;
-  };
-
-  // Cabeceras básicas
-  lines.push(["Campo", "Valor"].map(safe).join(","));
-  lines.push(["Nombre del curso", temarioJson?.nombre_curso || ""].map(safe).join(","));
-  lines.push(["Versión tecnología", temarioJson?.version_tecnologia || ""].map(safe).join(","));
-  lines.push(["Horas totales", temarioJson?.horas_totales || ""].map(safe).join(","));
-  lines.push(["Número de sesiones", temarioJson?.numero_sesiones || ""].map(safe).join(","));
-  lines.push(["EOL", temarioJson?.EOL || ""].map(safe).join(","));
-  lines.push(["% Teoría/Práctica general", temarioJson?.porcentaje_teoria_practica_general || ""].map(safe).join(","));
-  lines.push([]);
-
-  // Secciones largas
-  lines.push(["Descripción general", (temarioJson?.descripcion_general || "").replace(/\n/g, " ")].map(safe).join(","));
-  lines.push(["Audiencia", (temarioJson?.audiencia || "").replace(/\n/g, " ")].map(safe).join(","));
-  lines.push(["Prerrequisitos", (temarioJson?.prerrequisitos || "").replace(/\n/g, " ")].map(safe).join(","));
-  lines.push(["Objetivos", (temarioJson?.objetivos || "").replace(/\n/g, " ")].map(safe).join(","));
-  lines.push([]);
-
-  // Temario detallado
-  lines.push(["Capítulo", "Subcapítulo", "Duración cap (min)", "Distribución cap", "Tiempo sub (min)", "Sesión"].map(safe).join(","));
-  for (const cap of (temarioJson?.temario || [])) {
-    const capTitulo = cap?.capitulo || "";
-    const dur = cap?.tiempo_capitulo_min ?? "";
-    const dist = cap?.porcentaje_teoria_practica_capitulo || "";
-    const subs = cap?.subcapitulos || [];
-
-    if (!subs.length) {
-      lines.push([capTitulo, "", dur, dist, "", ""].map(safe).join(","));
-    } else {
-      for (const sub of subs) {
-        const nombreSub = typeof sub === "object" ? (sub?.nombre || "") : (sub ?? "");
-        const tSub = typeof sub === "object" ? (sub?.tiempo_subcapitulo_min ?? "") : "";
-        const ses = typeof sub === "object" ? (sub?.sesion ?? "") : "";
-        lines.push([capTitulo, nombreSub, dur, dist, tSub, ses].map(safe).join(","));
-      }
-    }
-  }
-
-  const csv = lines.join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-
-  const file = `${cursoId}_${versionId}.csv`;
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = file;
+// Intenta usar `xlsx`. Si no existe, genera un CSV como fallback.
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
   a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function toRowsFromTemario(temario) {
+  const rows = [];
+  rows.push(['Nombre del curso', temario?.nombre_curso || '']);
+  rows.push(['Versión', temario?.version_tecnologia || '']);
+  rows.push(['Horas totales', temario?.horas_totales || '']);
+  rows.push(['Número de sesiones', temario?.numero_sesiones || '']);
+  rows.push([]);
+  rows.push(['Capítulo', 'Subcapítulo', 'Minutos', 'Sesión', 'Distribución', 'Objetivos capítulo']);
+
+  (temario?.temario || []).forEach(cap => {
+    const dist = cap?.porcentaje_teoria_practica_capitulo || '';
+    const objetivos = Array.isArray(cap?.objetivos_capitulo)
+      ? cap.objetivos_capitulo.join(' | ')
+      : (cap?.objetivos_capitulo || '');
+
+    if (Array.isArray(cap?.subcapitulos) && cap.subcapitulos.length > 0) {
+      cap.subcapitulos.forEach(sub => {
+        const nombre = typeof sub === 'object' ? (sub?.nombre || '') : (sub || '');
+        const minutos = typeof sub === 'object' ? (sub?.tiempo_subcapitulo_min || '') : '';
+        const sesion = typeof sub === 'object' ? (sub?.sesion || '') : '';
+        rows.push([cap?.capitulo || '', nombre, minutos, sesion, dist, objetivos]);
+      });
+    } else {
+      rows.push([cap?.capitulo || '', '', '', '', dist, objetivos]);
+    }
+  });
+
+  return rows;
+}
+
+export async function downloadExcelTemario(temario) {
+  const filenameBase = (temario?.nombre_curso || 'temario').toString().trim().replace(/\s+/g, '_');
+
+  try {
+    const XLSX = (await import('xlsx')).default;
+    const rows = toRowsFromTemario(temario);
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Temario');
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    downloadBlob(blob, `${filenameBase}.xlsx`);
+  } catch {
+    // Fallback CSV
+    const rows = toRowsFromTemario(temario);
+    const csv = rows.map(r =>
+      r.map(cell => {
+        const v = (cell ?? '').toString().replace(/"/g, '""');
+        return `"${v}"`;
+      }).join(',')
+    ).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    downloadBlob(blob, `${filenameBase}.csv`);
+  }
 }
