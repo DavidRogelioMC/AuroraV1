@@ -748,10 +748,14 @@
 /* --- ESTILOS PARA PDF PROFESIONAL --- */
 .pdf-clean {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  line-height: 1.6;
+  color: #2c3e50;
+  line-height: 1.8;
   display: block;
   visibility: visible;
+  max-width: 210mm;
+  background: #ffffff;
+  padding: 0;
+  margin: 0;
 }
 
 .pdf-clean.pdf-exporting {
@@ -761,156 +765,305 @@
   width: 210mm;
   visibility: visible;
   display: block !important;
+  z-index: -1;
 }
 
 .pdf-header-corp {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 0;
-  margin-bottom: 10px;
+  padding: 20px 0 15px 0;
+  margin-bottom: 15px;
+  border-bottom: 3px solid #1b5784;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px 8px 0 0;
 }
 
 .header-logo-netec {
-  height: 50px;
+  height: 55px;
   width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .pdf-header-divider {
-  height: 3px;
-  background: linear-gradient(90deg, #1b5784 0%, #0c58a0 100%);
-  margin-bottom: 20px;
+  height: 4px;
+  background: linear-gradient(90deg, #1b5784 0%, #3498db 50%, #1b5784 100%);
+  margin-bottom: 25px;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(27, 87, 132, 0.2);
 }
 
 .pdf-title {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 700;
   color: #1b5784;
   text-align: center;
-  margin: 20px 0 25px 0;
-  border-bottom: 2px solid #e9ecef;
-  padding-bottom: 10px;
+  margin: 25px 0 30px 0;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  position: relative;
+}
+
+.pdf-title::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #1b5784, #3498db, #1b5784);
+  border-radius: 10px;
+  z-index: -1;
 }
 
 .pdf-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  margin: 20px 0;
-  border-left: 4px solid #1b5784;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  padding: 20px;
+  border-radius: 10px;
+  margin: 25px 0;
+  border: 2px solid #e9ecef;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .pdf-meta div {
-  font-size: 14px;
+  font-size: 15px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-radius: 6px;
+  border-left: 4px solid #1b5784;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 
 .pdf-meta strong {
   color: #1b5784;
-  font-weight: 600;
+  font-weight: 700;
+  display: inline-block;
+  min-width: 100px;
 }
 
 .pdf-body h2 {
   color: #1b5784;
-  font-size: 18px;
-  font-weight: 600;
-  margin: 25px 0 15px 0;
-  border-bottom: 1px solid #dee2e6;
-  padding-bottom: 5px;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 35px 0 20px 0;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #1b5784 0%, #3498db 100%);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(27, 87, 132, 0.2);
+  position: relative;
+}
+
+.pdf-body h2::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 20px;
+  width: 60px;
+  height: 3px;
+  background: #f39c12;
+  border-radius: 2px;
 }
 
 .pdf-body h3 {
-  color: #495057;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 20px 0 10px 0;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 650;
+  margin: 25px 0 15px 0;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #ecf0f1 0%, #ffffff 100%);
+  border-left: 5px solid #3498db;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .pdf-justify {
   text-align: justify;
-  margin: 10px 0;
-  font-size: 14px;
-  line-height: 1.6;
+  margin: 15px 0;
+  font-size: 15px;
+  line-height: 1.8;
+  padding: 15px 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 
 .pdf-capitulo {
-  margin: 20px 0;
+  margin: 30px 0;
   page-break-inside: avoid;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid #e9ecef;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+.pdf-capitulo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #1b5784 0%, #3498db 50%, #e74c3c 100%);
+  border-radius: 12px 12px 0 0;
 }
 
 .pdf-cap-meta {
-  font-size: 12px;
-  color: #6c757d;
-  background: #f1f3f4;
-  padding: 8px 12px;
-  border-radius: 4px;
-  margin: 8px 0;
+  font-size: 14px;
+  color: #5d6d7e;
+  background: linear-gradient(135deg, #ebf3fd 0%, #ffffff 100%);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 12px 0;
+  border: 1px solid #d6eaf8;
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
 }
 
 .pdf-cap-meta strong {
-  color: #495057;
+  color: #2980b9;
+  font-weight: 700;
 }
 
 .pdf-objetivos-cap {
-  margin: 12px 0;
-  padding: 10px;
-  background: #f8f9fa;
-  border-left: 3px solid #1b5784;
-  border-radius: 0 4px 4px 0;
+  margin: 18px 0;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fef9e7 0%, #ffffff 100%);
+  border-left: 5px solid #f39c12;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 3px 8px rgba(243, 156, 18, 0.1);
 }
 
 .pdf-objetivos-cap strong {
-  color: #1b5784;
-  font-size: 14px;
+  color: #e67e22;
+  font-size: 16px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 10px;
 }
 
 .pdf-objetivos-lista {
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .pdf-objetivo-item {
-  font-size: 13px;
-  color: #495057;
-  margin: 4px 0;
-  padding-left: 10px;
+  font-size: 14px;
+  color: #2c3e50;
+  margin: 6px 0;
+  padding: 8px 12px 8px 25px;
+  background: #ffffff;
+  border-radius: 6px;
+  border-left: 3px solid #f39c12;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  position: relative;
+}
+
+.pdf-objetivo-item::before {
+  content: '▸';
+  position: absolute;
+  left: 8px;
+  color: #f39c12;
+  font-weight: bold;
 }
 
 .pdf-subcapitulos {
   list-style: none;
   padding-left: 0;
-  margin: 15px 0;
+  margin: 20px 0;
 }
 
 .pdf-subcapitulos li {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  margin: 4px 0;
-  background: #ffffff;
+  padding: 12px 16px;
+  margin: 6px 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   border: 1px solid #e9ecef;
-  border-radius: 4px;
-  font-size: 13px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.pdf-subcapitulos li::before {
+  content: counter(subcap-counter, decimal);
+  counter-increment: subcap-counter;
+  position: absolute;
+  left: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: #3498db;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.pdf-subcapitulos {
+  counter-reset: subcap-counter;
 }
 
 .pdf-subcapitulos li:nth-child(odd) {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-left: 4px solid #3498db;
+}
+
+.pdf-subcapitulos li:nth-child(even) {
+  background: linear-gradient(135deg, #ffffff 0%, #ecf0f1 100%);
+  border-left: 4px solid #e74c3c;
 }
 
 .pdf-sub-meta {
-  font-size: 11px;
-  color: #6c757d;
-  font-weight: 500;
+  font-size: 12px;
+  color: #7f8c8d;
+  font-weight: 600;
+  background: #ecf0f1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #bdc3c7;
 }
 
 .html2pdf__page-break {
   page-break-before: always;
+  height: 1px;
+  margin: 0;
+  padding: 0;
 }
 
 .app-view {
-  margin-top: 30px;
+  margin-top: 40px;
+}
+
+/* Efectos adicionales para profesionalizar */
+.pdf-body {
+  position: relative;
+}
+
+.pdf-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -10px;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #1b5784 0%, #3498db 50%, #e74c3c 100%);
+  border-radius: 2px;
+  opacity: 0.6;
 }
 
 /* Ocultar contenido PDF en vista normal pero permitir que html2pdf lo procese */
