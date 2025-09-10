@@ -1,4 +1,3 @@
-// src/components/EditorDeTemario.jsx
 import React, { useState, useEffect, useRef } from "react";
 import html2pdf from "html2pdf.js";
 import { downloadExcelTemario } from "../utils/downloadExcel";
@@ -162,7 +161,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         </div>
       )}
 
-      {/* Vista selector */}
+      {/* Selector de vista */}
       <div className="vista-selector">
         <button
           className={`btn-vista ${vista === "detallada" ? "activo" : ""}`}
@@ -185,9 +184,37 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         </div>
       ) : (
         <div ref={pdfTargetRef}>
-          <pre className="temario-json">
-            {JSON.stringify(temario, null, 2)}
-          </pre>
+          {/* Vista detallada */}
+          {vista === "detallada" ? (
+            <div>
+              <h3>{temario?.nombre_curso || "Curso sin título"}</h3>
+              <p><strong>Versión:</strong> {temario?.version_tecnologia || "-"}</p>
+              <p><strong>Horas totales:</strong> {temario?.horas_totales || "-"}</p>
+              <p><strong>Sesiones:</strong> {temario?.numero_sesiones || "-"}</p>
+              <p><strong>Audiencia:</strong> {temario?.audiencia || "-"}</p>
+              <p><strong>Descripción:</strong> {temario?.descripcion_general || "-"}</p>
+              <h4>Capítulos</h4>
+              <ul>
+                {(temario?.temario || []).map((cap, i) => (
+                  <li key={i}>
+                    <strong>{cap.capitulo}</strong>
+                    <ul>
+                      {(cap.subcapitulos || []).map((sub, j) => (
+                        <li key={j}>
+                          {typeof sub === "object" ? sub.nombre : sub}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            // Vista resumida
+            <pre className="temario-json">
+              {JSON.stringify(temario, null, 2)}
+            </pre>
+          )}
         </div>
       )}
 
@@ -267,4 +294,5 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
+
 
