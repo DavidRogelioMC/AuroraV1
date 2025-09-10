@@ -1,111 +1,190 @@
-/* --- ESTILOS PARA EL MENÚ EXPORTAR --- */
-.exportar-wrapper {
-  position: relative;
-  display: inline-block;
+/* src/components/ExamenesPage.css (CÓDIGO FINAL Y COMPLETO) */
+
+.examenes-container {
+  max-width: 700px;
+  margin: 40px auto;
+  background: #fefefe;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
-.exportar-wrapper .btn-exportar {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s ease;
+.examenes-container h2 {
+  font-size: 26px;
+  margin-bottom: 15px;
+  color: #035b6e;
 }
 
-.exportar-wrapper .btn-exportar:hover {
-  background-color: #c0392b;
-}
-
-.exportar-menu {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 110%;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  min-width: 160px;
-  z-index: 20;
-  flex-direction: column;
-}
-
-.exportar-wrapper:hover .exportar-menu {
-  display: flex;
-}
-
-.exportar-menu button {
-  background: none;
-  border: none;
-  padding: 10px 15px;
-  text-align: left;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #333;
-  transition: background-color 0.2s ease;
-}
-
-.exportar-menu button:hover {
-  background-color: #f5f5f5;
-}
-
-/* --- MODAL DE VERSIONES --- */
-.modal-versiones {
-  position: fixed;
-  top: 0;
-  left: 0;
+.examenes-container select,
+.examenes-container input {
   width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 200;
+  padding: 12px;
+  margin: 12px 0;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.modal-versiones .modal-content {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 10px;
-  width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  text-align: left;
-}
-
-.modal-versiones h3 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #1b5784;
-}
-
-.modal-versiones ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.modal-versiones li {
-  padding: 0.75rem;
-  border-bottom: 1px solid #eee;
-  font-size: 0.95rem;
-}
-
-.modal-versiones button {
-  margin-top: 1rem;
+/* Estilo para el botón principal de 'Generar Examen' */
+.examenes-container button {
   background-color: #035b6e;
-  color: #fff;
-  padding: 10px 18px;
+  color: white;
+  padding: 12px 20px;
+  font-size: 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s;
 }
 
-.modal-versiones button:hover {
+.examenes-container button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.examenes-container button:hover:not(:disabled) {
   background-color: #197fa6;
 }
 
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+/* Spinner de carga */
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #035b6e;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 2rem auto;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* --- ESTILOS PARA EL EXAMEN GENERADO --- */
+
+.examen-resultado {
+  margin-top: 2rem;
+  text-align: left;
+  border-top: 1px solid #ddd;
+  padding-top: 1rem;
+}
+
+.examen-resultado h3 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+/* Contenedor para cada pregunta individual */
+.pregunta-container {
+  background-color: #fff;
+  padding: 1.5rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.enunciado {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-top: 0;
+}
+
+.opciones-container {
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* --- ESTILOS PARA LA INTERACTIVIDAD DE LAS OPCIONES --- */
+
+.opcion-item {
+  border: 2px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  gap: 0.5rem;
+}
+.opcion-item:hover { background-color: #f9f9f9; }
+
+.opcion-seleccionada {
+  border-color: #035b6e;
+  background-color: #eef6f8;
+  font-weight: bold;
+}
+
+.opcion-correcta {
+  border-color: #28a745;
+  background-color: #d4edda;
+  color: #155724;
+  font-weight: bold;
+}
+
+.opcion-incorrecta {
+  border-color: #dc3545;
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* --- ESTILOS PARA RESPUESTA Y JUSTIFICACIÓN --- */
+
+.respuesta-correcta {
+  font-weight: bold;
+  color: #28a745;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: #d4edda;
+  border-radius: 4px;
+}
+
+.justificacion {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #555;
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-left: 3px solid #ccc;
+}
+
+/* --- ESTILOS PARA EL FOOTER DEL EXAMEN --- */
+.examen-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+  text-align: center;
+}
+
+.btn-calificar, .btn-reiniciar {
+  background-color: #035b6e;
+  color: white;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-reiniciar {
+  background-color: #6c757d;
+}
+
+.resultado-final-container p {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
