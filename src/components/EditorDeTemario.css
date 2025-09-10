@@ -1,4 +1,4 @@
-/* src/components/EditorDeTemario.css (COMPLETO) */
+/* src/components/EditorDeTemario.css (CÓDIGO COMPLETO Y FINAL) */
 
 .editor-container {
   padding: 2rem;
@@ -8,6 +8,7 @@
   margin-top: 2rem;
 }
 
+/* --- SISTEMA DE MENSAJES UI --- */
 .ui-messages {
   margin-bottom: 1rem;
 }
@@ -28,18 +29,23 @@
   border: 1px solid #c8ebd0;
 }
 
-.spinner-container { text-align: center; padding: 3rem; }
+.spinner-container {
+    text-align: center;
+    padding: 3rem;
+}
+
 .spinner {
   border: 4px solid #f3f3f3;
   border-top: 4px solid #1b5784;
   border-radius: 50%;
-  width: 40px; height: 40px;
+  width: 40px;
+  height: 40px;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem auto;
 }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* Selector de vista */
+/* --- ESTILOS PARA EL SELECTOR DE VISTA --- */
 .vista-selector {
   display: flex;
   justify-content: center;
@@ -52,6 +58,7 @@
   margin-left: auto;
   margin-right: auto;
 }
+
 .vista-selector .btn-vista {
   padding: 8px 16px;
   border: none;
@@ -63,24 +70,35 @@
   color: #495057;
   transition: all 0.2s ease;
 }
+
 .vista-selector .btn-vista.activo {
   background-color: white;
   color: #1b5784;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.vista-info { text-align: center; margin-bottom: 1rem; }
-.vista-info p { margin: 0; font-size: 0.9rem; color: #666; font-style: italic; }
+.vista-info {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
 
-/* Campos (detallada) */
+.vista-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* --- ESTILOS PARA LA VISTA DETALLADA (EDITABLE) --- */
 .editor-label {
   display: block;
-  margin-top: 1.2rem;
+  margin-top: 1.5rem;
   margin-bottom: 0.5rem;
   font-weight: bold;
   font-size: 0.9rem;
   color: #555;
 }
+
 .input-titulo {
   font-size: 1.8rem;
   font-weight: bold;
@@ -92,8 +110,10 @@
   transition: border-color 0.3s;
   background-color: transparent;
 }
-.input-titulo:focus { border-bottom-color: #1b5784; outline: none; }
-
+.input-titulo:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
 .textarea-descripcion {
   width: 100%;
   min-height: 80px;
@@ -103,11 +123,11 @@
   font-size: 1rem;
   font-family: inherit;
   resize: vertical;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 .capitulo-editor {
-  margin-top: 1rem;
-  padding: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
   background: #f9f9f9;
   border-radius: 6px;
   border: 1px solid #eee;
@@ -130,123 +150,84 @@
   padding: 0.5rem;
   font-size: 0.95rem;
 }
-.capitulo-editor ul { list-style-type: none; padding-left: 0; }
-.capitulo-editor li { margin-bottom: 0.5rem; }
-
-.capitulo-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem; margin: 1rem 0; padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 6px;
+.capitulo-editor ul {
+  list-style-type: none;
+  padding-left: 0;
 }
-.capitulo-info-grid .info-item { display: flex; flex-direction: column; gap: 0.3rem; }
-.capitulo-info-grid .info-item label {
-  font-size: 0.9rem; font-weight: 600; color: #495057;
-}
-.capitulo-info-grid .input-info {
-  padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.9rem;
-}
-.capitulo-info-grid .input-info:focus {
-  border-color: #1b5784; outline: none; box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+.capitulo-editor li {
+  margin-bottom: 0.5rem;
 }
 
-.objetivos-capitulo { margin: 1rem 0; }
-.objetivos-capitulo label {
-  display: block; font-weight: 600; color: #495057; margin-bottom: 0.5rem;
+/* --- ESTILOS PARA LA VISTA RESUMIDA --- */
+.vista-resumida {
+  text-align: left;
+  padding: 1rem;
 }
-.textarea-objetivos-capitulo {
-  width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid #ced4da;
-  border-radius: 4px; font-size: 0.9rem; resize: vertical; font-family: inherit;
+.vista-resumida h1 {
+  font-size: 1.8rem;
+  color: #1b5784;
+  text-align: center;
+  margin-bottom: 2rem;
 }
-.textarea-objetivos-capitulo:focus {
-  border-color: #1b5784; outline: none; box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+.vista-resumida .seccion-resumen {
+  margin-bottom: 1.5rem;
+}
+.vista-resumida h2 {
+  font-size: 1.2rem;
+  color: #343a40;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+.vista-resumida ul {
+  list-style-type: disc;
+  padding-left: 25px;
+}
+.vista-resumida li {
+  margin-bottom: 0.5rem;
+}
+.vista-resumida .capitulo-resumido {
+  margin-bottom: 1rem;
+}
+.vista-resumida .capitulo-resumido strong {
+  font-size: 1.1rem;
 }
 
-/* Vista resumida */
-.vista-resumida-editable {
-  background: #fafafa; padding: 1.5rem; border-radius: 8px; border: 1px solid #e0e0e0;
-}
-.input-titulo-resumido {
-  font-size: 1.6rem; font-weight: bold; border: none; border-bottom: 2px solid #eee;
-  width: 100%; margin-bottom: 1rem; padding: 0.5rem 0; background: transparent;
-  transition: border-color 0.3s;
-}
-.input-titulo-resumido:focus { border-bottom-color: #1b5784; outline: none; }
-
-.info-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 6px; border: 1px solid #ddd;
-}
-.info-item { display: flex; flex-direction: column; gap: 0.25rem; }
-.info-item label { font-weight: 600; font-size: 0.85rem; color: #555; }
-.input-info { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
-.input-info:focus { border-color: #1b5784; outline: none; }
-
-.seccion-editable { margin-bottom: 1rem; }
-.seccion-editable h3 { margin: 0 0 0.5rem 0; color: #1b5784; font-size: 1.1rem; }
-.textarea-resumido {
-  width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;
-  font-size: 0.95rem; line-height: 1.5; resize: vertical; font-family: inherit;
-}
-.textarea-resumido:focus { border-color: #1b5784; outline: none; }
-
-.capitulo-resumido {
-  margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 6px; border: 1px solid #ddd;
-}
-.input-capitulo-resumido {
-  width: 100%; font-size: 1.2rem; font-weight: 600; padding: 0.5rem; border: none;
-  border-bottom: 2px solid #eee; background: transparent; margin-bottom: 1rem; color: #333;
-}
-.input-capitulo-resumido:focus { border-bottom-color: #1b5784; outline: none; }
-
-.info-grid-capitulo {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: 0.5rem 0; padding: 0.5rem;
-  background: #f0f8ff; border-radius: 4px; border: 1px solid #ddd;
-}
-.info-grid-capitulo .info-item { display: flex; flex-direction: column; gap: 0.2rem; }
-.info-grid-capitulo .info-item label { font-size: 0.8rem; font-weight: 600; color: #555; }
-.input-info-small { padding: 0.4rem; border: 1px solid #ccc; border-radius: 3px; font-size: 0.85rem; }
-.input-info-small:focus { border-color: #1b5784; outline: none; }
-
-.subcapitulos-resumidos { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
-.subcapitulo-item { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-.input-subcapitulo-resumido {
-  flex: 1; min-width: 200px; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; background: #f9f9f9;
-}
-.input-subcapitulo-resumido:focus { border-color: #1b5784; outline: none; background: white; }
-.subcapitulo-tiempos { display: flex; gap: 0.25rem; align-items: center; }
-.input-tiempo-sub, .input-sesion-sub {
-  width: 60px; padding: 0.4rem; border: 1px solid #ccc; border-radius: 3px; font-size: 0.85rem; text-align: center;
-}
-.input-tiempo-sub:focus, .input-sesion-sub:focus { border-color: #1b5784; outline: none; }
-
-/* Footer acciones */
+/* --- ESTILOS PARA LOS BOTONES DE ACCIÓN --- */
 .acciones-footer {
-  display: flex; align-items: center; justify-content: flex-end; gap: 0.6rem;
-  margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
 }
-.acciones-sep { flex: 0 0 12px; }
-
 .acciones-footer button {
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 5px;
   cursor: pointer;
   border: 1px solid #ccc;
   background-color: #f0f0f0;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 500;
 }
-
-.btn-secundario { background: #eef3f7; border-color: #cfd7de; color: #234; }
-.btn-secundario:hover { background: #e4edf5; }
-
 .btn-guardar {
   background-color: #1b5784 !important;
   color: white;
   border-color: #1b5784 !important;
 }
-.btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-guardar:disabled { 
+  opacity: 0.6; 
+  cursor: not-allowed; 
+}
+
+.btn-secundario { 
+  background: #eef3f7; 
+  border-color: #cfd7de; 
+  color: #234; 
+}
+.btn-secundario:hover { 
+  background: #e4edf5; 
+}
 
 .btn-exportar {
   background-color: #e74c3c !important;
@@ -254,68 +235,512 @@
   border-color: #e74c3c !important;
   transition: background-color 0.2s;
 }
+
 .btn-exportar:hover {
   background-color: #c0392b !important;
   border-color: #c0392b !important;
 }
+.regenerar-form {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+  border: 1px solid #cfe7fc;
+}
 
-/* Modal genérico */
+.regenerar-form h4 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #1b5784;
+}
+
+.regenerar-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.regenerar-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.regenerar-form .form-group input,
+.regenerar-form .form-group select,
+.regenerar-form .form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.regenerar-form .form-group textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.regenerar-form .form-group input:focus,
+.regenerar-form .form-group select:focus,
+.regenerar-form .form-group textarea:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.regenerar-form button {
+  background-color: #1b5784;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.2s;
+}
+
+.regenerar-form button:hover {
+  background-color: #154660;
+}
+
+/* --- SISTEMA DE MODALES --- */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
-  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 .modal {
   width: min(720px, 94vw);
   max-height: 85vh;
   overflow: auto;
-  background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
 }
 .modal-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 16px; border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
 }
-.modal-header h3 { margin: 0; }
+.modal-header h3 { 
+  margin: 0; 
+}
 .modal-close {
-  border: none; background: transparent; font-size: 1.2rem; cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  cursor: pointer;
 }
-.modal-body { padding: 16px; }
+.modal-body { 
+  padding: 16px; 
+}
 .modal-footer {
-  padding: 12px 16px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-/* Lista de versiones */
-.lista-versiones { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.lista-versiones.compacta .version-item { padding: 6px 8px; }
-.version-item {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 10px; padding: 10px 12px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fbfcfd;
+/* --- ESTILOS PARA EXPORTACIÓN --- */
+.export-format { 
+  display: flex; 
+  gap: 16px; 
 }
-.version-id { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.9rem; }
-.version-meta { font-size: 0.85rem; color: #555; }
-.chkwrap { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; }
+.export-format label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
 
-/* Export modal */
-.export-row { display: grid; grid-template-columns: 180px 1fr; gap: 8px; align-items: center; margin-bottom: 12px; }
-.export-format { display: flex; gap: 16px; }
-.export-list { max-height: 240px; overflow: auto; border: 1px solid #eee; border-radius: 8px; padding: 8px; background: #fcfcfc; }
-
-/* Responsive */
+/* --- RESPONSIVE DESIGN --- */
 @media (max-width: 768px) {
-  .vista-selector { flex-direction: column; width: 100%; }
-  .vista-selector .btn-vista { width: 100%; text-align: center; }
-  .info-grid, .info-grid-capitulo, .capitulo-info-grid { grid-template-columns: 1fr; }
-  .acciones-footer { flex-direction: column; gap: 0.5rem; }
-  .acciones-footer button { width: 100%; }
-  .editor-container { padding: 1rem; }
-  .export-row { grid-template-columns: 1fr; }
+  .vista-selector {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .vista-selector .btn-vista {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid-capitulo {
+    grid-template-columns: 1fr;
+  }
+  
+  .capitulo-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .acciones-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .acciones-footer button {
+    width: 100%;
+  }
+  
+  .editor-container {
+    padding: 1rem;
+  }
 }
 
-/* Print */
-@media print {
-  .vista-selector, .vista-info, .acciones-footer, .regenerar-form, .modal-overlay { display: none !important; }
-  .editor-container { box-shadow: none; border: none; padding: 0; }
-  .input-titulo, .input-titulo-resumido, .input-campo, .input-capitulo, .input-subcapitulo,
-  .textarea-descripcion, .textarea-objetivos-capitulo, .textarea-objetivos-resumido {
-    border: none; background: transparent; resize: none; outline: none;
+@media (max-width: 480px) {
+  .input-titulo {
+    font-size: 1.4rem;
   }
+  
+  .input-titulo-resumido {
+    font-size: 1.3rem;
+  }
+  
+  .subcapitulos-resumidos {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA PDF --- */
+@media print {
+  .vista-selector,
+  .vista-info,
+  .acciones-footer,
+  .regenerar-form,
+  .modal-overlay,
+  .ui-messages {
+    display: none !important;
+  }
+  
+  .editor-container {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+  
+  .input-titulo,
+  .input-titulo-resumido,
+  .input-campo,
+  .input-capitulo,
+  .input-subcapitulo,
+  .textarea-descripcion,
+  .textarea-objetivos-capitulo,
+  .textarea-objetivos-resumido {
+    border: none;
+    background: transparent;
+    resize: none;
+    outline: none;
+  }
+}
+
+/* --- ESTILOS PARA LA VISTA RESUMIDA EDITABLE --- */
+.vista-resumida-editable {
+  background: #fafafa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.input-titulo-resumido {
+  font-size: 1.6rem;
+  font-weight: bold;
+  border: none;
+  border-bottom: 2px solid #eee;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+  background: transparent;
+  transition: border-color 0.3s;
+}
+.input-titulo-resumido:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-item label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.input-info {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.input-info:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.seccion-editable {
+  margin-bottom: 1.5rem;
+}
+
+.seccion-editable h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1b5784;
+  font-size: 1.1rem;
+}
+
+.textarea-resumido {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+}
+.textarea-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.capitulo-resumido {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.input-capitulo-resumido {
+  width: 100%;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  border: none;
+  border-bottom: 2px solid #eee;
+  background: transparent;
+  margin-bottom: 1rem;
+  color: #333;
+}
+.input-capitulo-resumido:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+
+.subcapitulos-resumidos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.subcapitulo-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.input-subcapitulo-resumido {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: #f9f9f9;
+}
+.input-subcapitulo-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+  background: white;
+}
+
+.subcapitulo-tiempos {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.input-tiempo-sub, .input-sesion-sub {
+  width: 60px;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.input-tiempo-sub:focus, .input-sesion-sub:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.info-grid-capitulo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f0f8ff;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.info-grid-capitulo .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.info-grid-capitulo .info-item label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.input-info-small {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+.input-info-small:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.input-campo {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.input-campo:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+/* --- ESTILOS PARA LOS NUEVOS ELEMENTOS --- */
+.capitulo-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.capitulo-info-grid .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.capitulo-info-grid .info-item label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.capitulo-info-grid .input-info {
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.capitulo-info-grid .input-info:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.objetivos-capitulo {
+  margin: 1rem 0;
+}
+
+.objetivos-capitulo label {
+  display: block;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.textarea-objetivos-capitulo {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea-objetivos-capitulo:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.objetivos-capitulo-resumido {
+  margin: 1rem 0;
+}
+
+.objetivos-capitulo-resumido label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.3rem;
+}
+
+.textarea-objetivos-resumido {
+  width: 100%;
+  min-height: 60px;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea-objetivos-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
 }
