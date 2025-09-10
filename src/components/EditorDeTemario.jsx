@@ -1,13 +1,91 @@
-// src/components/EditorDeTemario.jsx (CÓDIGO COMPLETO Y FUNCIONAL)
+// src/components/EditorDeTemario.jsx (CÓDIGO COMPLETO Y FUNCIONAL + EXPORT/VER VERSIONES)
+
 import React, { useState, useEffect, useRef } from 'react';
 import html2pdf from 'html2pdf.js';
 import './EditorDeTemario.css';
+
+/* ====== utilidades mínimas, no rompen nada ====== */
+const slugify = (s) =>
+  String(s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '') || 'curso';
+
+/** Exporta un CSV (abre en Excel) SIN librerías externas */
+function exportTemarioToCSV(temario, fileBase = 'temario') {
+  if (!temario) return;
+  const rows = [];
+
+  const add = (k, v) => rows.push([k, v ?? '']);
+
+  add('Nombre del curso', temario.nombre_curso);
+  add('Versión tecnología', temario.version_tecnologia);
+  add('Horas totales', temario.horas_totales);
+  add('Número de sesiones', temario.numero_sesiones);
+  add('EOL', temario.EOL);
+  add('Distribución general', temario.porcentaje_teoria_practica_general);
+  add('Descripción general', temario.descripcion_general);
+  add('Audiencia', temario.audiencia);
+  add('Prerrequisitos', temario.prerrequisitos);
+  add('Objetivos', temario.objetivos);
+
+  (temario.temario || []).forEach((cap, i) => {
+    add(`Capítulo ${i + 1}`, cap?.capitulo);
+    add(`Capítulo ${i + 1} - Duración (min)`, cap?.tiempo_capitulo_min);
+    add(`Capítulo ${i + 1} - Teoría/Práctica`, cap?.porcentaje_teoria_practica_capitulo);
+
+    const objetivosCap =
+      Array.isArray(cap?.objetivos_capitulo)
+        ? cap.objetivos_capitulo.join(' | ')
+        : cap?.objetivos_capitulo || '';
+    add(`Capítulo ${i + 1} - Objetivos`, objetivosCap);
+
+    (cap?.subcapitulos || []).forEach((sub, j) => {
+      const nombre = typeof sub === 'object' ? sub?.nombre : sub;
+      const min = typeof sub === 'object' ? sub?.tiempo_subcapitulo_min : '';
+      const sesion = typeof sub === 'object' ? sub?.sesion : '';
+      add(`  Sub ${i + 1}.${j + 1}`, nombre);
+      if (min !== '' || sesion !== '') {
+        add(`  Sub ${i + 1}.${j + 1} - min`, min);
+        add(`  Sub ${i + 1}.${j + 1} - sesión`, sesion);
+      }
+    });
+  });
+
+  const csv =
+    rows
+      .map((r) =>
+        r
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .join(',')
+      )
+      .join('\r\n') + '\r\n';
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${fileBase}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   const [temario, setTemario] = useState(temarioInicial);
   const [vista, setVista] = useState('detallada'); // Inicia en la vista editable
   const [mostrarFormRegenerar, setMostrarFormRegenerar] = useState(false);
-  const [mostrarExportMenu, setMostrarExportMenu] = useState(false);
+
+  // NUEVO: controles de export y versiones
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showVersionsModal, setShowVersionsModal] = useState(false);
+  const [versions, setVersions] = useState([]);
+  const [loadingVersions, setLoadingVersions] = useState(false);
+  const apiBaseRef = useRef(
+    // usa variable global o .env si existen; si no, pedimos por prompt al abrir versiones
+    (typeof window !== 'undefined' && window.__TEMARIOS_API_BASE) ||
+      (import.meta?.env?.VITE_TEMARIOS_API || '')
+  );
 
   // Ref para el área a exportar en PDF
   const pdfTargetRef = useRef(null);
@@ -72,7 +150,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     onSave(temario);
   };
 
-  // Función para exportar PDF (lo que se ve en pantalla)
+  // Función para exportar PDF (sin cambios)
   const exportarPDF = () => {
     if (!pdfTargetRef.current) return;
 
@@ -92,172 +170,89 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       .save();
   };
 
-  // ========== NUEVO: Ver/gestionar versiones + Excel ==========
-
-  // 👉 Cambia esto si tu API Gateway tiene otra base URL
-  const API_BASE = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2";
-
-  // Modal / estados de versiones
-  const [mostrarModalVersiones, setMostrarModalVersiones] = useState(false);
-  const [cargandoVersiones, setCargandoVersiones] = useState(false);
-  const [errorVersiones, setErrorVersiones] = useState("");
-  const [versiones, setVersiones] = useState([]);
-
-  // Helper para cursoId
-  const getCursoId = () => {
-    const base =
-      (temario?.tema_curso || temario?.nombre_curso || "curso-sin-nombre")
-        .toString()
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-    return base || "curso-sin-nombre";
+  // NUEVO: Exportar CSV para Excel
+  const exportarCSV = () => {
+    const cursoId = temario?.cursoId || temario?.curso_slug || slugify(temario?.tema_curso || temario?.nombre_curso || 'curso');
+    exportTemarioToCSV(temario, `temario_${cursoId}`);
+    setShowExportMenu(false);
   };
 
-  // Abrir modal de versiones
-  const handleVerVersiones = () => {
-    setMostrarModalVersiones(true);
-    cargarVersiones();
-  };
-
-  // Llamada a Lambda para listar versiones
-  const cargarVersiones = async () => {
+  // NUEVO: Abrir modal y cargar versiones
+  const abrirModalVersiones = async () => {
     try {
-      setErrorVersiones("");
-      setCargandoVersiones(true);
+      let base = apiBaseRef.current;
+      if (!base) {
+        base = window.prompt('URL base del API de temarios (por ej. https://XXXX.execute-api.REGION.amazonaws.com/prod)');
+        if (!base) return;
+        apiBaseRef.current = base;
+      }
+      const cursoId = temario?.cursoId || temario?.curso_slug || slugify(temario?.tema_curso || temario?.nombre_curso || 'curso');
+      setShowVersionsModal(true);
+      setLoadingVersions(true);
 
-      const cursoId = getCursoId();
-      const token = localStorage.getItem("id_token");
-
-      const res = await fetch(
-        `${API_BASE}/listar-temarios?cursoId=${encodeURIComponent(cursoId)}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
-        }
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "No se pudieron obtener versiones.");
-      setVersiones(Array.isArray(data) ? data : []);
+      const resp = await fetch(`${base}/temarios/${encodeURIComponent(cursoId)}/versions`);
+      const data = await resp.json();
+      const list = Array.isArray(data) ? data : (data?.body ? JSON.parse(data.body) : []);
+      setVersions(list || []);
     } catch (e) {
-      console.error("Listar versiones:", e);
-      setErrorVersiones(e.message || "Error listando versiones.");
-      setVersiones([]);
+      console.error(e);
+      setVersions([]);
+      setShowVersionsModal(true);
     } finally {
-      setCargandoVersiones(false);
+      setLoadingVersions(false);
     }
   };
 
-  // Obtener una versión y cargarla en el editor
-  const cargarVersion = async (versionId) => {
+  // NUEVO: Descargar una versión en JSON
+  const descargarVersion = async (v) => {
     try {
-      const cursoId = getCursoId();
-      const token = localStorage.getItem("id_token");
+      let base = apiBaseRef.current;
+      if (!base) {
+        base = window.prompt('URL base del API de temarios (por ej. https://XXXX.execute-api.REGION.amazonaws.com/prod)');
+        if (!base) return;
+        apiBaseRef.current = base;
+      }
+      // Intentamos inferir courseId del s3Key: temarios/<cursoId>.json
+      const s3Key = v?.s3Key || '';
+      const guessedId = s3Key.split('/').pop()?.replace('.json', '') || '';
+      const cursoId = temario?.cursoId || temario?.curso_slug || guessedId || slugify(temario?.tema_curso || temario?.nombre_curso || 'curso');
 
-      const res = await fetch(
-        `${API_BASE}/obtener-temario?cursoId=${encodeURIComponent(
-          cursoId
-        )}&versionId=${encodeURIComponent(versionId)}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : undefined,
-          },
-        }
-      );
+      const url = `${base}/temarios/${encodeURIComponent(cursoId)}/versions/${encodeURIComponent(v.versionId)}`;
+      const resp = await fetch(url);
+      const payload = await resp.json();
+      const body = typeof payload === 'string'
+        ? JSON.parse(payload)
+        : (payload?.body ? JSON.parse(payload.body) : payload);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "No se pudo cargar la versión.");
-
-      setTemario(data);               // ← Cargamos el temario de esa versión
-      setMostrarModalVersiones(false);
+      const blob = new Blob([JSON.stringify(body, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${cursoId}-${v.versionId}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
     } catch (e) {
-      alert(e.message || "Error al cargar la versión.");
+      console.error(e);
+      alert('No se pudo descargar la versión seleccionada.');
     }
   };
 
-  // Exportar a Excel (no requiere instalar nada en build: usa import dinámico)
-  const exportarExcel = async () => {
-    try {
-      const { utils, writeFile } = await import("xlsx");
+  if (!temario) {
+    // Mantengo tu comportamiento de retorno nulo,
+    // pero si prefieres, muestra un aviso no intrusivo:
+    return (
+      <div className="editor-container">
+        <div className="vista-info">
+          <p>⚠️ No hay datos del temario para mostrar.</p>
+        </div>
+      </div>
+    );
+  }
 
-      const rows = [];
-      rows.push(["Nombre del curso", temario?.nombre_curso || ""]);
-      rows.push(["Versión tecnología", temario?.version_tecnologia || ""]);
-      rows.push(["Horas totales", temario?.horas_totales || ""]);
-      rows.push(["Sesiones", temario?.numero_sesiones || ""]);
-      rows.push(["EOL", temario?.EOL || ""]);
-      rows.push(["Distribución general", temario?.porcentaje_teoria_practica_general || ""]);
-      rows.push([]);
-      rows.push(["Descripción"]);
-      rows.push([temario?.descripcion_general || ""]);
-      rows.push([]);
-      rows.push(["Audiencia"]);
-      rows.push([temario?.audiencia || ""]);
-      rows.push([]);
-      rows.push(["Prerrequisitos"]);
-      rows.push([temario?.prerrequisitos || ""]);
-      rows.push([]);
-      rows.push(["Objetivos"]);
-      rows.push([
-        Array.isArray(temario?.objetivos)
-          ? temario.objetivos.join("; ")
-          : (temario?.objetivos || "")
-      ]);
-      rows.push([]);
-      rows.push(["Temario"]);
-
-      (temario?.temario || []).forEach((cap, idx) => {
-        rows.push([]);
-        rows.push([`Capítulo ${idx + 1}`, cap?.capitulo || ""]);
-        rows.push([
-          "Duración (min)",
-          cap?.tiempo_capitulo_min ?? "",
-          "Teoría/Práctica",
-          cap?.porcentaje_teoria_practica_capitulo || "",
-        ]);
-        rows.push(["Objetivos del capítulo"]);
-        rows.push([
-          Array.isArray(cap?.objetivos_capitulo)
-            ? cap.objetivos_capitulo.join("; ")
-            : (cap?.objetivos_capitulo || ""),
-        ]);
-        rows.push(["Subcapítulos"]);
-        (cap?.subcapitulos || []).forEach((sub) => {
-          if (typeof sub === "object") {
-            rows.push([
-              sub?.nombre || "",
-              sub?.tiempo_subcapitulo_min ?? "",
-              sub?.sesion ?? "",
-            ]);
-          } else {
-            rows.push([sub]);
-          }
-        });
-      });
-
-      const ws = utils.aoa_to_sheet(rows);
-      const wb = utils.book_new();
-      utils.book_append_sheet(wb, ws, "Temario");
-
-      const nombre = (temario?.nombre_curso || "temario").toString().replace(/\s+/g, "_");
-      writeFile(wb, `${nombre}.xlsx`);
-    } catch (e) {
-      console.error("Excel:", e);
-      alert("No se pudo exportar a Excel.");
-    }
-  };
-
-  if (!temario) return null;
+  const cursoId = temario?.cursoId || temario?.curso_slug || slugify(temario?.tema_curso || temario?.nombre_curso || 'curso');
 
   return (
     <div className="editor-container">
+      {/* NUEVO: barra superior con título + acciones (opcional mantener solo el selector si así lo prefieres) */}
       <div className="vista-selector">
         <button
           className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
@@ -289,7 +284,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       ) : (
         <div ref={pdfTargetRef}>
           {vista === 'detallada' ? (
-            // --- VISTA DETALLADA Y EDITABLE ---
+            // --- VISTA DETALLADA Y EDITABLE --- (SIN CAMBIOS)
             <div>
               <label className="editor-label">Nombre del Curso</label>
               <textarea name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo" />
@@ -386,7 +381,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               ))}
             </div>
           ) : (
-            // --- VISTA RESUMIDA TAMBIÉN EDITABLE ---
+            // --- VISTA RESUMIDA TAMBIÉN EDITABLE --- (SIN CAMBIOS)
             <div className="vista-resumida-editable">
               <input name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo-resumido" placeholder="Nombre del curso" />
 
@@ -545,31 +540,32 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         </div>
       )}
 
+      {/* === ACCIONES === */}
       <div className="acciones-footer">
         <button onClick={() => setMostrarFormRegenerar(prev => !prev)}>Ajustar y Regenerar</button>
-
         <button onClick={handleSaveClick} className="btn-guardar">Guardar Versión</button>
 
-        {/* Ver Versiones */}
-        <button onClick={handleVerVersiones}>Ver Versiones</button>
-
-        {/* Exportar (dropdown simple) */}
-        <div className="dropdown">
+        {/* NUEVO: dropdown Exportar */}
+        <div className="export-dropdown">
           <button
             className="btn-exportar"
-            onClick={() => setMostrarExportMenu((s) => !s)}
+            onClick={() => setShowExportMenu((s) => !s)}
           >
             Exportar ▾
           </button>
-          {mostrarExportMenu && (
-            <div className="dropdown-menu" onMouseLeave={() => setMostrarExportMenu(false)}>
-              <button onClick={() => { setMostrarExportMenu(false); exportarPDF(); }}>PDF</button>
-              <button onClick={() => { setMostrarExportMenu(false); exportarExcel(); }}>Excel</button>
+          {showExportMenu && (
+            <div className="export-menu">
+              <button onClick={() => { setShowExportMenu(false); exportarPDF(); }}>PDF</button>
+              <button onClick={exportarCSV}>Excel (CSV)</button>
             </div>
           )}
         </div>
+
+        {/* NUEVO: Ver versiones */}
+        <button onClick={abrirModalVersiones} className="btn-ver-versiones">Ver versiones</button>
       </div>
 
+      {/* === FORM DE REGENERACIÓN (igual que el tuyo) === */}
       {mostrarFormRegenerar && (
         <div className="regenerar-form">
           <h4>Regenerar con Nuevos Parámetros</h4>
@@ -605,62 +601,36 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         </div>
       )}
 
-      {/* ========== MODAL DE VERSIONES ========== */}
-      {mostrarModalVersiones && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setMostrarModalVersiones(false)}
-        >
-          <div
-            className="modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-card-header">
-              <strong>📂 Versiones Guardadas</strong>
-            </div>
+      {/* === MODAL DE VERSIONES (NUEVO) === */}
+      {showVersionsModal && (
+        <div className="modal-backdrop" onClick={() => setShowVersionsModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>📁 Versiones guardadas — <small>{cursoId}</small></h3>
 
-            <div className="modal-card-body">
-              {cargandoVersiones && <p>Cargando versiones...</p>}
-              {errorVersiones && <p style={{ color: "#c00" }}>⚠️ {errorVersiones}</p>}
-              {!cargandoVersiones && !errorVersiones && versiones.length === 0 && (
-                <p>No hay versiones guardadas para este curso.</p>
-              )}
+            {loadingVersions ? (
+              <div className="spinner" />
+            ) : versions?.length ? (
+              <div className="versiones-lista">
+                {versions.map((v, idx) => (
+                  <div key={`${v.versionId}-${idx}`} className="version-item">
+                    <div className="version-info">
+                      <div><strong>versionId:</strong> {v.versionId}</div>
+                      <div><strong>fecha:</strong> {new Date(v.createdAt || v.LastModified || Date.now()).toLocaleString()}</div>
+                      {v.nota && <div><strong>nota:</strong> {String(v.nota).replace(/^=\?UTF-8\?Q\?|\?=$/g,'')}</div>}
+                      {v.size != null && <div><strong>tamaño:</strong> {v.size} bytes</div>}
+                    </div>
+                    <div className="version-actions">
+                      <button onClick={() => descargarVersion(v)}>Descargar JSON</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No hay versiones registradas o no se pudieron cargar.</p>
+            )}
 
-              {versiones.length > 0 && (
-                <table className="tabla-versiones">
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-                      <th>Versión</th>
-                      <th>Tamaño</th>
-                      <th>Nota</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {versiones.map((v) => (
-                      <tr key={v.versionId}>
-                        <td>
-                          {new Date(v.createdAt).toLocaleString()}
-                          {v.isLatest ? "  •  (latest)" : ""}
-                        </td>
-                        <td style={{ fontFamily: "monospace" }}>{v.versionId}</td>
-                        <td>{typeof v.size === "number" ? `${v.size} B` : ""}</td>
-                        <td>{v.nota || ""}</td>
-                        <td className="acciones">
-                          <button onClick={() => cargarVersion(v.versionId)}>Cargar</button>
-                          <button onClick={exportarPDF}>PDF</button>
-                          <button onClick={exportarExcel}>Excel</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            <div className="modal-card-footer">
-              <button onClick={() => setMostrarModalVersiones(false)}>Cerrar</button>
+            <div className="modal-actions">
+              <button onClick={() => setShowVersionsModal(false)}>Cerrar</button>
             </div>
           </div>
         </div>
