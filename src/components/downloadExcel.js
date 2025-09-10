@@ -1,5 +1,5 @@
 // src/utils/downloadExcel.js
-// Intenta usar `xlsx`. Si no existe, genera un CSV como fallback.
+// Exporta temario a Excel si existe xlsx, si no, genera CSV.
 
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
@@ -43,7 +43,10 @@ function toRowsFromTemario(temario) {
 }
 
 export async function downloadExcelTemario(temario) {
-  const filenameBase = (temario?.nombre_curso || "temario").toString().trim().replace(/\s+/g, "_");
+  const filenameBase = (temario?.nombre_curso || "temario")
+    .toString()
+    .trim()
+    .replace(/\s+/g, "_");
 
   try {
     const XLSX = (await import("xlsx")).default;
