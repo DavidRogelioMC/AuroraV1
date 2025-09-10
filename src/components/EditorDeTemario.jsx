@@ -158,78 +158,76 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   };
 
   // Función para exportar PDF profesional con marca de agua y estructura corporativa
-  const exportarPDF = async () => {
-    const clean = pdfTargetRef.current?.querySelector('.pdf-clean');
-    if (!clean) return;
+  const exportarPDF = () => {
+    const elemento = pdfRef.current;
+    if (!elemento) return;
 
-    clean.classList.add('pdf-exporting');
-    try {
-      const titulo = temario?.nombre_curso || temario?.tema_curso || 'temario';
-      const filename = `temario_${String(titulo).replace(/\s+/g, '_')}.pdf`;
+    // Agregar clase para hacer visible el contenido durante la exportación
+    elemento.classList.add('pdf-exporting');
 
-      const opt = {
-        margin: [12, 12, 16, 12],
-        filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      const worker = html2pdf().set(opt).from(clean).toPdf();
-      const pdf = await worker.get('pdf');
-
-      // Agregar marca de agua del logo Netec
-      const rawLogo = await toDataURL(netecLogo);
-      const total = pdf.internal.getNumberOfPages();
-      const W = pdf.internal.pageSize.getWidth();
-      const H = pdf.internal.pageSize.getHeight();
-      const canGState = Boolean(pdf.setGState && pdf.GState);
-      const wmLogo = canGState ? rawLogo : await makeTranslucent(rawLogo, 0.06);
-      
-      const props = pdf.getImageProperties(wmLogo);
-      const imgW = W * 0.55;
-      const imgH = imgW * (props.height / props.width);
-      const watermarkX = (W - imgW) / 2;
-      const watermarkY = (H - imgH) / 2;
-
-      // Aplicar marca de agua y pie de página corporativo a todas las páginas
-      for (let i = 1; i <= total; i++) {
-        pdf.setPage(i);
-
-        // Marca de agua
-        if (canGState) {
-          pdf.setGState(new pdf.GState({ opacity: 0.06 }));
-          pdf.addImage(rawLogo, 'PNG', watermarkX, watermarkY, imgW, imgH);
-          pdf.setGState(new pdf.GState({ opacity: 1 }));
-        } else {
-          pdf.addImage(wmLogo, 'PNG', watermarkX, watermarkY, imgW, imgH);
-        }
-
-        // Pie de página corporativo
-        const footerY = H - opt.margin[2] + 8;
-        pdf.setDrawColor(12, 88, 160);
-        pdf.setLineWidth(0.5);
-        pdf.line(opt.margin[1], footerY, W - opt.margin[3], footerY);
-        
-        pdf.setFontSize(9);
-        pdf.setTextColor(100);
-        pdf.text('Presencial Internacional', opt.margin[1], footerY + 5);
-        
-        const rightText = 'www.netec.com • servicio@netec.com';
-        const rightTextWidth = pdf.getStringUnitWidth(rightText) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
-        pdf.text(rightText, W - opt.margin[3] - rightTextWidth, footerY + 5);
-
-        const pageNumText = `Página ${i} de ${total}`;
-        const pageNumWidth = pdf.getStringUnitWidth(pageNumText) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
-        const pageNumX = (W - pageNumWidth) / 2;
-        pdf.text(pageNumText, pageNumX, H - 8);
+    // Configuración para el PDF con marca de agua
+    const options = {
+      margin: [10, 10, 20, 10],
+      filename: `Temario_${temario.codigo || 'documento'}_${new Date().toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait',
+        compress: true
       }
+    };
 
-      await worker.save();
-    } finally {
-      clean.classList.remove('pdf-exporting');
-    }
+    html2pdf()
+      .from(elemento)
+      .set(options)
+      .toPdf()
+      .get('pdf')
+      .then((pdf) => {
+        const totalPages = pdf.internal.getNumberOfPages();
+        
+        // Agregar marca de agua en cada página
+        for (let i = 1; i <= totalPages; i++) {
+          pdf.setPage(i);
+          
+          // Marca de agua diagonal
+          pdf.saveGraphicsState();
+          pdf.setGState(new pdf.GState({opacity: 0.1}));
+          pdf.setTextColor(200, 200, 200);
+          pdf.setFontSize(50);
+          
+          // Rotar y posicionar la marca de agua
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          pdf.text('GlobalK', pageWidth/2, pageHeight/2, {
+            angle: 45,
+            align: 'center'
+          });
+          
+          pdf.restoreGraphicsState();
+          
+          // Footer corporativo
+          pdf.setFontSize(8);
+          pdf.setTextColor(100, 100, 100);
+          pdf.text(
+            `GlobalK S.A. de C.V. | Página ${i} de ${totalPages} | ${new Date().toLocaleDateString()}`,
+            pageWidth/2,
+            pageHeight - 5,
+            { align: 'center' }
+          );
+        }
+      })
+      .save()
+      .finally(() => {
+        // Remover la clase después de la exportación
+        elemento.classList.remove('pdf-exporting');
+      });
   };
 
   const exportarExcel = () => {
