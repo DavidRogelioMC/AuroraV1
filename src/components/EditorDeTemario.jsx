@@ -69,7 +69,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   const [seleccionadas, setSeleccionadas] = useState({});
 
   // Ref para el área a exportar en PDF
-  const pdfTargetRef = useRef(null);
+  const pdfRef = useRef(null);
 
   // Estado para los parámetros de re-generación. Se inicializa con los datos del temario actual.
   const [params, setParams] = useState({
@@ -160,7 +160,10 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   // Función para exportar PDF profesional con marca de agua y estructura corporativa
   const exportarPDF = () => {
     const elemento = pdfRef.current;
-    if (!elemento) return;
+    if (!elemento) {
+      console.error("No se encontró el elemento PDF");
+      return;
+    }
 
     // Agregar clase para hacer visible el contenido durante la exportación
     elemento.classList.add('pdf-exporting');
@@ -168,7 +171,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     // Configuración para el PDF con marca de agua
     const options = {
       margin: [10, 10, 20, 10],
-      filename: `Temario_${temario.codigo || 'documento'}_${new Date().toISOString().split('T')[0]}.pdf`,
+      filename: `Temario_${temario.codigo || temario.nombre_curso || 'documento'}_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
         scale: 2,
@@ -185,8 +188,8 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     };
 
     html2pdf()
-      .from(elemento)
       .set(options)
+      .from(elemento)
       .toPdf()
       .get('pdf')
       .then((pdf) => {
@@ -222,8 +225,18 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
             { align: 'center' }
           );
         }
+        
+        return pdf;
       })
       .save()
+      .then(() => {
+        console.log("PDF guardado exitosamente");
+        setOkUi("PDF exportado correctamente ✔");
+      })
+      .catch((error) => {
+        console.error("Error al generar PDF:", error);
+        setErrorUi("Error al generar el PDF");
+      })
       .finally(() => {
         // Remover la clase después de la exportación
         elemento.classList.remove('pdf-exporting');
@@ -286,7 +299,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           <p>Generando nueva versión...</p>
         </div>
       ) : (
-        <div ref={pdfTargetRef}>
+        <div ref={pdfRef}>
           {/* Contenido estructurado para PDF */}
           <div className="pdf-clean">
             <div className="pdf-header-corp">
