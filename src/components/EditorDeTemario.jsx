@@ -1,96 +1,39 @@
-// src/components/EditorDeTemario.jsx (CÓDIGO COMPLETO Y FUNCIONAL + EXPORT/VER VERSIONES)
+// src/components/EditorDeTemario.jsx (CÓDIGO COMPLETO Y FUNCIONAL)
 
 import React, { useState, useEffect, useRef } from 'react';
 import html2pdf from 'html2pdf.js';
 import './EditorDeTemario.css';
 
-/* ====== utilidades mínimas, no rompen nada ====== */
-const slugify = (s) =>
-  String(s || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '') || 'curso';
-
-/** Exporta un CSV (abre en Excel) SIN librerías externas */
-function exportTemarioToCSV(temario, fileBase = 'temario') {
-  if (!temario) return;
-  const rows = [];
-
-  const add = (k, v) => rows.push([k, v ?? '']);
-
-  add('Nombre del curso', temario.nombre_curso);
-  add('Versión tecnología', temario.version_tecnologia);
-  add('Horas totales', temario.horas_totales);
-  add('Número de sesiones', temario.numero_sesiones);
-  add('EOL', temario.EOL);
-  add('Distribución general', temario.porcentaje_teoria_practica_general);
-  add('Descripción general', temario.descripcion_general);
-  add('Audiencia', temario.audiencia);
-  add('Prerrequisitos', temario.prerrequisitos);
-  add('Objetivos', temario.objetivos);
-
-  (temario.temario || []).forEach((cap, i) => {
-    add(`Capítulo ${i + 1}`, cap?.capitulo);
-    add(`Capítulo ${i + 1} - Duración (min)`, cap?.tiempo_capitulo_min);
-    add(`Capítulo ${i + 1} - Teoría/Práctica`, cap?.porcentaje_teoria_practica_capitulo);
-
-    const objetivosCap =
-      Array.isArray(cap?.objetivos_capitulo)
-        ? cap.objetivos_capitulo.join(' | ')
-        : cap?.objetivos_capitulo || '';
-    add(`Capítulo ${i + 1} - Objetivos`, objetivosCap);
-
-    (cap?.subcapitulos || []).forEach((sub, j) => {
-      const nombre = typeof sub === 'object' ? sub?.nombre : sub;
-      const min = typeof sub === 'object' ? sub?.tiempo_subcapitulo_min : '';
-      const sesion = typeof sub === 'object' ? sub?.sesion : '';
-      add(`  Sub ${i + 1}.${j + 1}`, nombre);
-      if (min !== '' || sesion !== '') {
-        add(`  Sub ${i + 1}.${j + 1} - min`, min);
-        add(`  Sub ${i + 1}.${j + 1} - sesión`, sesion);
-      }
-    });
-  });
-
-  const csv =
-    rows
-      .map((r) =>
-        r
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-          .join(',')
-      )
-      .join('\r\n') + '\r\n';
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${fileBase}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
+/**
+ * Props:
+ * - temarioInicial: objeto del temario (lo que ya usas)
+ * - onRegenerate(params): función que regenera con parámetros
+ * - onSave(temario): guarda una versión en tu backend
+ * - isLoading: boolean para spinner
+ * - onFetchVersions?: async (cursoId) => [{versionId, createdAt, size, autorEmail, nota, isLatest}]
+ *   Si no la pasas, el modal mostrará "No hay versiones..."
+ */
+function EditorDeTemario({
+  temarioInicial,
+  onRegenerate,
+  onSave,
+  isLoading,
+  onFetchVersions
+}) {
   const [temario, setTemario] = useState(temarioInicial);
-  const [vista, setVista] = useState('detallada'); // Inicia en la vista editable
+  const [vista, setVista] = useState('detallada');
   const [mostrarFormRegenerar, setMostrarFormRegenerar] = useState(false);
 
-  // NUEVO: controles de export y versiones
-  const [showExportMenu, setShowExportMenu] = useState(false);
-  const [showVersionsModal, setShowVersionsModal] = useState(false);
+  // Export / Modal
+  const [showVersions, setShowVersions] = useState(false);
   const [versions, setVersions] = useState([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
-  const apiBaseRef = useRef(
-    // usa variable global o .env si existen; si no, pedimos por prompt al abrir versiones
-    (typeof window !== 'undefined' && window.__TEMARIOS_API_BASE) ||
-      (import.meta?.env?.VITE_TEMARIOS_API || '')
-  );
+  const [versionsError, setVersionsError] = useState('');
 
-  // Ref para el área a exportar en PDF
+  // Ref PDF
   const pdfTargetRef = useRef(null);
 
-  // Estado para los parámetros de re-generación. Se inicializa con los datos del temario actual.
+  // Parámetros para regenerar (se “sincronizan” con temarioInicial)
   const [params, setParams] = useState({
     tecnologia: temarioInicial?.version_tecnologia || '',
     tema_curso: temarioInicial?.tema_curso || temarioInicial?.nombre_curso || '',
@@ -100,10 +43,8 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     enfoque: temarioInicial?.enfoque || ''
   });
 
-  // Efecto para actualizar el temario si la prop `temarioInicial` cambia
   useEffect(() => {
     setTemario(temarioInicial);
-    // También actualizamos los params por si se regenera
     setParams({
       tecnologia: temarioInicial?.version_tecnologia || '',
       tema_curso: temarioInicial?.tema_curso || temarioInicial?.nombre_curso || '',
@@ -114,46 +55,44 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     });
   }, [temarioInicial]);
 
-  // --- MANEJADORES DE EDICIÓN DIRECTA ---
+  // Handlers edición directa
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTemario(prev => ({ ...prev, [name]: value }));
   };
 
   const handleTemarioChange = (capIndex, subIndex, value) => {
-    const nuevoTemario = JSON.parse(JSON.stringify(temario)); // Deep copy para evitar mutaciones
+    const nuevo = JSON.parse(JSON.stringify(temario));
     if (subIndex === null) {
-      nuevoTemario.temario[capIndex].capitulo = value;
+      nuevo.temario[capIndex].capitulo = value;
     } else {
-      // Maneja ambos formatos de subcapítulos (string u objeto)
-      if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
-        nuevoTemario.temario[capIndex].subcapitulos[subIndex].nombre = value;
+      if (typeof nuevo.temario[capIndex].subcapitulos[subIndex] === 'object') {
+        nuevo.temario[capIndex].subcapitulos[subIndex].nombre = value;
       } else {
-        nuevoTemario.temario[capIndex].subcapitulos[subIndex] = value;
+        nuevo.temario[capIndex].subcapitulos[subIndex] = value;
       }
     }
-    setTemario(nuevoTemario);
+    setTemario(nuevo);
   };
 
-  // --- MANEJADORES DE RE-GENERACIÓN Y GUARDADO ---
+  // Regenerar / Guardar
   const handleParamsChange = (e) => {
     const { name, value } = e.target;
     setParams(prev => ({ ...prev, [name]: value }));
   };
 
   const handleRegenerateClick = () => {
-    onRegenerate(params);
+    onRegenerate?.(params);
     setMostrarFormRegenerar(false);
   };
 
   const handleSaveClick = () => {
-    onSave(temario);
+    onSave?.(temario);
   };
 
-  // Función para exportar PDF (sin cambios)
+  // Exportar PDF
   const exportarPDF = () => {
     if (!pdfTargetRef.current) return;
-
     const titulo = temario?.nombre_curso || 'temario';
     const filename = `temario_${String(titulo).replace(/\s+/g, '_')}_${vista}.pdf`;
 
@@ -170,89 +109,53 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       .save();
   };
 
-  // NUEVO: Exportar CSV para Excel
-  const exportarCSV = () => {
-    const cursoId = temario?.cursoId || temario?.curso_slug || slugify(temario?.tema_curso || temario?.nombre_curso || 'curso');
-    exportTemarioToCSV(temario, `temario_${cursoId}`);
-    setShowExportMenu(false);
+  // Exportar Excel (dinámico con fallback CSV)
+  const exportarExcel = async () => {
+    try {
+      const { downloadExcelTemario } = await import('../utils/downloadExcel');
+      await downloadExcelTemario(temario);
+    } catch {
+      alert('La exportación a Excel no está disponible en este build.');
+    }
   };
 
-  // NUEVO: Abrir modal y cargar versiones
-  const abrirModalVersiones = async () => {
-    try {
-      let base = apiBaseRef.current;
-      if (!base) {
-        base = window.prompt('URL base del API de temarios (por ej. https://XXXX.execute-api.REGION.amazonaws.com/prod)');
-        if (!base) return;
-        apiBaseRef.current = base;
-      }
-      const cursoId = temario?.cursoId || temario?.curso_slug || slugify(temario?.tema_curso || temario?.nombre_curso || 'curso');
-      setShowVersionsModal(true);
-      setLoadingVersions(true);
+  // Modal "Ver versiones"
+  const cursoIdPorDefecto = () => {
+    const raw = temario?.tema_curso || temario?.nombre_curso || 'curso';
+    return String(raw).toLowerCase().trim().replace(/\s+/g, '-');
+  };
 
-      const resp = await fetch(`${base}/temarios/${encodeURIComponent(cursoId)}/versions`);
-      const data = await resp.json();
-      const list = Array.isArray(data) ? data : (data?.body ? JSON.parse(data.body) : []);
-      setVersions(list || []);
+  const abrirModalVersiones = async () => {
+    setShowVersions(true);
+    setVersions([]);
+    setVersionsError('');
+    if (!onFetchVersions) return; // si no hay función, dejamos mensaje vacío
+    setLoadingVersions(true);
+    try {
+      const id = cursoIdPorDefecto();
+      const list = await onFetchVersions(id);
+      setVersions(Array.isArray(list) ? list : []);
     } catch (e) {
-      console.error(e);
-      setVersions([]);
-      setShowVersionsModal(true);
+      setVersionsError('No se pudieron cargar las versiones.');
     } finally {
       setLoadingVersions(false);
     }
   };
 
-  // NUEVO: Descargar una versión en JSON
-  const descargarVersion = async (v) => {
-    try {
-      let base = apiBaseRef.current;
-      if (!base) {
-        base = window.prompt('URL base del API de temarios (por ej. https://XXXX.execute-api.REGION.amazonaws.com/prod)');
-        if (!base) return;
-        apiBaseRef.current = base;
-      }
-      // Intentamos inferir courseId del s3Key: temarios/<cursoId>.json
-      const s3Key = v?.s3Key || '';
-      const guessedId = s3Key.split('/').pop()?.replace('.json', '') || '';
-      const cursoId = temario?.cursoId || temario?.curso_slug || guessedId || slugify(temario?.tema_curso || temario?.nombre_curso || 'curso');
+  // cerrar dropdown si hago click fuera
+  useEffect(() => {
+    const close = () =>
+      document.querySelectorAll('.exportar-menu.open')
+        .forEach(m => m.classList.remove('open'));
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, []);
 
-      const url = `${base}/temarios/${encodeURIComponent(cursoId)}/versions/${encodeURIComponent(v.versionId)}`;
-      const resp = await fetch(url);
-      const payload = await resp.json();
-      const body = typeof payload === 'string'
-        ? JSON.parse(payload)
-        : (payload?.body ? JSON.parse(payload.body) : payload);
-
-      const blob = new Blob([JSON.stringify(body, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${cursoId}-${v.versionId}.json`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    } catch (e) {
-      console.error(e);
-      alert('No se pudo descargar la versión seleccionada.');
-    }
-  };
-
-  if (!temario) {
-    // Mantengo tu comportamiento de retorno nulo,
-    // pero si prefieres, muestra un aviso no intrusivo:
-    return (
-      <div className="editor-container">
-        <div className="vista-info">
-          <p>⚠️ No hay datos del temario para mostrar.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const cursoId = temario?.cursoId || temario?.curso_slug || slugify(temario?.tema_curso || temario?.nombre_curso || 'curso');
+  if (!temario) return null;
 
   return (
     <div className="editor-container">
-      {/* NUEVO: barra superior con título + acciones (opcional mantener solo el selector si así lo prefieres) */}
+      {/* Selector de vista */}
       <div className="vista-selector">
         <button
           className={`btn-vista ${vista === 'resumida' ? 'activo' : ''}`}
@@ -269,13 +172,13 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       </div>
 
       <div className="vista-info">
-        {vista === 'resumida' ? (
-          <p>📝 Vista completa con todos los campos editables organizados verticalmente</p>
-        ) : (
-          <p>📋 Vista compacta con campos organizados en grillas para edición rápida</p>
-        )}
+        {vista === 'resumida'
+          ? <p>📝 Vista completa con todos los campos editables organizados verticalmente</p>
+          : <p>📋 Vista compacta con campos organizados en grillas para edición rápida</p>
+        }
       </div>
 
+      {/* Contenido */}
       {isLoading ? (
         <div className="spinner-container">
           <div className="spinner"></div>
@@ -284,7 +187,6 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       ) : (
         <div ref={pdfTargetRef}>
           {vista === 'detallada' ? (
-            // --- VISTA DETALLADA Y EDITABLE --- (SIN CAMBIOS)
             <div>
               <label className="editor-label">Nombre del Curso</label>
               <textarea name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo" />
@@ -319,7 +221,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               <h3>Temario Resumido</h3>
               {(temario.temario || []).map((cap, capIndex) => (
                 <div key={capIndex} className="capitulo-editor">
-                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo" placeholder="Nombre del capítulo" />
+                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo" placeholder="Nombre del capítulo"/>
 
                   <div className="capitulo-info-grid">
                     <div className="info-item">
@@ -328,9 +230,9 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                         type="number"
                         value={cap.tiempo_capitulo_min || ''}
                         onChange={(e) => {
-                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                          nuevoTemario.temario[capIndex].tiempo_capitulo_min = parseInt(e.target.value) || 0;
-                          setTemario(nuevoTemario);
+                          const nuevo = JSON.parse(JSON.stringify(temario));
+                          nuevo.temario[capIndex].tiempo_capitulo_min = parseInt(e.target.value) || 0;
+                          setTemario(nuevo);
                         }}
                         className="input-info"
                         placeholder="420"
@@ -341,9 +243,9 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                       <input
                         value={cap.porcentaje_teoria_practica_capitulo || ''}
                         onChange={(e) => {
-                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                          nuevoTemario.temario[capIndex].porcentaje_teoria_practica_capitulo = e.target.value;
-                          setTemario(nuevoTemario);
+                          const nuevo = JSON.parse(JSON.stringify(temario));
+                          nuevo.temario[capIndex].porcentaje_teoria_practica_capitulo = e.target.value;
+                          setTemario(nuevo);
                         }}
                         className="input-info"
                         placeholder="40% Teoría / 60% Práctica"
@@ -356,14 +258,14 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                     <textarea
                       value={Array.isArray(cap.objetivos_capitulo) ? cap.objetivos_capitulo.join('\n') : (cap.objetivos_capitulo || '')}
                       onChange={(e) => {
-                        const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                        const objetivosTexto = e.target.value;
-                        if (objetivosTexto.includes('\n')) {
-                          nuevoTemario.temario[capIndex].objetivos_capitulo = objetivosTexto.split('\n').filter(obj => obj.trim());
+                        const nuevo = JSON.parse(JSON.stringify(temario));
+                        const t = e.target.value;
+                        if (t.includes('\n')) {
+                          nuevo.temario[capIndex].objetivos_capitulo = t.split('\n').filter(s => s.trim());
                         } else {
-                          nuevoTemario.temario[capIndex].objetivos_capitulo = objetivosTexto;
+                          nuevo.temario[capIndex].objetivos_capitulo = t;
                         }
-                        setTemario(nuevoTemario);
+                        setTemario(nuevo);
                       }}
                       className="textarea-objetivos-capitulo"
                       placeholder="Escribe los objetivos del capítulo, uno por línea"
@@ -373,7 +275,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                   <ul>
                     {(cap.subcapitulos || []).map((sub, subIndex) => (
                       <li key={subIndex}>
-                        <input value={typeof sub === 'object' ? sub.nombre : sub} onChange={(e) => handleTemarioChange(capIndex, subIndex, e.target.value)} className="input-subcapitulo" placeholder="Nombre del subcapítulo" />
+                        <input value={typeof sub === 'object' ? sub.nombre : sub} onChange={(e) => handleTemarioChange(capIndex, subIndex, e.target.value)} className="input-subcapitulo" placeholder="Nombre del subcapítulo"/>
                       </li>
                     ))}
                   </ul>
@@ -381,7 +283,6 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               ))}
             </div>
           ) : (
-            // --- VISTA RESUMIDA TAMBIÉN EDITABLE --- (SIN CAMBIOS)
             <div className="vista-resumida-editable">
               <input name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo-resumido" placeholder="Nombre del curso" />
 
@@ -431,9 +332,8 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
               <h3>Temario Detallado</h3>
               {(temario.temario || []).map((cap, capIndex) => (
                 <div key={capIndex} className="capitulo-resumido">
-                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo" />
+                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
 
-                  {/* Grid de información del capítulo */}
                   <div className="info-grid-capitulo">
                     <div className="info-item">
                       <label>Duración (min):</label>
@@ -441,9 +341,9 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                         type="number"
                         value={cap.tiempo_capitulo_min || ''}
                         onChange={(e) => {
-                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                          nuevoTemario.temario[capIndex].tiempo_capitulo_min = parseInt(e.target.value) || 0;
-                          setTemario(nuevoTemario);
+                          const nuevo = JSON.parse(JSON.stringify(temario));
+                          nuevo.temario[capIndex].tiempo_capitulo_min = parseInt(e.target.value) || 0;
+                          setTemario(nuevo);
                         }}
                         className="input-info-small"
                         placeholder="120"
@@ -454,9 +354,9 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                       <input
                         value={cap.porcentaje_teoria_practica_capitulo || ''}
                         onChange={(e) => {
-                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                          nuevoTemario.temario[capIndex].porcentaje_teoria_practica_capitulo = e.target.value;
-                          setTemario(nuevoTemario);
+                          const nuevo = JSON.parse(JSON.stringify(temario));
+                          nuevo.temario[capIndex].porcentaje_teoria_practica_capitulo = e.target.value;
+                          setTemario(nuevo);
                         }}
                         className="input-info-small"
                         placeholder="70% Teoría / 30% Práctica"
@@ -469,14 +369,14 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                     <textarea
                       value={Array.isArray(cap.objetivos_capitulo) ? cap.objetivos_capitulo.join('\n') : (cap.objetivos_capitulo || '')}
                       onChange={(e) => {
-                        const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                        const objetivosTexto = e.target.value;
-                        if (objetivosTexto.includes('\n')) {
-                          nuevoTemario.temario[capIndex].objetivos_capitulo = objetivosTexto.split('\n').filter(obj => obj.trim());
+                        const nuevo = JSON.parse(JSON.stringify(temario));
+                        const t = e.target.value;
+                        if (t.includes('\n')) {
+                          nuevo.temario[capIndex].objetivos_capitulo = t.split('\n').filter(s => s.trim());
                         } else {
-                          nuevoTemario.temario[capIndex].objetivos_capitulo = objetivosTexto;
+                          nuevo.temario[capIndex].objetivos_capitulo = t;
                         }
-                        setTemario(nuevoTemario);
+                        setTemario(nuevo);
                       }}
                       className="textarea-objetivos-resumido"
                       placeholder="Objetivos del capítulo, uno por línea"
@@ -497,16 +397,16 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                             type="number"
                             value={typeof sub === 'object' ? sub.tiempo_subcapitulo_min || '' : ''}
                             onChange={(e) => {
-                              const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                              if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
-                                nuevoTemario.temario[capIndex].subcapitulos[subIndex].tiempo_subcapitulo_min = parseInt(e.target.value) || 0;
+                              const nuevo = JSON.parse(JSON.stringify(temario));
+                              if (typeof nuevo.temario[capIndex].subcapitulos[subIndex] === 'object') {
+                                nuevo.temario[capIndex].subcapitulos[subIndex].tiempo_subcapitulo_min = parseInt(e.target.value) || 0;
                               } else {
-                                nuevoTemario.temario[capIndex].subcapitulos[subIndex] = {
-                                  nombre: nuevoTemario.temario[capIndex].subcapitulos[subIndex],
+                                nuevo.temario[capIndex].subcapitulos[subIndex] = {
+                                  nombre: nuevo.temario[capIndex].subcapitulos[subIndex],
                                   tiempo_subcapitulo_min: parseInt(e.target.value) || 0
                                 };
                               }
-                              setTemario(nuevoTemario);
+                              setTemario(nuevo);
                             }}
                             className="input-tiempo-sub"
                             placeholder="min"
@@ -515,16 +415,16 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                             type="number"
                             value={typeof sub === 'object' ? sub.sesion || '' : ''}
                             onChange={(e) => {
-                              const nuevoTemario = JSON.parse(JSON.stringify(temario));
-                              if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
-                                nuevoTemario.temario[capIndex].subcapitulos[subIndex].sesion = parseInt(e.target.value) || 0;
+                              const nuevo = JSON.parse(JSON.stringify(temario));
+                              if (typeof nuevo.temario[capIndex].subcapitulos[subIndex] === 'object') {
+                                nuevo.temario[capIndex].subcapitulos[subIndex].sesion = parseInt(e.target.value) || 0;
                               } else {
-                                nuevoTemario.temario[capIndex].subcapitulos[subIndex] = {
-                                  nombre: nuevoTemario.temario[capIndex].subcapitulos[subIndex],
+                                nuevo.temario[capIndex].subcapitulos[subIndex] = {
+                                  nombre: nuevo.temario[capIndex].subcapitulos[subIndex],
                                   sesion: parseInt(e.target.value) || 0
                                 };
                               }
-                              setTemario(nuevoTemario);
+                              setTemario(nuevo);
                             }}
                             className="input-sesion-sub"
                             placeholder="sesión"
@@ -540,32 +440,41 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         </div>
       )}
 
-      {/* === ACCIONES === */}
+      {/* Botonera inferior */}
       <div className="acciones-footer">
         <button onClick={() => setMostrarFormRegenerar(prev => !prev)}>Ajustar y Regenerar</button>
         <button onClick={handleSaveClick} className="btn-guardar">Guardar Versión</button>
 
-        {/* NUEVO: dropdown Exportar */}
-        <div className="export-dropdown">
+        {/* Exportar (dropdown vertical) */}
+        <div className="exportar-group">
           <button
-            className="btn-exportar"
-            onClick={() => setShowExportMenu((s) => !s)}
+            type="button"
+            className="btn-exportar exportar-trigger"
+            onClick={(e) => {
+              e.stopPropagation();
+              const menu = e.currentTarget.parentElement.querySelector('.exportar-menu');
+              menu.classList.toggle('open');
+            }}
           >
             Exportar ▾
           </button>
-          {showExportMenu && (
-            <div className="export-menu">
-              <button onClick={() => { setShowExportMenu(false); exportarPDF(); }}>PDF</button>
-              <button onClick={exportarCSV}>Excel (CSV)</button>
-            </div>
-          )}
+
+          <div className="exportar-menu" onClick={(e)=>e.stopPropagation()}>
+            <button className="exportar-item" onClick={() => {
+              document.querySelector('.exportar-menu')?.classList.remove('open');
+              exportarPDF();
+            }}>Exportar a PDF</button>
+
+            <button className="exportar-item" onClick={async () => {
+              document.querySelector('.exportar-menu')?.classList.remove('open');
+              await exportarExcel();
+            }}>Exportar a Excel</button>
+          </div>
         </div>
 
-        {/* NUEVO: Ver versiones */}
         <button onClick={abrirModalVersiones} className="btn-ver-versiones">Ver versiones</button>
       </div>
 
-      {/* === FORM DE REGENERACIÓN (igual que el tuyo) === */}
       {mostrarFormRegenerar && (
         <div className="regenerar-form">
           <h4>Regenerar con Nuevos Parámetros</h4>
@@ -601,36 +510,44 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         </div>
       )}
 
-      {/* === MODAL DE VERSIONES (NUEVO) === */}
-      {showVersionsModal && (
-        <div className="modal-backdrop" onClick={() => setShowVersionsModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>📁 Versiones guardadas — <small>{cursoId}</small></h3>
+      {/* Modal Versiones */}
+      {showVersions && (
+        <div className="modal-overlay" onClick={() => setShowVersions(false)}>
+          <div className="modal-card" onClick={(e)=>e.stopPropagation()}>
+            <div className="modal-title">
+              <span>📁 Versiones guardadas — <em>{cursoIdPorDefecto()}</em></span>
+            </div>
 
-            {loadingVersions ? (
-              <div className="spinner" />
-            ) : versions?.length ? (
-              <div className="versiones-lista">
-                {versions.map((v, idx) => (
-                  <div key={`${v.versionId}-${idx}`} className="version-item">
-                    <div className="version-info">
-                      <div><strong>versionId:</strong> {v.versionId}</div>
-                      <div><strong>fecha:</strong> {new Date(v.createdAt || v.LastModified || Date.now()).toLocaleString()}</div>
-                      {v.nota && <div><strong>nota:</strong> {String(v.nota).replace(/^=\?UTF-8\?Q\?|\?=$/g,'')}</div>}
-                      {v.size != null && <div><strong>tamaño:</strong> {v.size} bytes</div>}
-                    </div>
-                    <div className="version-actions">
-                      <button onClick={() => descargarVersion(v)}>Descargar JSON</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>No hay versiones registradas o no se pudieron cargar.</p>
-            )}
+            <div className="modal-body">
+              {loadingVersions && <p>Cargando versiones…</p>}
+              {!loadingVersions && versionsError && <p className="error-text">{versionsError}</p>}
+
+              {!loadingVersions && !versionsError && (
+                versions.length > 0 ? (
+                  <ul className="lista-versiones">
+                    {versions.map(v => (
+                      <li key={v.versionId}>
+                        <div className="ver-item-title">
+                          <strong>vID:</strong> {v.versionId}
+                          {v.isLatest ? <span className="badge-latest">última</span> : null}
+                        </div>
+                        <div className="ver-item-meta">
+                          <span>{new Date(v.createdAt).toLocaleString()}</span>
+                          {typeof v.size === 'number' ? <span> · {v.size} bytes</span> : null}
+                          {v.autorEmail ? <span> · {v.autorEmail}</span> : null}
+                        </div>
+                        {v.nota ? <div className="ver-item-nota">📝 {v.nota}</div> : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No hay versiones registradas o no se pudieron cargar.</p>
+                )
+              )}
+            </div>
 
             <div className="modal-actions">
-              <button onClick={() => setShowVersionsModal(false)}>Cerrar</button>
+              <button className="btn-cerrar" onClick={() => setShowVersions(false)}>Cerrar</button>
             </div>
           </div>
         </div>
@@ -640,5 +557,6 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
+
 
 
