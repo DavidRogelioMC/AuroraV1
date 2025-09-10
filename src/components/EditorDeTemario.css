@@ -744,3 +744,199 @@
   outline: none;
   box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
 }
+
+/* --- ESTILOS PARA PDF PROFESIONAL --- */
+.pdf-clean {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  line-height: 1.6;
+}
+
+.pdf-clean.pdf-exporting {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  width: 210mm;
+  visibility: visible;
+}
+
+.pdf-header-corp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  margin-bottom: 10px;
+}
+
+.header-logo-netec {
+  height: 50px;
+  width: auto;
+}
+
+.pdf-header-divider {
+  height: 3px;
+  background: linear-gradient(90deg, #1b5784 0%, #0c58a0 100%);
+  margin-bottom: 20px;
+}
+
+.pdf-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1b5784;
+  text-align: center;
+  margin: 20px 0 25px 0;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 10px;
+}
+
+.pdf-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+  border-left: 4px solid #1b5784;
+}
+
+.pdf-meta div {
+  font-size: 14px;
+}
+
+.pdf-meta strong {
+  color: #1b5784;
+  font-weight: 600;
+}
+
+.pdf-body h2 {
+  color: #1b5784;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 25px 0 15px 0;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 5px;
+}
+
+.pdf-body h3 {
+  color: #495057;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 0 10px 0;
+}
+
+.pdf-justify {
+  text-align: justify;
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.pdf-capitulo {
+  margin: 20px 0;
+  page-break-inside: avoid;
+}
+
+.pdf-cap-meta {
+  font-size: 12px;
+  color: #6c757d;
+  background: #f1f3f4;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.pdf-cap-meta strong {
+  color: #495057;
+}
+
+.pdf-objetivos-cap {
+  margin: 12px 0;
+  padding: 10px;
+  background: #f8f9fa;
+  border-left: 3px solid #1b5784;
+  border-radius: 0 4px 4px 0;
+}
+
+.pdf-objetivos-cap strong {
+  color: #1b5784;
+  font-size: 14px;
+}
+
+.pdf-objetivos-lista {
+  margin-top: 8px;
+}
+
+.pdf-objetivo-item {
+  font-size: 13px;
+  color: #495057;
+  margin: 4px 0;
+  padding-left: 10px;
+}
+
+.pdf-subcapitulos {
+  list-style: none;
+  padding-left: 0;
+  margin: 15px 0;
+}
+
+.pdf-subcapitulos li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.pdf-subcapitulos li:nth-child(odd) {
+  background: #f8f9fa;
+}
+
+.pdf-sub-meta {
+  font-size: 11px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.html2pdf__page-break {
+  page-break-before: always;
+}
+
+.app-view {
+  margin-top: 30px;
+}
+
+/* Ocultar contenido PDF en vista normal */
+@media screen {
+  .pdf-clean {
+    display: none;
+  }
+}
+
+/* Mostrar solo contenido PDF al imprimir */
+@media print {
+  .app-view,
+  .vista-selector,
+  .vista-info,
+  .acciones-footer,
+  .regenerar-form,
+  .modal-overlay,
+  .ui-messages {
+    display: none !important;
+  }
+  
+  .pdf-clean {
+    display: block !important;
+  }
+  
+  .editor-container {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+}
+
