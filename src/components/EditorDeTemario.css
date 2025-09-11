@@ -745,59 +745,21 @@
   box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
 }
 
-/* --- ESTILOS PARA PDF CON LOGO DE NETEC DE FONDO --- */
+/* --- ESTILOS PARA PDF --- */
 .pdf-clean {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
   line-height: 1.6;
-  display: block;
-  visibility: visible;
-  max-width: 210mm;
-  background: #ffffff;
-  padding: 20px;
-  margin: 0;
-  position: relative;
-}
-
-.pdf-clean::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 400px;
-  height: 400px;
-  background-image: url('../assets/Netec.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  opacity: 0.03;
-  z-index: -1;
-  pointer-events: none;
 }
 
 .pdf-clean.pdf-exporting {
-  position: fixed;
-  top: -9999px;
+  position: absolute;
   left: -9999px;
-  width: 210mm;
-  visibility: visible;
-  display: block !important;
+  top: 0;
+  width: 210mm; /* Ancho A4 */
+  background: #ffffff;
+  padding: 20px;
   z-index: -1;
-}
-
-.pdf-header-corp {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 15px 0;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #1b5784;
-}
-
-.header-logo-netec {
-  height: 45px;
-  width: auto;
 }
 
 .pdf-title {
@@ -806,7 +768,7 @@
   color: #1b5784;
   text-align: center;
   margin: 20px 0;
-  padding: 15px;
+  padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
 
@@ -819,16 +781,8 @@
   border-radius: 8px;
   margin: 20px 0;
 }
-
-.pdf-meta div {
-  font-size: 14px;
-  padding: 5px 0;
-}
-
-.pdf-meta strong {
-  color: #1b5784;
-  font-weight: 600;
-}
+.pdf-meta div { font-size: 14px; padding: 5px 0; }
+.pdf-meta strong { color: #1b5784; font-weight: 600; }
 
 .pdf-body h2 {
   color: #1b5784;
@@ -844,7 +798,6 @@
   font-size: 16px;
   font-weight: 600;
   margin: 20px 0 10px 0;
-  padding: 8px 0;
   border-left: 4px solid #1b5784;
   padding-left: 12px;
 }
@@ -853,16 +806,13 @@
   text-align: justify;
   margin: 10px 0;
   font-size: 14px;
-  line-height: 1.6;
 }
 
 .pdf-capitulo {
   margin: 20px 0;
   page-break-inside: avoid;
-  background: #fafafa;
-  border-radius: 8px;
-  padding: 15px;
   border-left: 4px solid #1b5784;
+  padding: 0 0 0 15px;
 }
 
 .pdf-cap-meta {
@@ -871,11 +821,7 @@
   margin: 8px 0;
   font-style: italic;
 }
-
-.pdf-cap-meta strong {
-  color: #1b5784;
-  font-weight: 600;
-}
+.pdf-cap-meta strong { color: #1b5784; font-weight: 600; }
 
 .pdf-objetivos-cap {
   margin: 12px 0;
@@ -883,54 +829,26 @@
   background: #f0f8ff;
   border-radius: 6px;
 }
-
-.pdf-objetivos-cap strong {
-  color: #1b5784;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.pdf-objetivos-lista {
-  margin-top: 8px;
-}
-
-.pdf-objetivo-item {
-  font-size: 13px;
-  color: #333;
-  margin: 4px 0;
-  padding-left: 15px;
-  position: relative;
-}
-
-.pdf-objetivo-item::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: #1b5784;
-  font-weight: bold;
-}
+.pdf-objetivos-cap strong { color: #1b5784; font-size: 14px; font-weight: 600; }
+.pdf-objetivos-lista { margin-top: 8px; }
+.pdf-objetivo-item { font-size: 13px; color: #333; margin: 4px 0; }
 
 .pdf-subcapitulos {
   list-style: none;
   padding-left: 0;
   margin: 15px 0;
 }
-
 .pdf-subcapitulos li {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
   margin: 4px 0;
-  background: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   font-size: 13px;
 }
-
-.pdf-subcapitulos li:nth-child(odd) {
-  background: #f8f9fa;
-}
+.pdf-subcapitulos li:nth-child(odd) { background: #f8f9fa; }
 
 .pdf-sub-meta {
   font-size: 11px;
@@ -940,43 +858,4 @@
 
 .html2pdf__page-break {
   page-break-before: always;
-  height: 1px;
-  margin: 0;
-  padding: 0;
 }
-
-.app-view {
-  margin-top: 30px;
-}
-
-/* Ocultar contenido PDF en vista normal pero permitir que html2pdf lo procese */
-@media screen {
-  .pdf-clean:not(.pdf-exporting) {
-    display: none !important;
-  }
-}
-
-/* Mostrar solo contenido PDF al imprimir */
-@media print {
-  .app-view,
-  .vista-selector,
-  .vista-info,
-  .acciones-footer,
-  .regenerar-form,
-  .modal-overlay,
-  .ui-messages {
-    display: none !important;
-  }
-  
-  .pdf-clean {
-    display: block !important;
-  }
-  
-  .editor-container {
-    box-shadow: none;
-    border: none;
-    padding: 0;
-  }
-}
-
-
