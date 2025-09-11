@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import html2pdf from "html2pdf.js";
 import { downloadExcelTemario } from "../utils/downloadExcel";
-import netecLogo from "../assets/Netec.png";
+import plantillaTemario from '../assets/plantillaTemario.png';
 import "./EditorDeTemario.css";
 
 const API_BASE = import.meta.env.VITE_TEMARIOS_API || "";
@@ -127,63 +127,70 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     }
   };
 
-  // 2. AJUSTE CLAVE: La nueva función de exportación a PDF
+// --- FUNCIÓN DE EXPORTACIÓN FINAL (CON PLANTILLA Y SIN MARCA DE AGUA) ---
   const exportarPDF = async () => {
-    // La solución es envolver toda la lógica en un setTimeout.
-    // Esto le da a React un momento para renderizar el contenido antes de capturarlo.
     setTimeout(async () => {
       const elemento = pdfContentRef.current; 
       if (!elemento) {
-        setErrorUi("Error: No se encontró el contenido para exportar. La 'ref' no está asignada.");
+        setErrorUi("Error: No se encontró el contenido para exportar.");
         return;
       }
-      setOkUi("Generando PDF profesional...");
+      setOkUi("Generando PDF con plantilla...");
       setErrorUi("");
       elemento.classList.add('pdf-exporting');
+
       try {
         const options = {
-          margin: [0.8, 0.8, 1, 0.8],
+          // Los márgenes ahora los controla la imagen de la plantilla
+          margin: [0.8, 0.8, 1, 0.8], 
           filename: `Temario_${slugify(temario.nombre_curso)}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, logging: false },
-          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+          pagebreak: { mode: 'css', avoid: '.pdf-capitulo' }
         };
+
         const worker = html2pdf().set(options).from(elemento).toPdf();
         const pdf = await worker.get('pdf');
         const totalPages = pdf.internal.getNumberOfPages();
-        const logoDataUrl = await toDataURL(netecLogo);
+        
+        // Carga la plantilla de fondo
+        const plantillaDataUrl = await toDataURL(plantillaTemario);
+
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        
+
         for (let i = 1; i <= totalPages; i++) {
           pdf.setPage(i);
-          pdf.addImage(logoDataUrl, 'PNG', options.margin[1], 0.5, 1.2, 0.375);
-          pdf.setDrawColor("#1b5784");
-          pdf.setLineWidth(0.02);
-          pdf.line(options.margin[1], 1.0, pageWidth - options.margin[3], 1.0);
-          const footerY = pageHeight - 0.5;
+
+          // 1. DIBUJA LA PLANTILLA DE FONDO EN TODA LA PÁGINA
+          // Esto reemplaza el logo de Netec y las líneas que se dibujaban antes.
+          pdf.addImage(plantillaDataUrl, 'PNG', 0, 0, pageWidth, pageHeight);
+
+          // 2. LA MARCA DE AGUA FUE ELIMINADA
+
+          // 3. AÑADE LA NUMERACIÓN DE PÁGINA (esto se mantiene)
           pdf.setFontSize(9);
           pdf.setTextColor("#6c757d");
-          pdf.text('Presencia Internacional', options.margin[1], footerY);
-          const footerRightText = 'www.netec.com • servicio@netec.com';
-          const textWidth = pdf.getStringUnitWidth(footerRightText) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
-          pdf.text(footerRightText, pageWidth - options.margin[3] - textWidth, footerY);
           const pageNumText = `Página ${i} de ${totalPages}`;
           const pageNumWidth = pdf.getStringUnitWidth(pageNumText) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
-          pdf.text(pageNumText, (pageWidth - pageNumWidth) / 2, footerY);
+          
+          // Ajusta la posición vertical (el valor 'pageHeight - 0.45') si es necesario
+          pdf.text(pageNumText, (pageWidth - pageNumWidth) / 2, pageHeight - 0.45);
         }
         
         await worker.save();
         setOkUi("PDF exportado correctamente ✔");
+
       } catch (error) {
         console.error("Error al generar PDF:", error);
         setErrorUi("Error al generar el PDF.");
       } finally {
         elemento.classList.remove('pdf-exporting');
       }
-    }, 0); // El '0' asegura que el código se ejecute después del renderizado actual.
+    }, 0); 
   };
-  
+
   const exportarExcel = () => {
     if (!temario) {
       setErrorUi("No hay temario para exportar");
@@ -233,7 +240,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
             {temario?.audiencia && (<><h2>Audiencia</h2><p className="pdf-justify">{temario.audiencia}</p></>)}
             {temario?.prerrequisitos && (<><h2>Prerrequisitos</h2><p className="pdf-justify">{temario.prerrequisitos}</p></>)}
             {temario?.objetivos && (<><h2>Objetivos</h2><p className="pdf-justify" style={{ whiteSpace: 'pre-wrap' }}>{temario.objetivos}</p></>)}
-            <div className="html2pdf__page-break" />
+            
             <h2>Temario</h2>
             {(temario?.temario || []).map((cap, i) => (
               <div key={i} className="pdf-capitulo">
