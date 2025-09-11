@@ -752,20 +752,29 @@
   line-height: 1.6;
 }
 
-
-/* REGLA TEMPORAL PARA DIAGNÓSTICO */
-#temario-pdf .pdf-clean.pdf-exporting {
-  display: block;
-  position: fixed; /* Lo pone sobre todo lo demás */
+/* 1. REGLA PARA MANTENER OCULTO EL CONTENIDO EN LA APP */
+/* Este es el estado oculto mejorado */
+#temario-pdf .pdf-clean {
+  /* Ya no usamos display: none */
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  /* Estas propiedades aseguran que no afecte el layout de tu página */
   left: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
-  background: white;
-  overflow-y: scroll; /* Permite ver si hay mucho contenido */
-  border: 5px solid red; /* Para que sea obvio que está visible */
-  z-index: 9999; /* Asegura que esté al frente */
+  z-index: -1; 
+  background: #fff;
+  width: 794px; /* Ancho A4 aproximado */
 }
+
+/* 2. REGLA PARA HACERLO VISIBLE SOLO DURANTE LA EXPORTACIÓN */
+/* Este es el estado visible para exportar (la solución final) */
+#temario-pdf .pdf-clean.pdf-exporting {
+  visibility: visible;
+  opacity: 1;
+  z-index: 9999;
+}
+
 
 .pdf-title {
   font-size: 24px;
