@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import html2pdf from "html2pdf.js";
 import { downloadExcelTemario } from "../utils/downloadExcel";
-import plantillaTemario from '../assets/plantillaTemario.png';
 import "./EditorDeTemario.css";
 
 const API_BASE = import.meta.env.VITE_TEMARIOS_API || "";
@@ -153,22 +152,11 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         const worker = html2pdf().set(options).from(elemento).toPdf();
         const pdf = await worker.get('pdf');
         const totalPages = pdf.internal.getNumberOfPages();
-        
-        // Carga la plantilla de fondo
-        const plantillaDataUrl = await toDataURL(plantillaTemario);
-
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
 
         for (let i = 1; i <= totalPages; i++) {
           pdf.setPage(i);
-
-          // 1. DIBUJA LA PLANTILLA DE FONDO EN TODA LA PÁGINA
-          // Esto reemplaza el logo de Netec y las líneas que se dibujaban antes.
-          pdf.addImage(plantillaDataUrl, 'PNG', 0, 0, pageWidth, pageHeight);
-
-          // 2. LA MARCA DE AGUA FUE ELIMINADA
-
           // 3. AÑADE LA NUMERACIÓN DE PÁGINA (esto se mantiene)
           pdf.setFontSize(9);
           pdf.setTextColor("#6c757d");
