@@ -142,7 +142,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       try {
         const options = {
           // Los márgenes ahora los controla la imagen de la plantilla
-          margin: [0.8, 0.8, 1, 0.8], 
+          margin: [0, 0, 0, 0], 
           filename: `Temario_${slugify(temario.nombre_curso)}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, logging: false },
