@@ -752,19 +752,19 @@
   line-height: 1.6;
 }
 
-/*
-  Esta regla FUERZA al contenedor a ser visible cuando se está exportando,
-  incluso si otra regla intenta ocultarlo con !important.
-*/
-.pdf-clean.pdf-exporting {
-  display: block !important; /* <-- La clave es el !important */
-  position: absolute;
-  left: -9999px;
+
+/* REGLA TEMPORAL PARA DIAGNÓSTICO */
+#temario-pdf .pdf-clean.pdf-exporting {
+  display: block;
+  position: fixed; /* Lo pone sobre todo lo demás */
+  left: 0;
   top: 0;
-  width: 210mm; /* Ancho A4 */
-  background: #ffffff;
-  padding: 20px;
-  z-index: -1;
+  width: 100%;
+  height: 100%;
+  background: white;
+  overflow-y: scroll; /* Permite ver si hay mucho contenido */
+  border: 5px solid red; /* Para que sea obvio que está visible */
+  z-index: 9999; /* Asegura que esté al frente */
 }
 
 .pdf-title {
