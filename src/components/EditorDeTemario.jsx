@@ -221,12 +221,6 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       {/* --- CONTENIDO OCULTO PARA PDF --- */}
       {/* 3. AJUSTE CLAVE: La 'ref' se asigna aquí, al div que contiene el contenido limpio */}
       <div ref={pdfContentRef} className="pdf-clean">
-          <div className="pdf-header-corp">
-            <div className="header-left">
-              <img src={netecLogo} alt="Netec Logo" className="header-logo-netec" />
-            </div>
-          </div>
-          <div className="pdf-header-divider" />
           <div className="pdf-body">
             <h1 className="pdf-title">{temario?.nombre_curso || temario?.tema_curso}</h1>
             <div className="pdf-meta">
