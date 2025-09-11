@@ -752,7 +752,12 @@
   line-height: 1.6;
 }
 
+/*
+  Esta regla FUERZA al contenedor a ser visible cuando se está exportando,
+  incluso si otra regla intenta ocultarlo con !important.
+*/
 .pdf-clean.pdf-exporting {
+  display: block !important; /* <-- La clave es el !important */
   position: absolute;
   left: -9999px;
   top: 0;
@@ -810,7 +815,6 @@
 
 .pdf-capitulo {
   margin: 20px 0;
-  page-break-inside: avoid;
   border-left: 4px solid #1b5784;
   padding: 0 0 0 15px;
 }
