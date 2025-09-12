@@ -1,20 +1,19 @@
-// src/components/GeneradorTemarios.jsx
-
 import React, { useState } from 'react';
-import EditorDeTemario from './EditorDeTemario'; // Asegúrate de que este componente exista
-import './GeneradorTemarios.css'; // Crearemos este CSS
+import EditorDeTemario from './EditorDeTemario'; 
+import './GeneradorTemarios.css';
 
 function GeneradorTemarios() {
   const [temarioGenerado, setTemarioGenerado] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Estado para los parámetros de la Lambda
+  // Estado para los parámetros
   const [params, setParams] = useState({
+    tecnologia: '',
     tema_curso: '',
     extension_curso_dias: 1,
     nivel_dificultad: 'basico',
-    objetivos: '',
+    audiencia: '',
     enfoque: ''
   });
 
@@ -26,18 +25,22 @@ function GeneradorTemarios() {
     setParams(prev => ({ ...prev, [name]: value }));
   };
 
-  // Función para generar/regenerar el temario
+  // Generar/regenerar temario
   const handleGenerar = async (nuevosParams = params) => {
-    if (!nuevosParams.tema_curso) {
-      setError("Por favor, especifica el tema del curso.");
+    if (!nuevosParams.tema_curso || !nuevosParams.tecnologia) {
+      setError("Por favor, especifica la tecnología y el tema del curso.");
+      return;
+    }
+    if (!nuevosParams.audiencia?.trim()) {
+      setError("Por favor, especifica la audiencia del curso.");
       return;
     }
     setIsLoading(true);
     setError('');
-    setTemarioGenerado(null); // Limpiamos el resultado anterior
+    setTemarioGenerado(null);
 
     try {
-      const token = localStorage.getItem("id_token"); // O como obtengas tu token
+      const token = localStorage.getItem("id_token");
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -53,7 +56,6 @@ function GeneradorTemarios() {
         throw new Error(data.error || "Ocurrió un error en el servidor.");
       }
       
-      // Añadimos los parámetros originales a los datos para usarlos en la re-generación
       const temarioCompleto = { ...data, ...nuevosParams };
       setTemarioGenerado(temarioCompleto);
       
@@ -65,12 +67,9 @@ function GeneradorTemarios() {
     }
   };
 
-  // Función para guardar el temario
+  // Guardar versión
   const handleSave = async (temarioParaGuardar) => {
     console.log("Guardando esta versión del temario:", temarioParaGuardar);
-    // Aquí iría la lógica para llamar a tu Lambda de "GuardarTemario"
-    // que subiría el resultado a S3 con versionamiento.
-    // const response = await fetch("URL_LAMBDA_GUARDAR", { ... });
     alert("Funcionalidad de guardado en desarrollo.");
   };
 
@@ -82,8 +81,12 @@ function GeneradorTemarios() {
       <div className="formulario-inicial">
         <div className="form-grid">
           <div className="form-group">
+            <label>Tecnología</label>
+            <input name="tecnologia" value={params.tecnologia} onChange={handleParamChange} placeholder="Ej: AWS Serverless, React, Python, etc." />
+          </div>
+          <div className="form-group">
             <label>Tema Principal del Curso</label>
-            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Python, AWS, Scrum" />
+            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Arquitecturas Serverless, Desarrollo Frontend" />
           </div>
           <div className="form-group">
             <label>Duración (días)</label>
@@ -99,12 +102,12 @@ function GeneradorTemarios() {
           </div>
         </div>
         <div className="form-group">
-          <label>Objetivos Específicos (Opcional)</label>
-          <textarea name="objetivos" value={params.objetivos} onChange={handleParamChange} placeholder="Ej: Enfocarse en la creación de APIs REST con FastAPI" />
+          <label>Audiencia</label>
+          <textarea name="audiencia" value={params.audiencia} onChange={handleParamChange} placeholder="Ej: Desarrolladores e Ingenieros de la Nube con experiencia en AWS" />
         </div>
         <div className="form-group">
           <label>Enfoque Adicional (Opcional)</label>
-          <textarea name="enfoque" value={params.enfoque} onChange={handleParamChange} placeholder="Ej: Orientado a principiantes absolutos sin experiencia previa" />
+          <textarea name="enfoque" value={params.enfoque} onChange={handleParamChange} placeholder="Ej: Orientado a patrones de diseño, con énfasis en casos prácticos" />
         </div>
         
         <button className="btn-generar-principal" onClick={() => handleGenerar(params)} disabled={isLoading}>
@@ -117,7 +120,7 @@ function GeneradorTemarios() {
       {temarioGenerado && (
         <EditorDeTemario
           temarioInicial={temarioGenerado}
-          onRegenerate={handleGenerar} // La misma función sirve para regenerar
+          onRegenerate={handleGenerar}
           onSave={handleSave}
           isLoading={isLoading}
         />
@@ -125,4 +128,6 @@ function GeneradorTemarios() {
     </div>
   );
 }
+
 export default GeneradorTemarios;
+

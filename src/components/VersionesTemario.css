@@ -1,0 +1,151 @@
+/* === OVERLAY DEL MODAL === */
+.versiones-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* por encima del sidebar y demás */
+}
+
+/* === CARD DEL MODAL === */
+.versiones-card {
+  position: relative;
+  width: 560px;
+  max-width: 95vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: aparecer 0.2s ease;
+}
+
+@keyframes aparecer {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.versiones-card h3 {
+  margin: 0 0 0.75rem 0;
+  color: #1b5784;
+}
+
+/* === BOTÓN CERRAR === */
+.btn-cerrar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* === LISTA DE VERSIONES === */
+.lista-versiones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item-version {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.col-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.col-info .nota {
+  color: #333;
+}
+.col-info .mini {
+  color: #777;
+  font-size: 12px;
+}
+
+/* === ACCIONES === */
+.col-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.versiones-card .btn {
+  background: #1b5784;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.versiones-card .btn:hover {
+  background: #154660;
+}
+
+.versiones-card .btn.sec {
+  background: #0d3f66;
+}
+.versiones-card .btn.sec:hover {
+  background: #09314d;
+}
+
+/* === MENSAJE DE ERROR === */
+.error-mensaje {
+  color: #d9534f;
+  background: #f2dede;
+  border: 1px solid #d9534f;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin: 0.5rem 0 1rem;
+}
+
+/* === BOTÓN FLOTANTE === */
+.btn-flotante-versiones {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #1b5784;
+  color: white;
+  font-size: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  z-index: 1001;
+}
+
+.btn-flotante-versiones:hover {
+  background: #154660;
+  transform: scale(1.05);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 480px) {
+  .versiones-card {
+    width: 95vw;
+    padding: 1rem;
+  }
+  .item-version {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .col-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

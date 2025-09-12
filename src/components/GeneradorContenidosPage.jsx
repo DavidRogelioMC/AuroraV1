@@ -1,8 +1,10 @@
-// src/components/GeneradorContenidosPage.jsx (VERSIÓN MEJORADA)
-
+// src/components/GeneradorContenidosPage.jsx (VERSIÓN MEJORADA + Botón de Versiones)
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import './GeneradorContenidosPage.css';
+
+// 👇 Importa el botón flotante de versiones
+import BotonVersionesTemario from './BotonVersionesTemario';
 
 function GeneradorContenidosPage() {
   const location = useLocation();
@@ -23,31 +25,31 @@ function GeneradorContenidosPage() {
       {mostrarMenu ? (
         <div className="menu-contenidos">
           <Link to="curso-estandar" className="opcion-menu">
-            <div className="icono">📘</div>
+            <div className="icono">📚</div>
             <div className="texto">
-              <h3>Curso Estándar</h3>
-              <p>Genera un temario completo para un curso.</p>
+              <h3>Generador Temario Curso Estándar</h3>
+              <p>Genera aquí tu propuesta de temario</p>
             </div>
           </Link>
           <div className="opcion-menu disabled">
-            <div className="icono">📄</div>
+            <div className="icono">🧪</div>
             <div className="texto">
-              <h3>Artículo (Próximamente)</h3>
-              <p>Genera un artículo técnico o un blog post.</p>
-            </div>
-          </div>
-          <div className="opcion-menu disabled">
-            <div className="icono">💡</div>
-            <div className="texto">
-              <h3>Idea Rápida (Próximamente)</h3>
-              <p>Genera ideas para contenido nuevo.</p>
+              <h3>Laboratorios (Próximamente)</h3>
+              <p>Realiza aquí tu guía de laboratorios.</p>
             </div>
           </div>
           <div className="opcion-menu disabled">
             <div className="icono">📊</div>
             <div className="texto">
               <h3>Presentación (Próximamente)</h3>
-              <p>Genera el esqueleto de una presentación.</p>
+              <p>Realiza aquí la PPT del curso.</p>
+            </div>
+          </div>
+          <div className="opcion-menu disabled">
+            <div className="icono">💻</div>
+            <div className="texto">
+              <h3>Setup Guide (Próximamente)</h3>
+              <p>Especificaciones de hardware y software necesarias para el ambiente de los participantes.</p>
             </div>
           </div>
         </div>
@@ -63,6 +65,12 @@ function GeneradorContenidosPage() {
             pero el menú de arriba ya no será visible */}
         <Outlet /> 
       </div>
+
+      {/* 👇 Botón flotante para ver versiones (funciona en cualquier pantalla) */}
+      <BotonVersionesTemario
+        apiBase="https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2"
+        // cursoId="aws-serverless-basico" // ← si lo dejas comentado, pedirá el cursoId por prompt
+      />
     </div>
   );
 }

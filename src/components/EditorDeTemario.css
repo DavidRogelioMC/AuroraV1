@@ -8,6 +8,27 @@
   margin-top: 2rem;
 }
 
+/* --- SISTEMA DE MENSAJES UI --- */
+.ui-messages {
+  margin-bottom: 1rem;
+}
+.ui-messages .msg {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+.ui-messages .msg.error {
+  background: #fdecec;
+  color: #a02222;
+  border: 1px solid #f6caca;
+}
+.ui-messages .msg.ok {
+  background: #eaf8ed;
+  color: #1d6b2d;
+  border: 1px solid #c8ebd0;
+}
+
 .spinner-container {
     text-align: center;
     padding: 3rem;
@@ -29,7 +50,7 @@
   display: flex;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   padding: 0.5rem;
   background-color: #e9ecef;
   border-radius: 8px;
@@ -194,6 +215,31 @@
   color: white;
   border-color: #1b5784 !important;
 }
+.btn-guardar:disabled { 
+  opacity: 0.6; 
+  cursor: not-allowed; 
+}
+
+.btn-secundario { 
+  background: #eef3f7; 
+  border-color: #cfd7de; 
+  color: #234; 
+}
+.btn-secundario:hover { 
+  background: #e4edf5; 
+}
+
+.btn-exportar {
+  background-color: #e74c3c !important;
+  color: white !important;
+  border-color: #e74c3c !important;
+  transition: background-color 0.2s;
+}
+
+.btn-exportar:hover {
+  background-color: #c0392b !important;
+  border-color: #c0392b !important;
+}
 .regenerar-form {
   margin-top: 1.5rem;
   padding: 1.5rem;
@@ -201,12 +247,206 @@
   border-radius: 8px;
   border: 1px solid #cfe7fc;
 }
+
 .regenerar-form h4 {
   margin-top: 0;
+  margin-bottom: 1.5rem;
   color: #1b5784;
 }
+
 .regenerar-form .form-group {
   margin-bottom: 1rem;
+}
+
+.regenerar-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.regenerar-form .form-group input,
+.regenerar-form .form-group select,
+.regenerar-form .form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.regenerar-form .form-group textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.regenerar-form .form-group input:focus,
+.regenerar-form .form-group select:focus,
+.regenerar-form .form-group textarea:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.regenerar-form button {
+  background-color: #1b5784;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.2s;
+}
+
+.regenerar-form button:hover {
+  background-color: #154660;
+}
+
+/* --- SISTEMA DE MODALES --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  width: min(720px, 94vw);
+  max-height: 85vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+.modal-header h3 { 
+  margin: 0; 
+}
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.modal-body { 
+  padding: 16px; 
+}
+.modal-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* --- ESTILOS PARA EXPORTACIÓN --- */
+.export-format { 
+  display: flex; 
+  gap: 16px; 
+}
+.export-format label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 768px) {
+  .vista-selector {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .vista-selector .btn-vista {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid-capitulo {
+    grid-template-columns: 1fr;
+  }
+  
+  .capitulo-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .acciones-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .acciones-footer button {
+    width: 100%;
+  }
+  
+  .editor-container {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-titulo {
+    font-size: 1.4rem;
+  }
+  
+  .input-titulo-resumido {
+    font-size: 1.3rem;
+  }
+  
+  .subcapitulos-resumidos {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA PDF --- */
+@media print {
+  .vista-selector,
+  .vista-info,
+  .acciones-footer,
+  .regenerar-form,
+  .modal-overlay,
+  .ui-messages {
+    display: none !important;
+  }
+  
+  .editor-container {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+  
+  .input-titulo,
+  .input-titulo-resumido,
+  .input-campo,
+  .input-capitulo,
+  .input-subcapitulo,
+  .textarea-descripcion,
+  .textarea-objetivos-capitulo,
+  .textarea-objetivos-resumido {
+    border: none;
+    background: transparent;
+    resize: none;
+    outline: none;
+  }
 }
 
 /* --- ESTILOS PARA LA VISTA RESUMIDA EDITABLE --- */
@@ -412,3 +652,227 @@
   outline: none;
 }
 
+/* --- ESTILOS PARA LOS NUEVOS ELEMENTOS --- */
+.capitulo-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.capitulo-info-grid .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.capitulo-info-grid .info-item label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.capitulo-info-grid .input-info {
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.capitulo-info-grid .input-info:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.objetivos-capitulo {
+  margin: 1rem 0;
+}
+
+.objetivos-capitulo label {
+  display: block;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.textarea-objetivos-capitulo {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea-objetivos-capitulo:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+.objetivos-capitulo-resumido {
+  margin: 1rem 0;
+}
+
+.objetivos-capitulo-resumido label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.3rem;
+}
+
+.textarea-objetivos-resumido {
+  width: 100%;
+  min-height: 60px;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea-objetivos-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
+}
+
+/* --- ESTILOS PARA PDF (VERSIÓN CORREGIDA) --- */
+
+/* 1. Ocultamos el div de forma segura por defecto */
+#temario-pdf .pdf-clean {
+  display: none;
+}
+
+/* 2. Lo mostramos para exportar, pero fuera de la pantalla */
+#temario-pdf .pdf-clean.pdf-exporting {
+  display: block;
+  position: absolute;
+  left: -99999px;
+  top: 0;
+  width: 794px; /* Ancho A4 aproximado */
+  /* Forzamos una altura mínima para que el fondo se vea en páginas vacías si las hubiera */
+  min-height: 1123px; /* Alto A4 aproximado */
+}
+
+/* 3. Ajustamos el padding para que el contenido encaje en la plantilla */
+#temario-pdf .pdf-body {
+  position: relative;
+  z-index: 1;
+  /* padding: 2.5in 1in 1.5in 1in; ELIMINAR ESTA LÍNEA */
+}
+
+/* --- El resto de tus estilos (.pdf-title, .pdf-meta, etc.) --- */
+.pdf-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1b5784;
+  text-align: center;
+  margin: 0 0 20px 0; /* Ajustamos el margen superior a 0 */
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+/* ================================================================= */
+/* ========= REGLA AÑADIDA PARA RESPETAR EL ENCABEZADO ========= */
+/* ================================================================= */
+/* Esta regla fuerza a que el primer título de una nueva página
+   también respete el espacio del encabezado. */
+h2.pdf-section-title {
+    page-break-before: always; /* Inicia en una nueva página */
+    padding-top: 2.2in; /* Un espacio superior igual al margen */
+}
+.pdf-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+.pdf-meta div { font-size: 14px; padding: 5px 0; }
+.pdf-meta strong { color: #1b5784; font-weight: 600; }
+
+.pdf-body h2 {
+  color: #1b5784;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 25px 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #1b5784;
+}
+
+.pdf-body h3 {
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 0 10px 0;
+  border-left: 4px solid #1b5784;
+  padding-left: 12px;
+}
+
+.pdf-justify {
+  text-align: justify;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.pdf-capitulo {
+  margin: 20px 0;
+  border-left: 4px solid #1b5784;
+  padding: 0 0 0 15px;
+}
+
+.pdf-cap-meta {
+  font-size: 13px;
+  color: #666;
+  margin: 8px 0;
+  font-style: italic;
+}
+.pdf-cap-meta strong { color: #1b5784; font-weight: 600; }
+
+.pdf-objetivos-cap {
+  margin: 12px 0;
+  padding: 10px;
+  background: #f0f8ff;
+  border-radius: 6px;
+}
+.pdf-objetivos-cap strong { color: #1b5784; font-size: 14px; font-weight: 600; }
+.pdf-objetivos-lista { margin-top: 8px; }
+.pdf-objetivo-item { font-size: 13px; color: #333; margin: 4px 0; }
+
+.pdf-subcapitulos {
+  list-style: none;
+  padding-left: 0;
+  margin: 15px 0;
+}
+.pdf-subcapitulos li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin: 4px 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.pdf-subcapitulos li:nth-child(odd) { background: #f8f9fa; }
+
+.pdf-sub-meta {
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+}
+
+.html2pdf__page-break {
+  page-break-before: always;
+}

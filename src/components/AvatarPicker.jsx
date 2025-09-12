@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { Auth } from "aws-amplify";
 
-// Carga todas las imágenes del folder avatars
-const avatarModules = import.meta.glob("../assets/avatars/*.{png,jpg,jpeg,webp,svg}", {
+// Carga todas las imágenes del folder avatars (minús./MAYÚS.)
+const avatarModules = import.meta.glob("../assets/avatars/*.{png,PNG,jpg,JPG,jpeg,JPEG,webp,WEBP,svg,SVG}", {
   eager: true,
 });
 const AVATAR_URLS = Object.values(avatarModules).map((m) => m.default);
@@ -23,10 +23,10 @@ export default function AvatarPicker({ isOpen, onClose, email, onSaved }) {
   const save = async () => {
     if (!selected) return;
 
-    // 1) Persistencia local (no depende de Lambda)
+    // 1) Persistencia local (pintado instantáneo)
     localStorage.setItem(storageKey(email), selected);
 
-    // 2) Opcional: sincronizar con Cognito (sin Lambda)
+    // 2) Persistencia en Cognito (sobrevive cierre de sesión)
     try {
       const flag = String(import.meta.env.VITE_AVATAR_SYNC_COGNITO || "true");
       if (flag === "true") {
@@ -34,9 +34,11 @@ export default function AvatarPicker({ isOpen, onClose, email, onSaved }) {
         await Auth.updateUserAttributes(user, { picture: selected });
       }
     } catch (err) {
-      // Ignorar errores de Cognito: la UI seguirá funcionando con localStorage
       console.log("No se pudo sincronizar avatar con Cognito (ok):", err?.message || err);
     }
+
+    // 3) Aviso global (tu Sidebar lo escucha)
+    window.dispatchEvent(new CustomEvent("profilePhotoUpdated", { detail: { photoUrl: selected } }));
 
     onSaved?.(selected);
     onClose?.();
@@ -51,6 +53,7 @@ export default function AvatarPicker({ isOpen, onClose, email, onSaved }) {
         await Auth.updateUserAttributes(user, { picture: "" });
       }
     } catch {}
+    window.dispatchEvent(new CustomEvent("profilePhotoUpdated", { detail: { photoUrl: "" } }));
     onSaved?.("");
     onClose?.();
   };
@@ -93,11 +96,12 @@ export default function AvatarPicker({ isOpen, onClose, email, onSaved }) {
         >
           {AVATAR_URLS.map((url) => {
             const isSel = selected === url;
+            const name = (url.split("/").pop() || "");
             return (
               <button
                 key={url}
                 onClick={() => setSelected(url)}
-                title={url.split("/").pop()}
+                title={name}
                 style={{
                   width: 84,
                   height: 84,
@@ -111,7 +115,7 @@ export default function AvatarPicker({ isOpen, onClose, email, onSaved }) {
               >
                 <img
                   src={url}
-                  alt=""
+                  alt={name}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </button>
@@ -140,6 +144,6 @@ function btn(variant) {
     fontWeight: 600,
   };
   if (variant === "primary")
-    return { ...base, background: "#22d3ee", color: "#0f172a" };
+    return { ...base, background: "#035b6e", color: "#ffffff" }; // color primario
   return { ...base, background: "transparent", color: "#e5e7eb", borderColor: "#334155" };
 }

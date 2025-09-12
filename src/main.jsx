@@ -5,48 +5,47 @@ import { Amplify } from 'aws-amplify';
 import App from './App.jsx';
 import './index.css';
 
-// ⚠️ Config explícito SOLO con VITE_*. No usamos aws-exports.js.
+// --- Config Amplify sólo con variables VITE_ ---
 const REGION = import.meta.env.VITE_AWS_REGION || 'us-east-1';
-const USER_POOL_ID = import.meta.env.VITE_COGNITO_USER_POOL_ID;      // ej: us-east-1_AbCdEf123
-const CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID;            // app client id
-const DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || '')           // ej: https://xxx.auth.us-east-1.amazoncognito.com
-  .replace(/^https?:\/\//, '')
-  .replace(/\/$/, '');
-const REDIRECT = import.meta.env.VITE_REDIRECT_URI_TESTING           // ej: http://localhost:5173/ o tu Amplify URL
-  || window.location.origin + '/';
+const USER_POOL_ID = import.meta.env.VITE_COGNITO_USER_POOL_ID || '';
+const CLIENT_ID = import.meta.env.VITE_COGNITO_CLIENT_ID || '';
+const DOMAIN_RAW = (import.meta.env.VITE_COGNITO_DOMAIN || '');
+const REDIRECT = (import.meta.env.VITE_REDIRECT_URI_TESTING || (window.location.origin + '/'));
 
-// 🔒 Si falta algo crítico, lanza un error visible en consola
+const DOMAIN = DOMAIN_RAW.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
 if (!USER_POOL_ID || !CLIENT_ID || !DOMAIN || !REDIRECT) {
-  console.error('[Amplify] Faltan variables VITE_ requeridas:', {
+  // No usamos top-level await ni imports dinámicos. Sólo warn en consola.
+  // La app sigue montando (útil para pantallas públicas sin login).
+  console.warn('[Amplify] Faltan variables VITE_ requeridas:', {
     VITE_AWS_REGION: REGION,
     VITE_COGNITO_USER_POOL_ID: USER_POOL_ID,
     VITE_COGNITO_CLIENT_ID: CLIENT_ID,
     VITE_COGNITO_DOMAIN: DOMAIN,
     VITE_REDIRECT_URI_TESTING: REDIRECT,
   });
-}
-
-Amplify.configure({
-  Auth: {
-    region: REGION,
-    userPoolId: USER_POOL_ID,
-    userPoolWebClientId: CLIENT_ID,
-    oauth: {
-      domain: DOMAIN,                 // sin https://
-      scope: ['email', 'openid', 'profile'],
-      redirectSignIn: REDIRECT,       // DEBE coincidir EXACTO con Cognito (incluye / final si así está)
-      redirectSignOut: REDIRECT,
-      responseType: 'token',          // usa 'code' si tu App Client tiene PKCE habilitado
+} else {
+  Amplify.configure({
+    Auth: {
+      region: REGION,
+      userPoolId: USER_POOL_ID,
+      userPoolWebClientId: CLIENT_ID,
+      oauth: {
+        domain: DOMAIN,                     // sin https://
+        scope: ['email', 'openid', 'profile'],
+        redirectSignIn: REDIRECT,           // debe coincidir EXACTO con Cognito
+        redirectSignOut: REDIRECT,
+        responseType: 'token',              // usa 'code' si tu app client tiene PKCE
+      },
+      storage: window.localStorage,
     },
-    storage: window.localStorage,
-  },
-});
+  });
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
-
 
 
