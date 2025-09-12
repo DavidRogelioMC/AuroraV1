@@ -745,37 +745,32 @@
   box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
 }
 
-/* --- ESTILOS PARA PDF --- */
-.pdf-clean {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  line-height: 1.6;
-}
+/* --- ESTILOS PARA PDF (VERSIÓN CORREGIDA) --- */
 
-/* 1. REGLA PARA MANTENER OCULTO EL CONTENIDO EN LA APP */
-/* Este es el estado oculto mejorado */
+/* 1. Ocultamos el div de forma segura por defecto */
 #temario-pdf .pdf-clean {
-  /* Ya no usamos display: none */
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  /* Estas propiedades aseguran que no afecte el layout de tu página */
-  left: 0;
-  top: 0;
-  z-index: -1; 
-  background: #fff;
-  width: 794px; /* Ancho A4 aproximado */
+  display: none;
 }
 
-/* 2. REGLA PARA HACERLO VISIBLE SOLO DURANTE LA EXPORTACIÓN */
-/* Este es el estado visible para exportar (la solución final) */
+/* 2. Lo mostramos para exportar, pero fuera de la pantalla */
 #temario-pdf .pdf-clean.pdf-exporting {
-  visibility: visible;
-  opacity: 1;
-  z-index: 9999;
+  display: block;
+  position: absolute;
+  left: -99999px;
+  top: 0;
+  width: 794px; /* Ancho A4 aproximado */
+  /* Forzamos una altura mínima para que el fondo se vea en páginas vacías si las hubiera */
+  min-height: 1123px; /* Alto A4 aproximado */
 }
 
+/* 3. Ajustamos el padding para que el contenido encaje en la plantilla */
+#temario-pdf .pdf-body {
+  position: relative;
+  z-index: 1;
+  /* padding: 2.5in 1in 1.5in 1in; ELIMINAR ESTA LÍNEA */
+}
 
+/* --- El resto de tus estilos (.pdf-title, .pdf-meta, etc.) --- */
 .pdf-title {
   font-size: 24px;
   font-weight: bold;
