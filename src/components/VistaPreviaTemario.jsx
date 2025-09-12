@@ -18,35 +18,31 @@ function VistaPreviaTemario({ temario }) {
   return (
     <div className="temario-vista-previa">
       <h1 className="curso-titulo">{temario.nombre_curso || "Nombre del Curso no Disponible"}</h1>
-      <p className="version-tecnologia">Versión de la Tecnología: {temario.version_tecnologia || 'N/A'}</p>
+      {temario.sector && <p className="version-tecnologia">Sector: {temario.sector}</p>}
       
       <ul className="info-lista">
-        <li><strong>Horas Totales:</strong> {temario.horas_totales || 'N/A'}</li>
-        <li><strong>Sesiones:</strong> {temario.numero_sesiones || 'N/A'}</li>
-        <li><strong>Soporte (EOL):</strong> {temario.EOL || 'N/A'}</li>
-        <li><strong>Distribución General:</strong> {temario.porcentaje_teoria_practica_general || 'N/A'}</li>
+        {temario.nivel && <li><strong>Nivel:</strong> {temario.nivel}</li>}
+        {temario.horas_por_sesion && <li><strong>Horas por Sesión:</strong> {temario.horas_por_sesion}</li>}
+        {temario.numero_sesiones_por_semana && <li><strong>Sesiones por Semana:</strong> {temario.numero_sesiones_por_semana}</li>}
+        {temario.porcentaje_teoria && temario.porcentaje_practica && (
+          <li><strong>Distribución:</strong> {temario.porcentaje_teoria}% Teoría / {temario.porcentaje_practica}% Práctica</li>
+        )}
       </ul>
 
       <div className="descripcion-seccion">
         <h2>Descripción General</h2><p>{temario.descripcion_general || "N/A"}</p>
       </div>
       <div className="descripcion-seccion">
-        <h2>Objetivos</h2>
-        {Array.isArray(temario.objetivos) ? (
+        <h2>Objetivos Generales</h2>
+        {Array.isArray(temario.objetivos_generales) ? (
           <ul>
-            {temario.objetivos.map((obj, i) => <li key={i}>{obj}</li>)}
+            {temario.objetivos_generales.map((obj, i) => <li key={i}>{obj}</li>)}
           </ul>
-        ) : temario.objetivos ? (
-          <div style={{whiteSpace: 'pre-wrap'}}>{temario.objetivos}</div>
+        ) : temario.objetivos_generales ? (
+          <div style={{whiteSpace: 'pre-wrap'}}>{temario.objetivos_generales}</div>
         ) : (
           <p>N/A</p>
         )}
-      </div>
-      <div className="descripcion-seccion">
-        <h2>Audiencia</h2><p>{temario.audiencia || "N/A"}</p>
-      </div>
-      <div className="descripcion-seccion">
-        <h2>Prerrequisitos</h2><p>{temario.prerrequisitos || "N/A"}</p>
       </div>
 
       <h2>Temario Detallado</h2>
@@ -55,6 +51,8 @@ function VistaPreviaTemario({ temario }) {
           <h3 className="capitulo-titulo">{cap?.capitulo || `Capítulo ${index + 1}`}</h3>
           <ul className="info-lista-capitulo">
             {cap?.tiempo_capitulo_min && <li><strong>Duración Estimada:</strong> {Math.floor(cap.tiempo_capitulo_min / 60)} horas ({cap.tiempo_capitulo_min} min)</li>}
+            {cap?.horas_teoria && <li><strong>Horas de Teoría:</strong> {cap.horas_teoria}h</li>}
+            {cap?.horas_practica && <li><strong>Horas de Práctica:</strong> {cap.horas_practica}h</li>}
             {cap?.porcentaje_teoria_practica_capitulo && <li><strong>Distribución:</strong> {cap.porcentaje_teoria_practica_capitulo}</li>}
           </ul>
 
@@ -72,16 +70,20 @@ function VistaPreviaTemario({ temario }) {
           )}
 
           <table className="subcapitulos-tabla">
-            <thead><tr><th>Tema</th><th>Sesión</th><th>Duración</th></tr></thead>
+            <thead><tr><th>Tema</th><th>Sesión</th><th>Duración</th><th>Tipo</th><th>Entregable</th></tr></thead>
             <tbody>
               {Array.isArray(cap?.subcapitulos) && cap.subcapitulos.map((sub, subIndex) => {
                 const nombreSub = typeof sub === 'object' ? sub.nombre : sub;
-                const esPractico = typeof nombreSub === 'string' && (nombreSub.toLowerCase().includes('laboratorio') || nombreSub.toLowerCase().includes('caso práctico') || nombreSub.toLowerCase().includes('proyecto'));
+                const esPractico = typeof sub === 'object' ? 
+                  (sub.tipo === 'practica' || sub.tipo === 'laboratorio') : 
+                  (typeof nombreSub === 'string' && (nombreSub.toLowerCase().includes('laboratorio') || nombreSub.toLowerCase().includes('caso práctico') || nombreSub.toLowerCase().includes('proyecto')));
                 return (
                   <tr key={subIndex} className={esPractico ? 'subcapitulo-practico' : ''}>
                     <td>{renderWithLineBreaks(nombreSub || 'Subcapítulo sin nombre')}</td>
                     <td>{sub?.sesion || '-'}</td>
                     <td>{sub?.tiempo_subcapitulo_min ? `${sub.tiempo_subcapitulo_min} min` : '-'}</td>
+                    <td>{sub?.tipo || 'teoria'}</td>
+                    <td>{sub?.entregable || '-'}</td>
                   </tr>
                 );
               })}
