@@ -776,11 +776,20 @@
   font-weight: bold;
   color: #1b5784;
   text-align: center;
-  margin: 20px 0;
+  margin: 0 0 20px 0; /* Ajustamos el margen superior a 0 */
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
 
+/* ================================================================= */
+/* ========= REGLA AÑADIDA PARA RESPETAR EL ENCABEZADO ========= */
+/* ================================================================= */
+/* Esta regla fuerza a que el primer título de una nueva página
+   también respete el espacio del encabezado. */
+h2.pdf-section-title {
+    page-break-before: always; /* Inicia en una nueva página */
+    padding-top: 2.2in; /* Un espacio superior igual al margen */
+}
 .pdf-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
