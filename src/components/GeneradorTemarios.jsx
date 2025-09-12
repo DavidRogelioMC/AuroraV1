@@ -19,7 +19,7 @@ function GeneradorTemarios() {
     codigo_certificacion: '',
     bloom_level_override: '',
     horas_por_sesion: 7,
-    numero_sesiones_por_semana: 3
+    numero_sesiones_por_semana: 1
   });
 
   // URL de tu API Gateway que invoca la Lambda de temarios
@@ -51,8 +51,8 @@ function GeneradorTemarios() {
       setError("Las horas por sesión deben estar entre 4 y 12.");
       return;
     }
-    if (nuevosParams.numero_sesiones_por_semana < 3 || nuevosParams.numero_sesiones_por_semana > 7) {
-      setError("El número de sesiones por semana debe estar entre 3 y 7 (mínimo 3 para generar 3 capítulos).");
+    if (nuevosParams.numero_sesiones_por_semana < 1 || nuevosParams.numero_sesiones_por_semana > 7) {
+      setError("El número de sesiones debe estar entre 1 y 7 (curso de 1 día hasta 1 semana completa).");
       return;
     }
 
@@ -118,8 +118,8 @@ function GeneradorTemarios() {
 
   return (
     <div className="generador-temarios-container">
-      <h2>Generador de Cursos Estándar</h2>
-      <p>Introduce los detalles para generar una propuesta de temario con IA.</p>
+      <h2>Generador de Cursos Flexibles</h2>
+      <p>Genera cursos desde 1 día intensivo (7 horas) hasta 1 semana completa (1-7 sesiones).</p>
 
       <div className="formulario-inicial">
         <div className="form-grid">
@@ -164,17 +164,17 @@ function GeneradorTemarios() {
             <small className="help-text">Entre 4 y 12 horas (rango permitido por la lambda)</small>
           </div>
           <div className="form-group">
-            <label>Sesiones por Semana</label>
+            <label>Número de Sesiones</label>
             <input 
               name="numero_sesiones_por_semana" 
               type="number" 
-              min="3" 
+              min="1" 
               max="7" 
               value={params.numero_sesiones_por_semana} 
               onChange={handleParamChange}
-              title="Entre 3 y 7 sesiones por semana (mínimo 3 para generar 3 capítulos)"
+              title="Entre 1 y 7 sesiones (1 día intensivo hasta 1 semana completa)"
             />
-            <small className="help-text">Entre 3 y 7 sesiones (mínimo 3 capítulos obligatorios)</small>
+            <small className="help-text">Entre 1 y 7 sesiones (1 día hasta 1 semana)</small>
           </div>
         </div>
         
@@ -249,5 +249,4 @@ function GeneradorTemarios() {
 }
 
 export default GeneradorTemarios;
-
 
