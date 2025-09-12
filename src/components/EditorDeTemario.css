@@ -788,7 +788,7 @@
    también respete el espacio del encabezado. */
 h2.pdf-section-title {
     page-break-before: always; /* Inicia en una nueva página */
-    padding-top: 2.2in; /* Un espacio superior igual al margen */
+    padding-top: 2.8in; /* Un espacio superior igual al margen */
 }
 .pdf-meta {
   display: grid;
@@ -875,4 +875,34 @@ h2.pdf-section-title {
 
 .html2pdf__page-break {
   page-break-before: always;
+}
+
+/* --- Estilos para alinear los nuevos campos de subcapítulos --- */
+
+/* Contenedor principal para un subcapítulo en la Vista Detallada */
+.subcapitulo-item-detallado {
+  display: flex; /* Pone los elementos en línea */
+  align-items: center; /* Centra verticalmente */
+  gap: 10px; /* Espacio entre el nombre y los otros campos */
+  margin-bottom: 5px; /* Pequeño espacio inferior */
+}
+
+/* Hace que el campo del nombre ocupe todo el espacio disponible */
+.subcapitulo-item-detallado .input-subcapitulo {
+  flex-grow: 1;
+}
+
+/* Contenedor para los campos de minutos y sesión */
+.subcapitulo-meta-inputs {
+  display: flex; /* Pone los dos campos pequeños en línea */
+  gap: 5px; /* Espacio entre minutos y sesión */
+}
+
+/* Estilo para los campos pequeños de minutos y sesión */
+.subcapitulo-meta-inputs input {
+  width: 70px; /* Un ancho fijo para que no sean muy grandes */
+  text-align: center;
+  padding: 0.5rem; /* Un poco de espacio interno */
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
