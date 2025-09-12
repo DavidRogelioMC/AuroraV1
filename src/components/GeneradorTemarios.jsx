@@ -7,32 +7,29 @@ function GeneradorTemarios() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Estado para los parámetros
   const [params, setParams] = useState({
     tecnologia: '',
     tema_curso: '',
-    extension_curso_dias: 1,
     nivel_dificultad: 'basico',
-    audiencia: '',
-    enfoque: ''
+    sector: '',
+    enfoque: '',
+    horas_por_sesion: 7,
+    numero_sesiones_por_semana: 1,
+    objetivo_tipo: 'saber_hacer',
+    codigo_certificacion: ''
   });
 
-  // URL de tu API Gateway que invoca la Lambda de temarios
-  const apiUrl = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/PruebadeTEMAR"; // <-- REEMPLAZA ESTO
+  const apiUrl = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/PruebadeTEMAR";
 
   const handleParamChange = (e) => {
-    const { name, value } = e.target;
-    setParams(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const valorFinal = type === 'number' ? parseInt(value, 10) : value;
+    setParams(prev => ({ ...prev, [name]: valorFinal }));
   };
 
-  // Generar/regenerar temario
   const handleGenerar = async (nuevosParams = params) => {
-    if (!nuevosParams.tema_curso || !nuevosParams.tecnologia) {
-      setError("Por favor, especifica la tecnología y el tema del curso.");
-      return;
-    }
-    if (!nuevosParams.audiencia?.trim()) {
-      setError("Por favor, especifica la audiencia del curso.");
+    if (!nuevosParams.tema_curso || !nuevosParams.tecnologia || !nuevosParams.sector) {
+      setError("Por favor, completa Tecnología, Tema del Curso y Sector/Audiencia.");
       return;
     }
     setIsLoading(true);
@@ -40,6 +37,12 @@ function GeneradorTemarios() {
     setTemarioGenerado(null);
 
     try {
+      const payload = { ...nuevosParams };
+
+      if (payload.objetivo_tipo !== 'certificacion') {
+        delete payload.codigo_certificacion;
+      }
+
       const token = localStorage.getItem("id_token");
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -47,13 +50,14 @@ function GeneradorTemarios() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(nuevosParams)
+        body: JSON.stringify(payload)
       });
       
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Ocurrió un error en el servidor.");
+        const errorMessage = typeof data.error === 'object' ? JSON.stringify(data.error) : data.error;
+        throw new Error(errorMessage || "Ocurrió un error en el servidor.");
       }
       
       const temarioCompleto = { ...data, ...nuevosParams };
@@ -67,7 +71,6 @@ function GeneradorTemarios() {
     }
   };
 
-  // Guardar versión
   const handleSave = async (temarioParaGuardar) => {
     console.log("Guardando esta versión del temario:", temarioParaGuardar);
     alert("Funcionalidad de guardado en desarrollo.");
@@ -75,22 +78,18 @@ function GeneradorTemarios() {
 
   return (
     <div className="generador-temarios-container">
-      <h2>Generador de Cursos Estándar</h2>
+      <h2>Generador de Cursos a Medida</h2>
       <p>Introduce los detalles para generar una propuesta de temario con IA.</p>
 
       <div className="formulario-inicial">
         <div className="form-grid">
           <div className="form-group">
             <label>Tecnología</label>
-            <input name="tecnologia" value={params.tecnologia} onChange={handleParamChange} placeholder="Ej: AWS Serverless, React, Python, etc." />
+            <input name="tecnologia" value={params.tecnologia} onChange={handleParamChange} placeholder="Ej: AWS, React, Python" />
           </div>
           <div className="form-group">
             <label>Tema Principal del Curso</label>
-            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Arquitecturas Serverless, Desarrollo Frontend" />
-          </div>
-          <div className="form-group">
-            <label>Duración (días)</label>
-            <input name="extension_curso_dias" type="number" min="1" value={params.extension_curso_dias} onChange={handleParamChange} />
+            <input name="tema_curso" value={params.tema_curso} onChange={handleParamChange} placeholder="Ej: Arquitecturas Serverless" />
           </div>
           <div className="form-group">
             <label>Nivel de Dificultad</label>
@@ -100,10 +99,45 @@ function GeneradorTemarios() {
               <option value="avanzado">Avanzado</option>
             </select>
           </div>
+          <div className="form-group">
+            <label>Número de Sesiones (1-7)</label>
+            <div className='slider-container'>
+              <input name="numero_sesiones_por_semana" type="range" min="1" max="7" value={params.numero_sesiones_por_semana} onChange={handleParamChange} />
+              <span>{params.numero_sesiones_por_semana} {params.numero_sesiones_por_semana > 1 ? 'sesiones' : 'sesión'}</span>
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Horas por Sesión (4-12)</label>
+            <div className='slider-container'>
+              <input name="horas_por_sesion" type="range" min="4" max="12" value={params.horas_por_sesion} onChange={handleParamChange} />
+              <span>{params.horas_por_sesion} horas</span>
+            </div>
+          </div>
         </div>
         <div className="form-group">
-          <label>Audiencia</label>
-          <textarea name="audiencia" value={params.audiencia} onChange={handleParamChange} placeholder="Ej: Desarrolladores e Ingenieros de la Nube con experiencia en AWS" />
+            <label>Tipo de Objetivo</label>
+            <div className="radio-group">
+                <label>
+                    <input type="radio" name="objetivo_tipo" value="saber_hacer" checked={params.objetivo_tipo === 'saber_hacer'} onChange={handleParamChange} />
+                    Saber Hacer (Enfocado en habilidades)
+                </label>
+                <label>
+                    <input type="radio" name="objetivo_tipo" value="certificacion" checked={params.objetivo_tipo === 'certificacion'} onChange={handleParamChange} />
+                    Certificación (Enfocado en examen)
+                </label>
+            </div>
+        </div>
+
+        {params.objetivo_tipo === 'certificacion' && (
+            <div className="form-group">
+                <label>Código de Certificación</label>
+                <input name="codigo_certificacion" value={params.codigo_certificacion} onChange={handleParamChange} placeholder="Ej: AWS CLF-C02, AZ-900" />
+            </div>
+        )}
+
+        <div className="form-group">
+          <label>Sector / Audiencia</label>
+          <textarea name="sector" value={params.sector} onChange={handleParamChange} placeholder="Ej: Sector financiero, Desarrolladores con 1 año de experiencia..." />
         </div>
         <div className="form-group">
           <label>Enfoque Adicional (Opcional)</label>
@@ -130,4 +164,3 @@ function GeneradorTemarios() {
 }
 
 export default GeneradorTemarios;
-
