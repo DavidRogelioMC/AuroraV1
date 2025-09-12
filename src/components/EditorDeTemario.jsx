@@ -129,7 +129,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   };
 
 // --- FUNCIÓN DE EXPORTACIÓN FINAL (CON PLANTILLA Y SIN MARCA DE AGUA) ---
-  const exportarPDF = async () => {
+const exportarPDF = async () => {
     setTimeout(async () => {
       const elemento = pdfContentRef.current; 
       if (!elemento) {
@@ -143,10 +143,10 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       try {
         const options = {
           // =================================================================
-          // ========= ESTA ES LA LÍNEA CORREGIDA Y MÁS IMPORTANTE =========
+          // ========= CAMBIO 1: AUMENTAR EL MARGEN SUPERIOR =========
           // =================================================================
-          // Define el área donde irá el TEXTO, dejando espacio para las imágenes.
-          margin: [2, 1, 1.5, 1], // [Arriba, Izquierda, Abajo, Derecha] en pulgadas
+          // Aumentamos el margen superior (de 2 a 2.2) para bajar todo el contenido.
+          margin: [2.8, 1, 1.5, 1], // [Arriba, Izquierda, Abajo, Derecha] en pulgadas
 
           filename: `Temario_${slugify(temario.nombre_curso)}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
@@ -167,8 +167,6 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 
         for (let i = 1; i <= totalPages; i++) {
           pdf.setPage(i);
-
-          // Dibuja las imágenes de borde a borde (estas no respetan el 'margin' de arriba)
           const propsEncabezado = pdf.getImageProperties(encabezadoDataUrl);
           const altoEncabezado = pageWidth * (propsEncabezado.height / propsEncabezado.width);
           pdf.addImage(encabezadoDataUrl, 'PNG', 0, 0, pageWidth, altoEncabezado); 
@@ -177,12 +175,16 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           const altoPie = pageWidth * (propsPie.height / propsPie.width);
           pdf.addImage(pieDePaginaDataUrl, 'PNG', 0, pageHeight - altoPie, pageWidth, altoPie);
 
-          // Añade la numeración de página
           pdf.setFontSize(9);
           pdf.setTextColor("#6c757d");
           const pageNumText = `Página ${i} de ${totalPages}`;
           const pageNumWidth = pdf.getStringUnitWidth(pageNumText) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
-          pdf.text(pageNumText, (pageWidth - pageNumWidth) / 2, pageHeight - 0.5);
+          
+          // =================================================================
+          // ========= CAMBIO 2: SUBIR LA NUMERACIÓN DE PÁGINA =========
+          // =================================================================
+          // Cambiamos 'pageHeight - 0.5' a 'pageHeight - 0.7' para subir el texto.
+          pdf.text(pageNumText, (pageWidth - pageNumWidth) / 2, pageHeight - 0.7);
         }
         
         await worker.save();
