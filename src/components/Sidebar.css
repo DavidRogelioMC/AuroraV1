@@ -1,73 +1,138 @@
-#barraLateral {
+/* Contenedor principal */
+#barraLateral.sidebar {
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 140px; /* ⬅️ ancho cuando está colapsado (antes 120px) */
   position: fixed;
   top: 0;
   left: 0;
-  width: 10cm;
+  width: var(--sidebar-width);
   height: 100vh;
   background-color: #1b5784;
-  z-index: 1;
+  z-index: 5;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
-#perfilSidebar {
+/* Colapsado */
+#barraLateral.sidebar.sidebar--colapsado {
+  width: var(--sidebar-collapsed);
+}
+
+/* Botón colapsar/expandir */
+.collapse-btn {
+  position: sticky;
+  top: 8px;
+  margin: 10px 12px 6px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: #0d3f66;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+/* Perfil */
+.perfilSidebar {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 30px 20px;
   color: white;
   border-bottom: 2px solid rgba(255,255,255,0.2);
-  margin-bottom: 20px;
+  padding: 16px 14px 20px;
 }
 
-#perfilSidebar img {
-  width: 80px;
-  height: 80px;
+/* Avatar */
+.avatar-wrap {
+  margin-bottom: 10px;
+}
+.avatar-img {
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid white;
-  margin-bottom: 15px;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
+}
+.avatar-img:hover {
+  transform: scale(1.04);
 }
 
-#perfilSidebar img:hover {
-  transform: scale(1.1);
-}
-
-#perfilSidebar .nombre {
+/* Texto perfil */
+.perfilSidebar .nombre {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
+  text-align: center;
 }
-
-#perfilSidebar .email {
+.perfilSidebar .email {
   font-size: 14px;
-  opacity: 0.8;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+.perfilSidebar .grupo {
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
-#caminito {
+/* Solicitar rol de creador */
+.solicitar-creador-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.solicitar-creador-btn {
+  background-color: #035b6e;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.solicitar-creador-btn:hover {
+  background-color: #197fa6;
+}
+.solicitar-creador-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.solicitar-creador-error {
+  color: #ffb3b3;
+  font-size: 0.9rem;
+}
+
+/* Camino de opciones */
+#caminito.caminito {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 30px;
   flex: 1;
   justify-content: flex-start;
-  padding-top: 20px;
+  padding: 18px 0 24px;
 }
-
 .step {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .circle {
   width: 70px;
   height: 70px;
-  background-color: #ffffff;
+  background-color: #fff;
   border: 4px solid #1b5784;
   border-radius: 50%;
   display: flex;
@@ -78,13 +143,11 @@
   transition: all 0.3s ease;
   cursor: pointer;
 }
-
 .circle:hover {
-  transform: translateY(-5px) scale(1.1);
+  transform: translateY(-5px) scale(1.08);
   background-color: #d0e7f5;
   box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
-
 .step span {
   margin-top: 12px;
   font-size: 16px;
@@ -92,3 +155,13 @@
   font-weight: 500;
   text-align: center;
 }
+
+/* Ocultar textos al colapsar */
+.sidebar--colapsado .perfilSidebar .nombre,
+.sidebar--colapsado .perfilSidebar .email,
+.sidebar--colapsado .perfilSidebar .grupo,
+.sidebar--colapsado .solicitar-creador-card,
+.sidebar--colapsado .step span {
+  display: none;
+}
+

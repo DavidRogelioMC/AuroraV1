@@ -1,22 +1,30 @@
+// src/aws-exports.js
 const awsExports = {
   Auth: {
     region: 'us-east-1',
-    userPoolId: 'us-east-1_B7QVYyDGp',
-    userPoolWebClientId: '51g99km7557n98v3c763nk529o',
+    userPoolId: 'us-east-1_B7QVVyDGp',
+    userPoolWebClientId: '67qhvmopav8qp6blthh7vmql82',   // <- NUEVO
     mandatorySignIn: true,
     authenticationFlowType: 'USER_SRP_AUTH',
-
-    // ✅ Esto mejora la persistencia de sesión
     storage: window.localStorage,
 
-    // ✅ (Opcional) Usa cookies si estás en dominio propio y HTTPS
-    // cookieStorage: {
-    //   domain: 'tudominio.com', // tu dominio
-    //   path: '/',
-    //   expires: 365,
-    //   secure: true,
-    // },
-  }
+    oauth: {
+      // Amplify espera el dominio SIN protocolo
+      domain: import.meta.env.VITE_COGNITO_DOMAIN.replace(/^https?:\/\//, ''),
+
+      // 🔐 Fuerza el clientId correcto
+      clientId: '67qhvmopav8qp6blthh7vmql82',
+
+      scope: ['email', 'openid', 'phone', 'profile'],
+
+      // URLs EXACTAS registradas en Cognito
+      redirectSignIn: import.meta.env.VITE_REDIRECT_URI,       // p. ej. https://testing.d28h59guct50tx.amplifyapp.com
+      redirectSignOut: import.meta.env.VITE_REDIRECT_URI,      // igual a la de arriba
+
+      // Idealmente solo 'code' (PKCE). Si hoy necesitas implícita, mantenla
+      responseType: 'code',
+    },
+  },
 };
 
 export default awsExports;

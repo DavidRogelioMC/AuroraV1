@@ -11,7 +11,7 @@ import FillInTheBlankActivity from './FillInTheBlankActivity';
 const knowledgeBasesDisponibles = [
   { nombre: "Python", id: "AVDJ3M69B7" },
   { nombre: "AWS", id: "WKNJIRXQUT" },
-  { nombre: "AZ-104", id: "ZOWS9MQ9GG" }
+  { nombre: "AZ-104", id: "KWG4PHNXSD" }
 ];
 
 function GeneradorActividades({ token, tipoActividad }) {

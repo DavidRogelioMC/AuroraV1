@@ -1,162 +1,159 @@
-import { useState } from 'react';
-import './ExamenesPage.css';
+// src/components/ExamenesPage.jsx (CÓDIGO FINAL Y COMPLETO)
+//
+import React, { useState } from "react";
+import "./ExamenesPage.css";
+import PreguntaExamen from "./PreguntaExamen";
 
-function ExamenesPage() {
-  const [curso, setCurso] = useState('Python');
-  const [topico, setTopico] = useState('');
+const ExamenesPage = ({ token }) => {
+  const [curso, setCurso] = useState("Python");
+  const [topico, setTopico] = useState("");
   const [examen, setExamen] = useState(null);
-  const [preguntaActualIndex, setPreguntaActualIndex] = useState(0);
-  const [respuestaSeleccionada, setRespuestaSeleccionada] = useState([]);
-  const [mostrarJustificacion, setMostrarJustificacion] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const [respuestasUsuario, setRespuestasUsuario] = useState({});
+  const [mostrarResultados, setMostrarResultados] = useState(false);
+  const [puntuacion, setPuntuacion] = useState(0);
 
-  const knowledgeBaseMap = {
-    Python: 'AVDJ3M69B7',
-    AWS: 'WKNJIRXQUT',
-    Azure: 'ZOWS9MQ9GG',
-    IA: 'ZOWS9MQ9GG',
+  const cursos = {
+    Python: "AVDJ3M69B7",
+    AWS: "WKNJIRXQUT",
+    "AZ-104": "KWG4PHNXSD",
   };
+  
+  const apiUrl = import.meta.env.VITE_API_GENERAR_EXAMEN;
 
-  const handleGenerarExamen = async () => {
-    if (!topico.trim()) {
-      setError('Por favor ingresa un tópico válido.');
+  const generarExamen = async () => {
+    setError("");
+    setExamen(null);
+    setIsLoading(true);
+    setRespuestasUsuario({});
+    setMostrarResultados(false);
+    setPuntuacion(0);
+    
+    const authToken = token || localStorage.getItem("id_token");
+
+    if (!authToken || !topico.trim()) {
+      setError(!authToken ? "No autenticado." : "Por favor, escribe un tópico.");
+      setIsLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError('');
-    setExamen(null);
-    setPreguntaActualIndex(0);
-    setRespuestaSeleccionada([]);
-    setMostrarJustificacion(false);
-
-    const knowledgeBaseId = knowledgeBaseMap[curso] || '';
-
     try {
-      const response = await fetch('https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/generar-examen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const knowledgeBaseId = cursos[curso];
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: authToken },
         body: JSON.stringify({ knowledgeBaseId, topico })
       });
 
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      setExamen(data);
-    } catch (err) {
-      setError('Error al generar el examen: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+      // --- LÓGICA DE MANEJO DE ERRORES MEJORADA ---
+      const responseText = await response.text();
 
-  const preguntaActual = examen?.preguntas?.[preguntaActualIndex];
-
-  const handleSeleccion = (opcion) => {
-    if (!preguntaActual) return;
-
-    const esMultiple = preguntaActual.tipo === 'respuesta_múltiple';
-    if (esMultiple) {
-      if (respuestaSeleccionada.includes(opcion)) {
-        setRespuestaSeleccionada(respuestaSeleccionada.filter(o => o !== opcion));
-      } else {
-        setRespuestaSeleccionada([...respuestaSeleccionada, opcion]);
+      if (!response.ok) {
+        let errorMessage = "Ocurrió un error inesperado.";
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorData.message || responseText;
+        } catch (e) {
+          errorMessage = responseText || `Error del servidor con código ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
-    } else {
-      setRespuestaSeleccionada([opcion]);
+
+      const data = JSON.parse(responseText);
+      if (!data.texto) {
+        throw new Error("La respuesta del servidor no contenía el campo 'texto' esperado.");
+      }
+      
+      const examenGenerado = JSON.parse(data.texto);
+      setExamen(examenGenerado);
+
+    } catch (err) {
+      console.error("Error detallado al generar el examen:", err);
+      setError(`Error al generar el examen: ${err.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  const esCorrecta = () => {
-    const correctas = preguntaActual.respuestasCorrectas.sort().join(',');
-    const seleccionadas = respuestaSeleccionada.sort().join(',');
-    return correctas === seleccionadas;
+  
+  const handleRespuesta = (preguntaIndex, respuesta) => {
+    setRespuestasUsuario(prev => ({ ...prev, [preguntaIndex]: respuesta }));
   };
 
-  const siguientePregunta = () => {
-    setMostrarJustificacion(false);
-    setRespuestaSeleccionada([]);
-    setPreguntaActualIndex(p => p + 1);
+  const calificarExamen = () => {
+    let correctas = 0;
+    examen.preguntas.forEach((pregunta, index) => {
+      const respUsuario = respuestasUsuario[index];
+      const respCorrectas = pregunta.respuestasCorrectas.sort();
+      if (pregunta.tipo === 'respuesta_múltiple' && respUsuario) {
+        if (JSON.stringify(respUsuario.sort()) === JSON.stringify(respCorrectas)) correctas++;
+      } else {
+        if (JSON.stringify([respUsuario]) === JSON.stringify(respCorrectas)) correctas++;
+      }
+    });
+    setPuntuacion(correctas);
+    setMostrarResultados(true);
   };
-
-  if (!examen) {
-    return (
-      <div className="examen-page">
-        <h1 className="titulo">🧪 Generador de Exámenes</h1>
-        <div className="formulario">
-          <select value={curso} onChange={(e) => setCurso(e.target.value)}>
-            <option value="Python">Python</option>
-            <option value="AWS">AWS</option>
-            <option value="Azure">Azure</option>
-            <option value="IA">IA</option>
-          </select>
-
-          <input
-            type="text"
-            placeholder="Tópico (ej: IAM, Lambda...)"
-            value={topico}
-            onChange={(e) => setTopico(e.target.value)}
-          />
-
-          <button onClick={handleGenerarExamen} disabled={loading}>
-            {loading ? 'Generando...' : 'Generar examen'}
-          </button>
-        </div>
-
-        {error && <p className="mensaje-error">{error}</p>}
-      </div>
-    );
+  
+  const reiniciarExamen = () => {
+    setRespuestasUsuario({});
+    setMostrarResultados(false);
+    setPuntuacion(0);
   }
 
   return (
-    <div className="examen-page">
-      <h2 className="titulo">📝 Examen: {examen.tema}</h2>
-      <p className="tipo-pregunta">Tipo: {preguntaActual.tipo}</p>
-      <h3>{preguntaActualIndex + 1}. {preguntaActual.enunciado}</h3>
+    <div className="examenes-container">
+      <h2>🧪 Generador de Exámenes</h2>
+      <p>Selecciona el curso y un tema para generar preguntas de práctica.</p>
 
-      <div className="opciones-container">
-        {Object.entries(preguntaActual.opciones).map(([letra, texto]) => (
-          <button
-            key={letra}
-            className={`opcion-btn ${
-              respuestaSeleccionada.includes(letra)
-                ? preguntaActual.respuestasCorrectas.includes(letra)
-                  ? 'correcta'
-                  : 'incorrecta'
-                : ''
-            }`}
-            onClick={() => handleSeleccion(letra)}
-            disabled={mostrarJustificacion}
-          >
-            <strong>{letra}:</strong> {texto}
-          </button>
+      <select value={curso} onChange={(e) => setCurso(e.target.value)}>
+        {Object.keys(cursos).map((nombre) => (
+          <option key={nombre} value={nombre}>{nombre}</option>
         ))}
-      </div>
+      </select>
 
-      {!mostrarJustificacion ? (
-        <button
-          className="btn-secundario"
-          onClick={() => setMostrarJustificacion(true)}
-          disabled={respuestaSeleccionada.length === 0}
-        >
-          Revisar
-        </button>
-      ) : (
-        <>
-          <p className={`resultado ${esCorrecta() ? 'acierto' : 'error'}`}>
-            {esCorrecta() ? '✅ Respuesta correcta' : '❌ Respuesta incorrecta'}
-          </p>
-          <p className="justificacion">🧠 Justificación: {preguntaActual.justificacion}</p>
-          {preguntaActualIndex < examen.preguntas.length - 1 ? (
-            <button className="btn-siguiente" onClick={siguientePregunta}>Siguiente pregunta</button>
-          ) : (
-            <p>🏁 Fin del examen</p>
-          )}
-        </>
+      <input
+        type="text"
+        placeholder="Escribe el módulo o tema"
+        value={topico}
+        onChange={(e) => setTopico(e.target.value)}
+      />
+
+      <button onClick={generarExamen} disabled={isLoading}>
+        {isLoading ? 'Generando...' : '🎯 Generar examen'}
+      </button>
+
+      {error && <p className="error">{error}</p>}
+      {isLoading && <div className="spinner"></div>}
+      
+      {examen && (
+        <div className="examen-resultado">
+          <h3>Examen sobre: {examen.tema}</h3>
+          {examen.preguntas.map((pregunta, index) => (
+            <PreguntaExamen
+              key={index}
+              index={index}
+              pregunta={pregunta}
+              respuestaUsuario={respuestasUsuario[index]}
+              onRespuesta={(respuesta) => handleRespuesta(index, respuesta)}
+              mostrarResultados={mostrarResultados}
+            />
+          ))}
+          <div className="examen-footer">
+            {!mostrarResultados ? (
+              <button onClick={calificarExamen} className="btn-calificar">Calificar Examen</button>
+            ) : (
+              <div className="resultado-final-container">
+                <p>Puntuación Final: {puntuacion} de {examen.preguntas.length}</p>
+                <button onClick={reiniciarExamen} className="btn-reiniciar">Volver a Intentar</button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
-}
+};
 
 export default ExamenesPage;
-

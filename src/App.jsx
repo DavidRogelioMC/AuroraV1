@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
-import { jwtDecode } from "jwt-decode";
+// src/App.jsx (CÓDIGO FINAL Y UNIFICADO)
+
+import { useEffect, useMemo, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { Auth } from 'aws-amplify'; // Aún se usa para el refresco de atributos
 
 // Componentes
 import Sidebar from './components/Sidebar';
@@ -10,9 +12,12 @@ import ProfileModal from './components/ProfileModal';
 import Home from './components/Home';
 import ActividadesPage from './components/ActividadesPage';
 import ResumenesPage from './components/ResumenesPage';
-import ExamenesPage from './components/ExamenesPage'; // ✅ IMPORTACIÓN CORRECTA
+import ExamenesPage from './components/ExamenesPage';
+import AdminPage from './components/AdminPage';
+import GeneradorContenidosPage from './components/GeneradorContenidosPage';
+import GeneradorTemarios from './components/GeneradorTemarios'; // <-- IMPORTA EL NUEVO COMPONENTE
 
-// Estilos y assets
+// Estilos y Assets
 import './index.css';
 import logo from './assets/Netec.png';
 import previewImg from './assets/Preview.png';
@@ -22,68 +27,125 @@ import colombiaFlag from './assets/colombia.png';
 import mexicoFlag from './assets/mexico.png';
 import espanaFlag from './assets/espana.png';
 
-function App() {
-  const [token, setToken] = useState(localStorage.getItem("id_token"));
-  const [email, setEmail] = useState("");
+const ADMIN_EMAIL = 'anette.flores@netec.com.mx';
 
+const normalizarRol = (raw) => {
+  if (!raw) return '';
+  const parts = String(raw).toLowerCase().split(/[,\s]+/).filter(Boolean);
+  // Priorizar admin sobre otros roles
+  if (parts.includes('admin')) return 'admin';
+  if (parts.includes('creador')) return 'creador';
+  if (parts.includes('participant')) return 'participant';
+  return parts[0] || '';
+};
+
+function App() {
+  const [token, setToken] = useState(localStorage.getItem('id_token') || '');
+  const [email, setEmail] = useState('');
+  const [rol, setRol] = useState('');
+
+  // --- LÓGICA DE AUTENTICACIÓN MANUAL (DE TU CÓDIGO PREFERIDO) ---
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
-  const loginUrl = `${domain}/login?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI;
+  const loginUrl = useMemo(() => {
+    if (!domain || !clientId || !redirectUri) return '';
+    const u = new URL(`${domain}/login`);
+    u.searchParams.append('response_type', 'token');
+    u.searchParams.append('client_id', clientId);
+    u.searchParams.append('redirect_uri', redirectUri);
+    return u.toString();
+  }, [clientId, domain, redirectUri]);
   
-useEffect(() => {
-  Auth.currentAuthenticatedUser()
-    .then(user => {
-      console.log("🟢 Sesión activa:", user);
-    })
-    .catch(async err => {
-      // Aquí Amplify detectará el code en la URL y lo intercambiará por tokens
-      try {
-        const user = await Auth.federatedSignIn(); // << esta llamada ya maneja el "code"
-        console.log("✅ Usuario autenticado por código:", user);
-      } catch (error) {
-        console.log("❌ Error al autenticar:", error);
+  const handleLogout = () => {
+    localStorage.removeItem('id_token');
+    const u = new URL(`${domain}/logout`);
+    u.searchParams.append('client_id', clientId);
+    u.searchParams.append('logout_uri', redirectUri);
+    window.location.href = u.toString();
+  };
+  
+  // Captura de token, decodificación y refresco de atributos
+  useEffect(() => {
+    const { hash } = window.location;
+    if (hash.includes('id_token=')) {
+      const newToken = new URLSearchParams(hash.slice(1)).get('id_token');
+      if (newToken) {
+        localStorage.setItem('id_token', newToken);
+        setToken(newToken);
       }
-    });
-}, []);
-
-  useEffect(() => {
-    Auth.currentSession()
-      .then(session => console.log("✅ Sesión activa:", session))
-      .catch(() => Auth.signOut());
-  }, []);
-
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("id_token")) {
-      const newToken = hash.split("id_token=")[1].split("&")[0];
-      localStorage.setItem("id_token", newToken);
-      setToken(newToken);
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
     }
   }, []);
 
   useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setEmail(decoded.email);
-      } catch (err) {
-        console.error("❌ Error al decodificar el token:", err);
+    if (!token) {
+      setEmail('');
+      setRol('');
+      return;
+    };
+    try {
+      const decoded = jwtDecode(token);
+      const decodedEmail = decoded?.email || '';
+      setEmail(decodedEmail);
+      
+      // Forzar rol admin para Anette independientemente del token
+      if (decodedEmail === ADMIN_EMAIL) {
+        setRol('admin');
+      } else {
+        setRol(normalizarRol(decoded?.['custom:rol']));
       }
+    } catch (err) {
+      console.error('❌ Error al decodificar token:', err);
+      // Si el token es inválido, limpiamos la sesión
+      localStorage.removeItem('id_token');
+      setToken('');
+      setEmail('');
+      setRol('');
     }
   }, [token]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("id_token");
-    const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
-    window.location.href = logoutUrl;
-  };
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    const refreshFromCognito = () => {
+      Auth.currentAuthenticatedUser({ bypassCache: true })
+        .then(u => {
+          if (cancelled) return;
+          const freshRol = normalizarRol(u?.attributes?.['custom:rol'] || '');
+          const freshEmail = u?.attributes?.email || '';
+          if (freshEmail && freshEmail !== email) setEmail(freshEmail);
+          
+          // Forzar rol admin para Anette
+          if (freshEmail === ADMIN_EMAIL) {
+            setRol('admin');
+          } else if (freshRol && freshRol !== rol) {
+            setRol(freshRol);
+          }
+        })
+        .catch(err => {
+          console.log('No se pudo refrescar atributos de Cognito', err?.message || err);
+        });
+    };
+    refreshFromCognito();
+    const iv = setInterval(refreshFromCognito, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+    };
+  }, [token, email, rol]);
+
+  useEffect(() => {
+    if (email === ADMIN_EMAIL) setRol('admin');
+  }, [email]);
+
+  const adminAllowed = email === ADMIN_EMAIL;
+  // --- FIN DE LA LÓGICA DE AUTENTICACIÓN ---
 
   return (
     <>
       {!token ? (
+        // --- Pantalla de acceso ---
         <div id="paginaInicio">
           <div className="header-bar">
             <img className="logo-left" src={logo} alt="Logo Netec" />
@@ -93,42 +155,31 @@ useEffect(() => {
               <div className="illustration-centered">
                 <img src={previewImg} alt="Ilustración" className="preview-image" />
               </div>
-              <button className="login-button" onClick={() => (window.location.href = loginUrl)}>
+              <button className="login-button" onClick={() => { if(loginUrl) window.location.href = loginUrl }}>
                 🚀 Comenzar Ahora
               </button>
               <div className="country-flags">
-                <a href="https://www.netec.com/cursos-ti-chile" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={chileFlag} alt="Chile" className="flag-image" />
-                  <div className="flag-label">Chile</div>
-                </a>
-                <a href="https://www.netec.com/cursos-ti-peru" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={peruFlag} alt="Perú" className="flag-image" />
-                  <div className="flag-label">Perú</div>
-                </a>
-                <a href="https://www.netec.com/cursos-ti-colombia" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={colombiaFlag} alt="Colombia" className="flag-image" />
-                  <div className="flag-label">Colombia</div>
-                </a>
-                <a href="https://www.netec.com/cursos-ti-mexico" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={mexicoFlag} alt="México" className="flag-image" />
-                  <div className="flag-label">México</div>
-                </a>
-                <a href="https://www.netec.es/" target="_blank" rel="noopener noreferrer" className="flag-item">
-                  <img src={espanaFlag} alt="España" className="flag-image" />
-                  <div className="flag-label">España</div>
-                </a>
+                {[
+                  { flag: chileFlag, label: 'Chile', url: 'https://www.netec.com/cursos-ti-chile' },
+                  { flag: peruFlag, label: 'Perú', url: 'https://www.netec.com/cursos-ti-peru' },
+                  { flag: colombiaFlag, label: 'Colombia', url: 'https://www.netec.com/cursos-ti-colombia' },
+                  { flag: mexicoFlag, label: 'México', url: 'https://www.netec.com/cursos-ti-mexico' },
+                  { flag: espanaFlag, label: 'España', url: 'https://www.netec.es/' }
+                ].map(({ flag, label, url }) => (
+                  <a key={label} href={url} target="_blank" rel="noopener noreferrer" className="flag-item">
+                    <img src={flag} alt={label} className="flag-image" />
+                    <div className="flag-label">{label}</div>
+                  </a>
+                ))}
               </div>
             </div>
           </div>
         </div>
       ) : (
+        // --- App privada ---
         <Router>
           <div id="contenidoPrincipal">
-            <Sidebar email={email} />
-            <div style={{ padding: '1rem', background: '#f3f3f3', fontSize: '0.9rem' }}>
-              <strong>📧 Correo: {email}</strong>
-            </div>
-
+            <Sidebar email={email} grupo={rol} token={token} />
             <ProfileModal token={token} />
             <ChatModal token={token} />
 
@@ -137,10 +188,19 @@ useEffect(() => {
                 <Route path="/" element={<Home />} />
                 <Route path="/actividades" element={<ActividadesPage token={token} />} />
                 <Route path="/resumenes" element={<ResumenesPage />} />
-                <Route path="/examenes" element={<ExamenesPage />} /> {/* ✅ Ruta agregada */}
+                <Route path="/examenes" element={<ExamenesPage token={token}/>} />
+                <Route path="/admin" element={adminAllowed ? <AdminPage /> : <Navigate to="/" replace />} />
+                
+                {/* --- INICIO DE LA CORRECCIÓN --- */}
+                <Route path="/generador-contenidos" element={<GeneradorContenidosPage />}>
+                  {/* Esta ruta ahora está anidada y se renderizará en el <Outlet> */}
+                  <Route path="curso-estandar" element={<GeneradorTemarios />} />
+                </Route>
+                {/* --- FIN DE LA CORRECCIÓN --- */}
+                
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
-
             <button id="logout" onClick={handleLogout}>Cerrar sesión</button>
           </div>
         </Router>
