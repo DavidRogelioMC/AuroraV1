@@ -50,7 +50,7 @@
   display: flex;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
   padding: 0.5rem;
   background-color: #e9ecef;
   border-radius: 8px;
@@ -114,6 +114,20 @@
   border-bottom-color: #1b5784;
   outline: none;
 }
+
+.input-campo {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  width: 100%;
+}
+.input-campo:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
 .textarea-descripcion {
   width: 100%;
   min-height: 80px;
@@ -125,6 +139,11 @@
   resize: vertical;
   margin-bottom: 1.5rem;
 }
+.textarea-descripcion:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
 .capitulo-editor {
   margin-top: 1.5rem;
   padding: 1.5rem;
@@ -132,6 +151,7 @@
   border-radius: 6px;
   border: 1px solid #eee;
 }
+
 .input-capitulo {
   font-size: 1.2rem;
   font-weight: bold;
@@ -142,6 +162,11 @@
   margin-bottom: 1rem;
   background: transparent;
 }
+.input-capitulo:focus {
+  border-bottom-color: #1b5784;
+  outline: none;
+}
+
 .input-subcapitulo {
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -150,6 +175,11 @@
   padding: 0.5rem;
   font-size: 0.95rem;
 }
+.input-subcapitulo:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
 .capitulo-editor ul {
   list-style-type: none;
   padding-left: 0;
@@ -158,7 +188,7 @@
   margin-bottom: 0.5rem;
 }
 
-/* --- ESTILOS PARA LA VISTA RESUMIDA --- */
+/* --- ESTILOS PARA LA VISTA RESUMIDA (SOLO LECTURA) --- */
 .vista-resumida {
   text-align: left;
   padding: 1rem;
@@ -193,6 +223,209 @@
   font-size: 1.1rem;
 }
 
+/* --- BOTONES DE AGREGAR/ELIMINAR --- */
+.add-subcapitulo-btn, .add-capitulo-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.add-subcapitulo-btn:hover, .add-capitulo-btn:hover {
+  background: #218838;
+}
+
+.add-capitulo-btn {
+  margin: 20px 0;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+}
+
+.delete-btn-small {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.delete-btn-small:hover {
+  background: #c82333;
+}
+
+/* --- HEADERS DE CAPÍTULOS Y SUBCAPÍTULOS --- */
+.capitulo-header, .capitulo-header-resumido {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.capitulo-header .input-capitulo, .capitulo-header-resumido .input-capitulo-resumido {
+  flex: 1;
+}
+
+.subcapitulo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* --- GRIDS Y CAMPOS ADICIONALES --- */
+.capitulo-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.field-group {
+  margin-bottom: 12px;
+}
+
+.field-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.field-group input, .field-group select, .field-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.field-group input:focus, .field-group select:focus, .field-group textarea:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.subcapitulo-item {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.subcapitulo-fields {
+  margin-top: 12px;
+}
+
+.objetivos-capitulo, .objetivos-capitulo-resumido {
+  margin-bottom: 16px;
+}
+
+.objetivos-capitulo label, .objetivos-capitulo-resumido label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.objetivos-capitulo textarea, .objetivos-capitulo-resumido textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* --- CAMPOS ESPECIALIZADOS --- */
+.input-sesion, .input-tiempo {
+  width: 70px;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.select-tipo {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  min-width: 100px;
+}
+
+.input-entregable {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.subcapitulo-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.subcapitulo-resumido {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 6px;
+  border: 1px solid #e1e5e9;
+  border-radius: 4px;
+  background: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.subcapitulo-resumido:hover {
+  border-color: #0066cc;
+}
+
 /* --- ESTILOS PARA LOS BOTONES DE ACCIÓN --- */
 .acciones-footer {
   display: flex;
@@ -202,6 +435,7 @@
   padding-top: 1.5rem;
   border-top: 1px solid #eee;
 }
+
 .acciones-footer button {
   padding: 10px 20px;
   border-radius: 5px;
@@ -209,12 +443,23 @@
   border: 1px solid #ccc;
   background-color: #f0f0f0;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
+
+.acciones-footer button:hover {
+  background-color: #e6e6e6;
+}
+
 .btn-guardar {
   background-color: #1b5784 !important;
   color: white;
   border-color: #1b5784 !important;
 }
+
+.btn-guardar:hover {
+  background-color: #154660 !important;
+}
+
 .btn-guardar:disabled { 
   opacity: 0.6; 
   cursor: not-allowed; 
@@ -240,6 +485,8 @@
   background-color: #c0392b !important;
   border-color: #c0392b !important;
 }
+
+/* --- ESTILOS PARA REGENERACIÓN --- */
 .regenerar-form {
   margin-top: 1.5rem;
   padding: 1.5rem;
@@ -248,7 +495,7 @@
   border: 1px solid #cfe7fc;
 }
 
-.regenerar-form h4 {
+.regenerar-form h3, .regenerar-form h4 {
   margin-top: 0;
   margin-bottom: 1.5rem;
   color: #1b5784;
@@ -290,6 +537,20 @@
   box-shadow: 0 0 0 2px rgba(27, 87, 132, 0.1);
 }
 
+.regenerar-form .form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.regenerar-form .form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
 .regenerar-form button {
   background-color: #1b5784;
   color: white;
@@ -299,12 +560,23 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 1rem;
   transition: background-color 0.2s;
 }
 
 .regenerar-form button:hover {
   background-color: #154660;
+}
+
+.regenerar-form button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.regenerar-form .help-text {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.25rem;
+  font-style: italic;
 }
 
 /* --- SISTEMA DE MODALES --- */
@@ -350,6 +622,139 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+/* --- ESTILOS PARA EXPORTACIÓN --- */
+.export-format { 
+  display: flex; 
+  gap: 16px; 
+}
+.export-format label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA PDF --- */
+.pdf-clean {
+  display: none; /* Oculto por defecto, solo visible durante exportación */
+}
+
+@media print {
+  .vista-selector,
+  .vista-info,
+  .acciones-footer,
+  .regenerar-form,
+  .modal-overlay,
+  .ui-messages {
+    display: none !important;
+  }
+  
+  .editor-container {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+  
+  .input-titulo,
+  .input-titulo-resumido,
+  .input-campo,
+  .input-capitulo,
+  .input-subcapitulo,
+  .textarea-descripcion,
+  .textarea-objetivos-capitulo,
+  .textarea-objetivos-resumido {
+    border: none;
+    background: transparent;
+    resize: none;
+    outline: none;
+  }
+}
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 768px) {
+  .vista-selector {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .vista-selector .btn-vista {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid-capitulo {
+    grid-template-columns: 1fr;
+  }
+  
+  .capitulo-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .acciones-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .acciones-footer button {
+    width: 100%;
+  }
+  
+  .editor-container {
+    padding: 1rem;
+  }
+  
+  .subcapitulo-resumido {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .subcapitulo-meta {
+    justify-content: space-between;
+  }
+  
+  .regenerar-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .regenerar-form .form-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .input-titulo {
+    font-size: 1.4rem;
+  }
+  
+  .input-titulo-resumido {
+    font-size: 1.3rem;
+  }
+  
+  .subcapitulos-resumidos {
+    gap: 0.75rem;
+  }
+  
+  .subcapitulo-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .subcapitulo-tiempos {
+    justify-content: center;
+  }
 }
 
 /* --- ESTILOS PARA EXPORTACIÓN --- */
@@ -557,6 +962,40 @@
   outline: none;
 }
 
+.info-grid-capitulo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f0f8ff;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.info-grid-capitulo .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.info-grid-capitulo .info-item label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.input-info-small {
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+.input-info-small:focus {
+  border-color: #1b5784;
+  outline: none;
+}
+
 .subcapitulos-resumidos {
   display: flex;
   flex-direction: column;
@@ -573,60 +1012,37 @@
 
 .input-subcapitulo-resumido {
   flex: 1;
-  padding: 6px 10px;
+  min-width: 200px;
+  padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.9rem;
+  background: #f9f9f9;
+}
+.input-subcapitulo-resumido:focus {
+  border-color: #1b5784;
+  outline: none;
+  background: white;
 }
 
-.subcapitulo-meta {
+.subcapitulo-tiempos {
   display: flex;
-  gap: 6px;
+  gap: 0.25rem;
   align-items: center;
 }
 
-.input-sesion, .input-tiempo {
-  width: 50px;
-  padding: 4px 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.input-tiempo-sub, .input-sesion-sub {
+  width: 60px;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
   font-size: 0.85rem;
   text-align: center;
 }
 
-.select-tipo {
-  padding: 4px 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  width: 40px;
-}
-
-.input-entregable {
-  flex: 0.8;
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.delete-btn-small {
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.delete-btn-small:hover {
-  background: #c82333;
+.input-tiempo-sub:focus, .input-sesion-sub:focus {
+  border-color: #1b5784;
+  outline: none;
 }
 
 /* Botones de agregar */
