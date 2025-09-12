@@ -85,8 +85,8 @@ const handleParamChange = (e) => {
 
   return (
     <div className="generador-temarios-container">
-      <h2>Generador de Cursos a Medida</h2>
-      <p>Introduce los detalles para generar una propuesta de temario con IA.</p>
+      <h2>Generador de Temarios a la Medida</h2>
+      <p>Introduce los detalles para generar una propuesta de temario con Inteligencia artificial.</p>
 
       <div className="formulario-inicial">
         <div className="form-grid">
