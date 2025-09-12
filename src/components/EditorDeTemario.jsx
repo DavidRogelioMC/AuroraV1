@@ -129,7 +129,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   };
 
 // --- FUNCIÓN DE EXPORTACIÓN FINAL (CON PLANTILLA Y SIN MARCA DE AGUA) ---
-const exportarPDF = async () => {
+  const exportarPDF = async () => {
     setTimeout(async () => {
       const elemento = pdfContentRef.current; 
       if (!elemento) {
@@ -142,7 +142,12 @@ const exportarPDF = async () => {
 
       try {
         const options = {
-          margin: [1, 1, 1, 1], // [Arriba, Izquierda, Abajo, Derecha] en pulgadas
+          // =================================================================
+          // ========= ESTA ES LA LÍNEA CORREGIDA Y MÁS IMPORTANTE =========
+          // =================================================================
+          // Define el área donde irá el TEXTO, dejando espacio para las imágenes.
+          margin: [2, 1, 1.5, 1], // [Arriba, Izquierda, Abajo, Derecha] en pulgadas
+
           filename: `Temario_${slugify(temario.nombre_curso)}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, logging: false },
@@ -160,40 +165,23 @@ const exportarPDF = async () => {
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
 
-        // --- LÓGICA DE POSICIONAMIENTO CORREGIDA ---
         for (let i = 1; i <= totalPages; i++) {
           pdf.setPage(i);
 
-          // --- 1. CÁLCULO Y DIBUJO DEL ENCABEZADO (SUPERIOR IZQUIERDA) ---
+          // Dibuja las imágenes de borde a borde (estas no respetan el 'margin' de arriba)
           const propsEncabezado = pdf.getImageProperties(encabezadoDataUrl);
-          // Define un ancho para la imagen (ej: 3.5 pulgadas). AJÚSTALO SI LO NECESITAS.
-          const anchoEncabezado = 3.5; 
-          // Calcula el alto proporcional para que no se deforme
-          const altoEncabezado = anchoEncabezado * (propsEncabezado.height / propsEncabezado.width);
-          // Posición X: El margen izquierdo
-          const xEncabezado = options.margin[1];
-          // Posición Y: El margen superior
-          const yEncabezado = options.margin[0];
-          pdf.addImage(encabezadoDataUrl, 'PNG', xEncabezado, yEncabezado, anchoEncabezado, altoEncabezado);
+          const altoEncabezado = pageWidth * (propsEncabezado.height / propsEncabezado.width);
+          pdf.addImage(encabezadoDataUrl, 'PNG', 0, 0, pageWidth, altoEncabezado); 
 
-          // --- 2. CÁLCULO Y DIBUJO DEL PIE DE PÁGINA (INFERIOR DERECHA) ---
           const propsPie = pdf.getImageProperties(pieDePaginaDataUrl);
-          // Define un ancho para la imagen (ej: 4 pulgadas). AJÚSTALO SI LO NECESITAS.
-          const anchoPie = 4;
-          // Calcula el alto proporcional
-          const altoPie = anchoPie * (propsPie.height / propsPie.width);
-          // Posición X: Ancho de página - ancho de la imagen - margen derecho
-          const xPie = pageWidth - anchoPie - options.margin[3];
-          // Posición Y: Alto de página - alto de la imagen - margen inferior
-          const yPie = pageHeight - altoPie - options.margin[2];
-          pdf.addImage(pieDePaginaDataUrl, 'PNG', xPie, yPie, anchoPie, altoPie);
+          const altoPie = pageWidth * (propsPie.height / propsPie.width);
+          pdf.addImage(pieDePaginaDataUrl, 'PNG', 0, pageHeight - altoPie, pageWidth, altoPie);
 
-          // --- 3. AÑADE LA NUMERACIÓN DE PÁGINA ---
+          // Añade la numeración de página
           pdf.setFontSize(9);
           pdf.setTextColor("#6c757d");
           const pageNumText = `Página ${i} de ${totalPages}`;
           const pageNumWidth = pdf.getStringUnitWidth(pageNumText) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
-          // Posiciona el número en la parte inferior central
           pdf.text(pageNumText, (pageWidth - pageNumWidth) / 2, pageHeight - 0.5);
         }
         
