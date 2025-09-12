@@ -64,7 +64,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     codigo_certificacion: temarioInicial?.codigo_certificacion || '',
     bloom_level_override: temarioInicial?.bloom_level_override || '',
     horas_por_sesion: temarioInicial?.horas_por_sesion || 7,
-    numero_sesiones_por_semana: temarioInicial?.numero_sesiones_por_semana || 3
+    numero_sesiones_por_semana: temarioInicial?.numero_sesiones_por_semana || 3 || 3
   });
 
   useEffect(() => {
@@ -544,7 +544,8 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
             </div>
             <div className="form-group">
               <label>Sesiones por Semana</label>
-              <input name="numero_sesiones_por_semana" type="number" min="3" max="7" value={params.numero_sesiones_por_semana} onChange={handleParamsChange} />
+              <input name="numero_sesiones_por_semana" type="number" min="1" max="7" value={params.numero_sesiones_por_semana} onChange={handleParamsChange} />
+              <small className="help-text">1-2 sesiones generan 3 capítulos, 3+ sesiones generan N capítulos</small>
             </div>
           </div>
           
@@ -598,6 +599,7 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
+
 
 
 
