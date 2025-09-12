@@ -47,7 +47,7 @@ function App() {
   // --- LÓGICA DE AUTENTICACIÓN MANUAL (DE TU CÓDIGO PREFERIDO) ---
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
   const domain = import.meta.env.VITE_COGNITO_DOMAIN;
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI;
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI_TESTING;
   const loginUrl = useMemo(() => {
     if (!domain || !clientId || !redirectUri) return '';
     const u = new URL(`${domain}/login`);
