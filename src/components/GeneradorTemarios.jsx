@@ -119,7 +119,7 @@ function GeneradorTemarios() {
   return (
     <div className="generador-temarios-container">
       <h2>Generador de Cursos Flexibles</h2>
-      <p>Genera cursos desde 1 día intensivo (7 horas) hasta 1 semana completa (1-7 sesiones).</p>
+      <p>Genera cursos desde 1 día intensivo hasta 1 semana completa (1-7 sesiones). Los cursos de 1-2 sesiones incluyen mínimo 3 capítulos para una progresión pedagógica adecuada.</p>
 
       <div className="formulario-inicial">
         <div className="form-grid">
@@ -174,7 +174,7 @@ function GeneradorTemarios() {
               onChange={handleParamChange}
               title="Entre 1 y 7 sesiones (1 día intensivo hasta 1 semana completa)"
             />
-            <small className="help-text">Entre 1 y 7 sesiones (1 día hasta 1 semana)</small>
+            <small className="help-text">Entre 1 y 7 sesiones (1-2 sesiones generan 3 capítulos automáticamente)</small>
           </div>
         </div>
         
@@ -249,4 +249,3 @@ function GeneradorTemarios() {
 }
 
 export default GeneradorTemarios;
-
