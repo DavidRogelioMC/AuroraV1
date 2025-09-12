@@ -21,11 +21,18 @@ function GeneradorTemarios() {
 
   const apiUrl = "https://h6ysn7u0tl.execute-api.us-east-1.amazonaws.com/dev2/PruebadeTEMAR";
 
-  const handleParamChange = (e) => {
-    const { name, value, type } = e.target;
-    const valorFinal = type === 'number' ? parseInt(value, 10) : value;
+// CÓDIGO CORREGIDO
+const handleParamChange = (e) => {
+    const { name, value } = e.target;
+
+    // Esta es la clave: si el campo es uno de los sliders, lo convertimos a número.
+    let valorFinal = value;
+    if (name === 'horas_por_sesion' || name === 'numero_sesiones_por_semana') {
+        valorFinal = parseInt(value, 10);
+    }
+    
     setParams(prev => ({ ...prev, [name]: valorFinal }));
-  };
+};
 
   const handleGenerar = async (nuevosParams = params) => {
     if (!nuevosParams.tema_curso || !nuevosParams.tecnologia || !nuevosParams.sector) {
