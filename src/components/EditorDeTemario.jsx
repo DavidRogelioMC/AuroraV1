@@ -202,7 +202,7 @@ const exportarPDF = async () => {
           pdf.setFontSize(8); // Un tamaño de letra un poco más pequeño para la leyenda
           pdf.setTextColor("#888888"); // Un color gris para que sea sutil
           // Posicionamos el texto en la esquina inferior izquierda (1 pulgada de margen)
-          pdf.text(leyenda, 1, pageHeight - 0.7); 
+          pdf.text(leyenda, 1, pageHeight - 0.9); 
         }
         
         await worker.save();
