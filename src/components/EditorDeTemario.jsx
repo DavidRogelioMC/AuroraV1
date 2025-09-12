@@ -117,6 +117,50 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
     setParams(prev => ({ ...prev, [name]: value }));
   };
 
+  const eliminarSubcapitulo = (capIndex, subIndex) => {
+    const nuevoTemario = JSON.parse(JSON.stringify(temario));
+    nuevoTemario.temario[capIndex].subcapitulos.splice(subIndex, 1);
+    setTemario(nuevoTemario);
+  };
+
+  const agregarSubcapitulo = (capIndex) => {
+    const nuevoTemario = JSON.parse(JSON.stringify(temario));
+    const nuevoSubcapitulo = {
+      nombre: "Nuevo subcapítulo",
+      sesion: 1,
+      tiempo_subcapitulo_min: 30,
+      tipo: 'teoria',
+      entregable: ''
+    };
+    nuevoTemario.temario[capIndex].subcapitulos.push(nuevoSubcapitulo);
+    setTemario(nuevoTemario);
+  };
+
+  const agregarCapitulo = () => {
+    const nuevoTemario = JSON.parse(JSON.stringify(temario));
+    const nuevoCapitulo = {
+      capitulo: "Nuevo Capítulo",
+      tiempo_capitulo_min: 180,
+      porcentaje_teoria_practica_capitulo: "50% Teoría / 50% Práctica",
+      objetivos_capitulo: ["Objetivo del nuevo capítulo"],
+      subcapitulos: [{
+        nombre: "Introducción",
+        sesion: 1,
+        tiempo_subcapitulo_min: 30,
+        tipo: 'teoria',
+        entregable: ''
+      }]
+    };
+    nuevoTemario.temario.push(nuevoCapitulo);
+    setTemario(nuevoTemario);
+  };
+
+  const eliminarCapitulo = (capIndex) => {
+    const nuevoTemario = JSON.parse(JSON.stringify(temario));
+    nuevoTemario.temario.splice(capIndex, 1);
+    setTemario(nuevoTemario);
+  };
+
   const handleRegenerateClick = () => {
     setErrorUi("");
     setOkUi("");
@@ -342,12 +386,67 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                           <label className="editor-label">Porcentaje Práctica</label><input name="porcentaje_practica" type="number" value={temario.porcentaje_practica || ''} onChange={handleInputChange} className="input-campo" placeholder="70" />
                           <label className="editor-label">Descripción General</label><textarea name="descripcion_general" value={temario.descripcion_general || ''} onChange={handleInputChange} className="textarea-descripcion" />
                           <label className="editor-label">Objetivos Generales</label><textarea name="objetivos_generales" value={Array.isArray(temario.objetivos_generales) ? temario.objetivos_generales.join('\n') : (temario.objetivos_generales || '')} onChange={handleInputChange} className="textarea-descripcion" placeholder="Lista los objetivos principales del curso, uno por línea" />
-                          <h3>Temario Resumido</h3>
+                          <h3>Temario Detallado</h3>
                           {(temario.temario || []).map((cap, capIndex) => (
                               <div key={capIndex} className="capitulo-editor">
-                                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, null, e.target.value)} className="input-capitulo" placeholder="Nombre del capítulo"/>
-                                  <div className="capitulo-info-grid">{/*...*/}</div>
-                                  <div className="objetivos-capitulo">{/*...*/}</div>
+                                  <div className="capitulo-header">
+                                    <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, null, e.target.value)} className="input-capitulo" placeholder="Nombre del capítulo"/>
+                                    <button
+                                      type="button"
+                                      className="delete-btn"
+                                      onClick={() => eliminarCapitulo(capIndex)}
+                                      title="Eliminar capítulo"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                  
+                                  <div className="capitulo-info-grid">
+                                    <div className="field-group">
+                                      <label>Duración Total (min):</label>
+                                      <input
+                                        type="number"
+                                        value={cap.tiempo_capitulo_min || ''}
+                                        onChange={(e) => {
+                                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                                          nuevoTemario.temario[capIndex].tiempo_capitulo_min = parseInt(e.target.value) || 0;
+                                          setTemario(nuevoTemario);
+                                        }}
+                                        placeholder="180"
+                                        min="30"
+                                        max="480"
+                                      />
+                                    </div>
+                                    <div className="field-group">
+                                      <label>Distribución Teoría/Práctica:</label>
+                                      <input
+                                        type="text"
+                                        value={cap.porcentaje_teoria_practica_capitulo || ''}
+                                        onChange={(e) => {
+                                          const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                                          nuevoTemario.temario[capIndex].porcentaje_teoria_practica_capitulo = e.target.value;
+                                          setTemario(nuevoTemario);
+                                        }}
+                                        placeholder="60% Teoría / 40% Práctica"
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="objetivos-capitulo">
+                                    <label>Objetivos del Capítulo:</label>
+                                    <textarea
+                                      value={Array.isArray(cap.objetivos_capitulo) ? cap.objetivos_capitulo.join('\n') : (cap.objetivos_capitulo || '')}
+                                      onChange={(e) => {
+                                        const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                                        nuevoTemario.temario[capIndex].objetivos_capitulo = e.target.value.split('\n').filter(line => line.trim());
+                                        setTemario(nuevoTemario);
+                                      }}
+                                      placeholder="Lista los objetivos específicos de este capítulo, uno por línea"
+                                      rows="3"
+                                    />
+                                  </div>
+                                  
+                                  <h4>Subcapítulos</h4>
                                   <ul>
                                       {(cap.subcapitulos || []).map((sub, subIndex) => {
                         const subData = typeof sub === 'object' ? sub : { 
@@ -434,20 +533,102 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                         );
                       })}
                                   </ul>
+                                  <button 
+                                    type="button" 
+                                    className="add-subcapitulo-btn"
+                                    onClick={() => agregarSubcapitulo(capIndex)}
+                                  >
+                                    + Agregar Subcapítulo
+                                  </button>
                               </div>
                           ))}
+                          <button 
+                            type="button" 
+                            className="add-capitulo-btn"
+                            onClick={agregarCapitulo}
+                          >
+                            + Agregar Capítulo
+                          </button>
                       </div>
                   ) : (
                       <div className="vista-resumida-editable">
                           <input name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo-resumido" placeholder="Nombre del curso" />
-                          <div className="info-grid">{/*...*/}</div>
-                          <div className="seccion-editable">{/*...*/}</div>
+                          
+                          <div className="info-grid">
+                            <input name="sector" value={temario.sector || ''} onChange={handleInputChange} placeholder="Sector" />
+                            <select name="nivel" value={temario.nivel || ''} onChange={handleInputChange}>
+                              <option value="">Nivel</option>
+                              <option value="basico">Básico</option>
+                              <option value="intermedio">Intermedio</option>
+                              <option value="avanzado">Avanzado</option>
+                            </select>
+                            <input name="horas_por_sesion" type="number" value={temario.horas_por_sesion || ''} onChange={handleInputChange} placeholder="Horas/sesión" />
+                            <input name="numero_sesiones_por_semana" type="number" value={temario.numero_sesiones_por_semana || ''} onChange={handleInputChange} placeholder="Sesiones/semana" />
+                            <input name="porcentaje_teoria" type="number" value={temario.porcentaje_teoria || ''} onChange={handleInputChange} placeholder="% Teoría" />
+                            <input name="porcentaje_practica" type="number" value={temario.porcentaje_practica || ''} onChange={handleInputChange} placeholder="% Práctica" />
+                          </div>
+                          
+                          <div className="seccion-editable">
+                            <label>Descripción General:</label>
+                            <textarea name="descripcion_general" value={temario.descripcion_general || ''} onChange={handleInputChange} placeholder="Descripción del curso..." rows="3" />
+                            
+                            <label>Objetivos Generales:</label>
+                            <textarea name="objetivos_generales" value={Array.isArray(temario.objetivos_generales) ? temario.objetivos_generales.join('\n') : (temario.objetivos_generales || '')} onChange={handleInputChange} placeholder="Objetivos del curso, uno por línea..." rows="4" />
+                          </div>
+                          
                           <h3>Temario Detallado</h3>
                           {(temario.temario || []).map((cap, capIndex) => (
                               <div key={capIndex} className="capitulo-resumido">
-                                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
-                                  <div className="info-grid-capitulo">{/*...*/}</div>
-                                  <div className="objetivos-capitulo-resumido">{/*...*/}</div>
+                                  <div className="capitulo-header-resumido">
+                                    <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
+                                    <button
+                                      type="button"
+                                      className="delete-btn-small"
+                                      onClick={() => eliminarCapitulo(capIndex)}
+                                      title="Eliminar capítulo"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                  
+                                  <div className="info-grid-capitulo">
+                                    <input
+                                      type="number"
+                                      value={cap.tiempo_capitulo_min || ''}
+                                      onChange={(e) => {
+                                        const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                                        nuevoTemario.temario[capIndex].tiempo_capitulo_min = parseInt(e.target.value) || 0;
+                                        setTemario(nuevoTemario);
+                                      }}
+                                      placeholder="Duración (min)"
+                                      min="30"
+                                      max="480"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={cap.porcentaje_teoria_practica_capitulo || ''}
+                                      onChange={(e) => {
+                                        const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                                        nuevoTemario.temario[capIndex].porcentaje_teoria_practica_capitulo = e.target.value;
+                                        setTemario(nuevoTemario);
+                                      }}
+                                      placeholder="% T/P"
+                                    />
+                                  </div>
+                                  
+                                  <div className="objetivos-capitulo-resumido">
+                                    <textarea
+                                      value={Array.isArray(cap.objetivos_capitulo) ? cap.objetivos_capitulo.join('\n') : (cap.objetivos_capitulo || '')}
+                                      onChange={(e) => {
+                                        const nuevoTemario = JSON.parse(JSON.stringify(temario));
+                                        nuevoTemario.temario[capIndex].objetivos_capitulo = e.target.value.split('\n').filter(line => line.trim());
+                                        setTemario(nuevoTemario);
+                                      }}
+                                      placeholder="Objetivos del capítulo..."
+                                      rows="2"
+                                    />
+                                  </div>
+                                  
                                   <div className="subcapitulos-resumidos">
                                       {(cap.subcapitulos || []).map((sub, subIndex) => {
                                         const subData = typeof sub === 'object' ? sub : { 
@@ -468,12 +649,43 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                                               className="input-subcapitulo-resumido"
                                             />
                                             <div className="subcapitulo-meta">
-                                              <span>S{subData.sesion || 1}</span>
-                                              <span>{subData.tiempo_subcapitulo_min || 30}min</span>
-                                              <span className={`tipo-${subData.tipo || 'teoria'}`}>
-                                                {(subData.tipo || 'teoria').charAt(0).toUpperCase()}
-                                              </span>
+                                              <input
+                                                type="number"
+                                                value={subData.sesion || 1}
+                                                onChange={(e) => handleTemarioChange(capIndex, subIndex, 'sesion', parseInt(e.target.value) || 1)}
+                                                min="1"
+                                                max="50"
+                                                className="input-sesion"
+                                                title="Sesión"
+                                              />
+                                              <input
+                                                type="number"
+                                                value={subData.tiempo_subcapitulo_min || 30}
+                                                onChange={(e) => handleTemarioChange(capIndex, subIndex, 'tiempo_subcapitulo_min', parseInt(e.target.value) || 30)}
+                                                min="5"
+                                                max="480"
+                                                step="5"
+                                                className="input-tiempo"
+                                                title="Duración en minutos"
+                                              />
+                                              <select
+                                                value={subData.tipo || 'teoria'}
+                                                onChange={(e) => handleTemarioChange(capIndex, subIndex, 'tipo', e.target.value)}
+                                                className="select-tipo"
+                                                title="Tipo de actividad"
+                                              >
+                                                <option value="teoria">T</option>
+                                                <option value="practica">P</option>
+                                                <option value="laboratorio">L</option>
+                                              </select>
                                             </div>
+                                            <input
+                                              type="text"
+                                              value={subData.entregable || ''}
+                                              onChange={(e) => handleTemarioChange(capIndex, subIndex, 'entregable', e.target.value)}
+                                              placeholder="Entregable..."
+                                              className="input-entregable"
+                                            />
                                             <button
                                               type="button"
                                               className="delete-btn-small"
@@ -495,6 +707,13 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                                   </div>
                               </div>
                           ))}
+                          <button 
+                            type="button" 
+                            className="add-capitulo-btn"
+                            onClick={agregarCapitulo}
+                          >
+                            + Agregar Capítulo
+                          </button>
                       </div>
                   )}
               </div>
