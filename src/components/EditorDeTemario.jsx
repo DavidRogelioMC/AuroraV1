@@ -57,10 +57,14 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   const [params, setParams] = useState({
     tecnologia: temarioInicial?.version_tecnologia || '',
     tema_curso: temarioInicial?.tema_curso || temarioInicial?.nombre_curso || '',
-    extension_curso_dias: temarioInicial?.numero_sesiones || 1,
-    nivel_dificultad: temarioInicial?.nivel_dificultad || 'basico',
-    audiencia: temarioInicial?.audiencia || '',
-    enfoque: temarioInicial?.enfoque || ''
+    nivel_dificultad: temarioInicial?.nivel || temarioInicial?.nivel_dificultad || 'basico',
+    sector: temarioInicial?.sector || '',
+    enfoque: temarioInicial?.enfoque || '',
+    objetivo_tipo: temarioInicial?.objetivo_tipo || 'saber_hacer',
+    codigo_certificacion: temarioInicial?.codigo_certificacion || '',
+    bloom_level_override: temarioInicial?.bloom_level_override || '',
+    horas_por_sesion: temarioInicial?.horas_por_sesion || 7,
+    numero_sesiones_por_semana: temarioInicial?.numero_sesiones_por_semana || 3
   });
 
   useEffect(() => {
@@ -69,18 +73,40 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setTemario(prev => ({ ...prev, [name]: value }));
+    if (name === 'objetivos_generales') {
+      // Convert string to array when saving
+      setTemario(prev => ({ ...prev, [name]: value.split('\n').filter(line => line.trim()) }));
+    } else {
+      setTemario(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleTemarioChange = (capIndex, subIndex, value) => {
+  const handleTemarioChange = (capIndex, subIndex, field, value) => {
     const nuevoTemario = JSON.parse(JSON.stringify(temario));
     if (subIndex === null) {
+      // Editando el nombre del capítulo
       nuevoTemario.temario[capIndex].capitulo = value;
     } else {
+      // Editando subcapítulo
       if (typeof nuevoTemario.temario[capIndex].subcapitulos[subIndex] === 'object') {
-        nuevoTemario.temario[capIndex].subcapitulos[subIndex].nombre = value;
+        if (field) {
+          nuevoTemario.temario[capIndex].subcapitulos[subIndex][field] = value;
+        } else {
+          nuevoTemario.temario[capIndex].subcapitulos[subIndex].nombre = value;
+        }
       } else {
-        nuevoTemario.temario[capIndex].subcapitulos[subIndex] = value;
+        // Convertir string a objeto si es necesario
+        const nombreActual = nuevoTemario.temario[capIndex].subcapitulos[subIndex];
+        nuevoTemario.temario[capIndex].subcapitulos[subIndex] = {
+          nombre: field ? nombreActual : value,
+          sesion: 1,
+          tiempo_subcapitulo_min: 30,
+          tipo: 'teoria',
+          entregable: ''
+        };
+        if (field) {
+          nuevoTemario.temario[capIndex].subcapitulos[subIndex][field] = value;
+        }
       }
     }
     setTemario(nuevoTemario);
@@ -230,16 +256,23 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
           <div className="pdf-body">
             <h1 className="pdf-title">{temario?.nombre_curso || temario?.tema_curso}</h1>
             <div className="pdf-meta">
-              {temario?.version_tecnologia && <div><strong>Versión:</strong> {temario.version_tecnologia}</div>}
-              {temario?.horas_totales && <div><strong>Horas Totales:</strong> {temario.horas_totales}</div>}
-              {temario?.numero_sesiones && <div><strong>Sesiones:</strong> {temario.numero_sesiones}</div>}
-              {temario?.EOL && <div><strong>EOL:</strong> {temario.EOL}</div>}
-              {temario?.porcentaje_teoria_practica_general && (<div><strong>Distribución:</strong> {temario.porcentaje_teoria_practica_general}</div>)}
+              {temario?.sector && <div><strong>Sector:</strong> {temario.sector}</div>}
+              {temario?.nivel && <div><strong>Nivel:</strong> {temario.nivel}</div>}
+              {temario?.horas_por_sesion && <div><strong>Horas por Sesión:</strong> {temario.horas_por_sesion}</div>}
+              {temario?.numero_sesiones_por_semana && <div><strong>Sesiones por Semana:</strong> {temario.numero_sesiones_por_semana}</div>}
+              {temario?.porcentaje_teoria && temario?.porcentaje_practica && (<div><strong>Distribución:</strong> {temario.porcentaje_teoria}% Teoría / {temario.porcentaje_practica}% Práctica</div>)}
             </div>
             {temario?.descripcion_general && (<><h2>Descripción General</h2><p className="pdf-justify">{temario.descripcion_general}</p></>)}
-            {temario?.audiencia && (<><h2>Audiencia</h2><p className="pdf-justify">{temario.audiencia}</p></>)}
-            {temario?.prerrequisitos && (<><h2>Prerrequisitos</h2><p className="pdf-justify">{temario.prerrequisitos}</p></>)}
-            {temario?.objetivos && (<><h2>Objetivos</h2><p className="pdf-justify" style={{ whiteSpace: 'pre-wrap' }}>{temario.objetivos}</p></>)}
+            {temario?.objetivos_generales && (
+              <><h2>Objetivos Generales</h2>
+              {Array.isArray(temario.objetivos_generales) ? (
+                <ul className="pdf-objetivos">
+                  {temario.objetivos_generales.map((obj, i) => <li key={i}>{obj}</li>)}
+                </ul>
+              ) : (
+                <p className="pdf-justify" style={{ whiteSpace: 'pre-wrap' }}>{temario.objetivos_generales}</p>
+              )}</>
+            )}
             
             <h2>Temario</h2>
             {(temario?.temario || []).map((cap, i) => (
@@ -295,23 +328,111 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                   {vista === 'detallada' ? (
                       <div>
                           <label className="editor-label">Nombre del Curso</label><textarea name="nombre_curso" value={temario.nombre_curso || ''} onChange={handleInputChange} className="input-titulo" />
-                          <label className="editor-label">Versión de la Tecnología</label><input name="version_tecnologia" value={temario.version_tecnologia || ''} onChange={handleInputChange} className="input-campo" />
-                          <label className="editor-label">Horas Totales</label><input name="horas_totales" type="number" value={temario.horas_totales || ''} onChange={handleInputChange} className="input-campo" />
-                          <label className="editor-label">Número de Sesiones</label><input name="numero_sesiones" type="number" value={temario.numero_sesiones || ''} onChange={handleInputChange} className="input-campo" />
-                          <label className="editor-label">EOL (Soporte)</label><input name="EOL" value={temario.EOL || ''} onChange={handleInputChange} className="input-campo" placeholder="12 meses" />
-                          <label className="editor-label">Porcentaje Teoría/Práctica General</label><input name="porcentaje_teoria_practica_general" value={temario.porcentaje_teoria_practica_general || ''} onChange={handleInputChange} className="input-campo" placeholder="30% Teoría / 70% Práctica" />
+                          <label className="editor-label">Sector</label><input name="sector" value={temario.sector || ''} onChange={handleInputChange} className="input-campo" placeholder="Ej: Bancario, Educativo, Salud" />
+                          <label className="editor-label">Nivel</label>
+                          <select name="nivel" value={temario.nivel || ''} onChange={handleInputChange} className="input-campo">
+                            <option value="">Seleccionar nivel</option>
+                            <option value="basico">Básico</option>
+                            <option value="intermedio">Intermedio</option>
+                            <option value="avanzado">Avanzado</option>
+                          </select>
+                          <label className="editor-label">Horas por Sesión</label><input name="horas_por_sesion" type="number" value={temario.horas_por_sesion || ''} onChange={handleInputChange} className="input-campo" />
+                          <label className="editor-label">Sesiones por Semana</label><input name="numero_sesiones_por_semana" type="number" value={temario.numero_sesiones_por_semana || ''} onChange={handleInputChange} className="input-campo" />
+                          <label className="editor-label">Porcentaje Teoría</label><input name="porcentaje_teoria" type="number" value={temario.porcentaje_teoria || ''} onChange={handleInputChange} className="input-campo" placeholder="30" />
+                          <label className="editor-label">Porcentaje Práctica</label><input name="porcentaje_practica" type="number" value={temario.porcentaje_practica || ''} onChange={handleInputChange} className="input-campo" placeholder="70" />
                           <label className="editor-label">Descripción General</label><textarea name="descripcion_general" value={temario.descripcion_general || ''} onChange={handleInputChange} className="textarea-descripcion" />
-                          <label className="editor-label">Audiencia</label><textarea name="audiencia" value={temario.audiencia || ''} onChange={handleInputChange} className="textarea-descripcion" />
-                          <label className="editor-label">Prerrequisitos</label><textarea name="prerrequisitos" value={temario.prerrequisitos || ''} onChange={handleInputChange} className="textarea-descripcion" />
-                          <label className="editor-label">Objetivos</label><textarea name="objetivos" value={temario.objetivos || ''} onChange={handleInputChange} className="textarea-descripcion" placeholder="Lista los objetivos principales del curso, separados por líneas" />
+                          <label className="editor-label">Objetivos Generales</label><textarea name="objetivos_generales" value={Array.isArray(temario.objetivos_generales) ? temario.objetivos_generales.join('\n') : (temario.objetivos_generales || '')} onChange={handleInputChange} className="textarea-descripcion" placeholder="Lista los objetivos principales del curso, uno por línea" />
                           <h3>Temario Resumido</h3>
                           {(temario.temario || []).map((cap, capIndex) => (
                               <div key={capIndex} className="capitulo-editor">
-                                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo" placeholder="Nombre del capítulo"/>
+                                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, null, e.target.value)} className="input-capitulo" placeholder="Nombre del capítulo"/>
                                   <div className="capitulo-info-grid">{/*...*/}</div>
                                   <div className="objetivos-capitulo">{/*...*/}</div>
                                   <ul>
-                                      {(cap.subcapitulos || []).map((sub, subIndex) => ( <li key={subIndex}><input value={typeof sub === 'object' ? sub.nombre : sub} onChange={(e) => handleTemarioChange(capIndex, subIndex, e.target.value)} className="input-subcapitulo" placeholder="Nombre del subcapítulo"/></li> ))}
+                                      {(cap.subcapitulos || []).map((sub, subIndex) => {
+                        const subData = typeof sub === 'object' ? sub : { 
+                          nombre: sub, 
+                          sesion: 1, 
+                          tiempo_subcapitulo_min: 30, 
+                          tipo: 'teoria', 
+                          entregable: '' 
+                        };
+                        
+                        return (
+                          <div key={subIndex} className="subcapitulo-item">
+                            <div className="subcapitulo-header">
+                              <h5>Subcapítulo {subIndex + 1}</h5>
+                              <button
+                                type="button"
+                                className="delete-btn"
+                                onClick={() => eliminarSubcapitulo(capIndex, subIndex)}
+                                title="Eliminar subcapítulo"
+                              >
+                                ×
+                              </button>
+                            </div>
+                            
+                            <div className="subcapitulo-fields">
+                              <div className="field-group">
+                                <label>Nombre del subcapítulo:</label>
+                                <input
+                                  type="text"
+                                  value={subData.nombre || ''}
+                                  onChange={(e) => handleTemarioChange(capIndex, subIndex, 'nombre', e.target.value)}
+                                  placeholder="Nombre del subcapítulo..."
+                                />
+                              </div>
+
+                              <div className="field-row">
+                                <div className="field-group">
+                                  <label>Sesión:</label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="50"
+                                    value={subData.sesion || 1}
+                                    onChange={(e) => handleTemarioChange(capIndex, subIndex, 'sesion', parseInt(e.target.value) || 1)}
+                                  />
+                                </div>
+
+                                <div className="field-group">
+                                  <label>Duración (min):</label>
+                                  <input
+                                    type="number"
+                                    min="5"
+                                    max="480"
+                                    step="5"
+                                    value={subData.tiempo_subcapitulo_min || 30}
+                                    onChange={(e) => handleTemarioChange(capIndex, subIndex, 'tiempo_subcapitulo_min', parseInt(e.target.value) || 30)}
+                                  />
+                                </div>
+
+                                <div className="field-group">
+                                  <label>Tipo:</label>
+                                  <select
+                                    value={subData.tipo || 'teoria'}
+                                    onChange={(e) => handleTemarioChange(capIndex, subIndex, 'tipo', e.target.value)}
+                                  >
+                                    <option value="teoria">Teoría</option>
+                                    <option value="practica">Práctica</option>
+                                    <option value="laboratorio">Laboratorio</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div className="field-group">
+                                <label>Entregable:</label>
+                                <input
+                                  type="text"
+                                  value={subData.entregable || ''}
+                                  onChange={(e) => handleTemarioChange(capIndex, subIndex, 'entregable', e.target.value)}
+                                  placeholder="Descripción del entregable (opcional)..."
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                                   </ul>
                               </div>
                           ))}
@@ -324,13 +445,53 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
                           <h3>Temario Detallado</h3>
                           {(temario.temario || []).map((cap, capIndex) => (
                               <div key={capIndex} className="capitulo-resumido">
-                                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
+                                  <input value={cap.capitulo || ''} onChange={(e) => handleTemarioChange(capIndex, null, null, e.target.value)} className="input-capitulo-resumido" placeholder="Nombre del capítulo"/>
                                   <div className="info-grid-capitulo">{/*...*/}</div>
                                   <div className="objetivos-capitulo-resumido">{/*...*/}</div>
                                   <div className="subcapitulos-resumidos">
-                                      {(cap.subcapitulos || []).map((sub, subIndex) => (
-                                          <div key={subIndex} className="subcapitulo-item">{/*...*/}</div>
-                                      ))}
+                                      {(cap.subcapitulos || []).map((sub, subIndex) => {
+                                        const subData = typeof sub === 'object' ? sub : { 
+                                          nombre: sub, 
+                                          sesion: 1, 
+                                          tiempo_subcapitulo_min: 30, 
+                                          tipo: 'teoria', 
+                                          entregable: '' 
+                                        };
+                                        
+                                        return (
+                                          <div key={subIndex} className="subcapitulo-resumido">
+                                            <input
+                                              type="text"
+                                              value={subData.nombre || ''}
+                                              onChange={(e) => handleTemarioChange(capIndex, subIndex, 'nombre', e.target.value)}
+                                              placeholder="Nombre del subcapítulo..."
+                                              className="input-subcapitulo-resumido"
+                                            />
+                                            <div className="subcapitulo-meta">
+                                              <span>S{subData.sesion || 1}</span>
+                                              <span>{subData.tiempo_subcapitulo_min || 30}min</span>
+                                              <span className={`tipo-${subData.tipo || 'teoria'}`}>
+                                                {(subData.tipo || 'teoria').charAt(0).toUpperCase()}
+                                              </span>
+                                            </div>
+                                            <button
+                                              type="button"
+                                              className="delete-btn-small"
+                                              onClick={() => eliminarSubcapitulo(capIndex, subIndex)}
+                                              title="Eliminar"
+                                            >
+                                              ×
+                                            </button>
+                                          </div>
+                                        );
+                                      })}
+                                      <button 
+                                        type="button" 
+                                        className="add-subcapitulo-btn"
+                                        onClick={() => agregarSubcapitulo(capIndex)}
+                                      >
+                                        + Subcapítulo
+                                      </button>
                                   </div>
                               </div>
                           ))}
@@ -347,7 +508,70 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
       </div>
 
       {mostrarFormRegenerar && (
-        <div className="regenerar-form">{/*...*/}</div>
+        <div className="regenerar-form">
+          <h3>Ajustar Parámetros y Regenerar</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Tecnología</label>
+              <input name="tecnologia" value={params.tecnologia} onChange={handleParamsChange} />
+            </div>
+            <div className="form-group">
+              <label>Tema del Curso</label>
+              <input name="tema_curso" value={params.tema_curso} onChange={handleParamsChange} />
+            </div>
+            <div className="form-group">
+              <label>Sector</label>
+              <input name="sector" value={params.sector} onChange={handleParamsChange} placeholder="Ej: Bancario, Educativo, Salud" />
+            </div>
+            <div className="form-group">
+              <label>Nivel de Dificultad</label>
+              <select name="nivel_dificultad" value={params.nivel_dificultad} onChange={handleParamsChange}>
+                <option value="basico">Básico</option>
+                <option value="intermedio">Intermedio</option>
+                <option value="avanzado">Avanzado</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Objetivo del Curso</label>
+              <select name="objetivo_tipo" value={params.objetivo_tipo} onChange={handleParamsChange}>
+                <option value="saber_hacer">Saber Hacer</option>
+                <option value="certificacion">Certificación</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Horas por Sesión</label>
+              <input name="horas_por_sesion" type="number" min="4" max="12" value={params.horas_por_sesion} onChange={handleParamsChange} />
+            </div>
+            <div className="form-group">
+              <label>Sesiones por Semana</label>
+              <input name="numero_sesiones_por_semana" type="number" min="3" max="7" value={params.numero_sesiones_por_semana} onChange={handleParamsChange} />
+            </div>
+          </div>
+          
+          {params.objetivo_tipo === 'certificacion' && (
+            <div className="form-group">
+              <label>Código de Certificación</label>
+              <input name="codigo_certificacion" value={params.codigo_certificacion} onChange={handleParamsChange} placeholder="Ej: AWS-SAA-C03" />
+            </div>
+          )}
+          
+          <div className="form-group">
+            <label>Enfoque Adicional (Opcional)</label>
+            <textarea name="enfoque" value={params.enfoque} onChange={handleParamsChange} />
+          </div>
+          
+          <div className="form-group">
+            <label>Nivel de Bloom Personalizado (Opcional)</label>
+            <input name="bloom_level_override" value={params.bloom_level_override} onChange={handleParamsChange} placeholder="Ej: Niveles 3-4" />
+          </div>
+          
+          <div className="form-actions">
+            <button onClick={handleRegenerateClick} disabled={isLoading}>
+              {isLoading ? 'Regenerando...' : 'Regenerar Temario'}
+            </button>
+            <button onClick={() => setMostrarFormRegenerar(false)}>Cancelar</button>
+          </div>
+        </div>
       )}
 
       {modalExportar && (
@@ -374,7 +598,6 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
 }
 
 export default EditorDeTemario;
-
 
 
 
