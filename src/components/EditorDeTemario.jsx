@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import html2pdf from "html2pdf.js";
 import { downloadExcelTemario } from "../utils/downloadExcel";
+import encabezadoImagen from '../assets/encabezado.png';
+import pieDePaginaImagen from '../assets/pie_de_pagina.png';
 import "./EditorDeTemario.css";
 
 const API_BASE = import.meta.env.VITE_TEMARIOS_API || "";
@@ -127,21 +129,20 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
   };
 
 // --- FUNCIÓN DE EXPORTACIÓN FINAL (CON PLANTILLA Y SIN MARCA DE AGUA) ---
-  const exportarPDF = async () => {
+const exportarPDF = async () => {
     setTimeout(async () => {
       const elemento = pdfContentRef.current; 
       if (!elemento) {
         setErrorUi("Error: No se encontró el contenido para exportar.");
         return;
       }
-      setOkUi("Generando PDF con plantilla...");
+      setOkUi("Generando PDF profesional...");
       setErrorUi("");
       elemento.classList.add('pdf-exporting');
 
       try {
         const options = {
-          // Los márgenes ahora los controla la imagen de la plantilla
-          margin: [0, 0, 0, 0], 
+          margin: [1, 1, 1, 1], // [Arriba, Izquierda, Abajo, Derecha] en pulgadas
           filename: `Temario_${slugify(temario.nombre_curso)}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true, logging: false },
@@ -152,19 +153,48 @@ function EditorDeTemario({ temarioInicial, onRegenerate, onSave, isLoading }) {
         const worker = html2pdf().set(options).from(elemento).toPdf();
         const pdf = await worker.get('pdf');
         const totalPages = pdf.internal.getNumberOfPages();
+        
+        const encabezadoDataUrl = await toDataURL(encabezadoImagen);
+        const pieDePaginaDataUrl = await toDataURL(pieDePaginaImagen);
+
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
 
+        // --- LÓGICA DE POSICIONAMIENTO CORREGIDA ---
         for (let i = 1; i <= totalPages; i++) {
           pdf.setPage(i);
-          // 3. AÑADE LA NUMERACIÓN DE PÁGINA (esto se mantiene)
+
+          // --- 1. CÁLCULO Y DIBUJO DEL ENCABEZADO (SUPERIOR IZQUIERDA) ---
+          const propsEncabezado = pdf.getImageProperties(encabezadoDataUrl);
+          // Define un ancho para la imagen (ej: 3.5 pulgadas). AJÚSTALO SI LO NECESITAS.
+          const anchoEncabezado = 3.5; 
+          // Calcula el alto proporcional para que no se deforme
+          const altoEncabezado = anchoEncabezado * (propsEncabezado.height / propsEncabezado.width);
+          // Posición X: El margen izquierdo
+          const xEncabezado = options.margin[1];
+          // Posición Y: El margen superior
+          const yEncabezado = options.margin[0];
+          pdf.addImage(encabezadoDataUrl, 'PNG', xEncabezado, yEncabezado, anchoEncabezado, altoEncabezado);
+
+          // --- 2. CÁLCULO Y DIBUJO DEL PIE DE PÁGINA (INFERIOR DERECHA) ---
+          const propsPie = pdf.getImageProperties(pieDePaginaDataUrl);
+          // Define un ancho para la imagen (ej: 4 pulgadas). AJÚSTALO SI LO NECESITAS.
+          const anchoPie = 4;
+          // Calcula el alto proporcional
+          const altoPie = anchoPie * (propsPie.height / propsPie.width);
+          // Posición X: Ancho de página - ancho de la imagen - margen derecho
+          const xPie = pageWidth - anchoPie - options.margin[3];
+          // Posición Y: Alto de página - alto de la imagen - margen inferior
+          const yPie = pageHeight - altoPie - options.margin[2];
+          pdf.addImage(pieDePaginaDataUrl, 'PNG', xPie, yPie, anchoPie, altoPie);
+
+          // --- 3. AÑADE LA NUMERACIÓN DE PÁGINA ---
           pdf.setFontSize(9);
           pdf.setTextColor("#6c757d");
           const pageNumText = `Página ${i} de ${totalPages}`;
           const pageNumWidth = pdf.getStringUnitWidth(pageNumText) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
-          
-          // Ajusta la posición vertical (el valor 'pageHeight - 0.45') si es necesario
-          pdf.text(pageNumText, (pageWidth - pageNumWidth) / 2, pageHeight - 0.45);
+          // Posiciona el número en la parte inferior central
+          pdf.text(pageNumText, (pageWidth - pageNumWidth) / 2, pageHeight - 0.5);
         }
         
         await worker.save();
